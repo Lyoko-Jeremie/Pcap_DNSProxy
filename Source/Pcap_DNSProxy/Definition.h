@@ -119,7 +119,7 @@
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.9"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.10"                           //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
@@ -148,7 +148,8 @@
 #define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_RANDOM_MINSIZE                         6U                                //Minimum size of random domain request
 #define DOMAIN_SINGLE_DATA_MAXSIZE                    63U                               //Domain length is between 3 and 63(Single label must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define ERROR_MESSAGE_MINSIZE                         3U                                //Minimum size of error message
+#define ERROR_MESSAGE_MAXSIZE                         512U                              //Maximum size of log message
+#define ERROR_MESSAGE_MINSIZE                         3U                                //Minimum size of log message
 #define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
 #define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
 #define HTTP_AUTHORIZATION_MAXSIZE                    DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of HTTP proxy authorization string.
@@ -243,7 +244,8 @@
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 ms)
 #define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
 #define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending(5000 ms/5 seconds)
-#define SENDING_ONCE_INTERVAL_TIMES                   3U                          //Repeat 3 times between every sending.
+#define SENDING_ONCE_INTERVAL_TIMES                   3U                          //Repeat times between every sending(3 times).
+#define SENDING_MAX_INTERVAL_TIMES                    8U                          //The maximum times of every repeat testing(8 times).
 #define SHORTEST_ALTERNATE_RANGE_TIME                 5U                          //The shortest time of checking timeout(5 seconds)
 #define SHORTEST_ALTERNATE_RESET_TIME                 5U                          //The shortest time to reset switching of alternate servers(5 seconds)
 #define SHORTEST_DOMAIN_TEST_INTERVAL_TIME            5U                          //The shortest Domain Test time between every sending(5 seconds)
@@ -263,9 +265,11 @@
 	#define COMMAND_KEYPAIR_GENERATOR                     (L"--keypair-generator")
 	#define COMMAND_LIB_VERSION                           (L"--lib-version")
 	#define COMMAND_LONG_HELP                             (L"--help")
+	#define COMMAND_LONG_LOG_FILE                         (L"--log-file")
 	#define COMMAND_LONG_PRINT_VERSION                    (L"--version")
-	#define COMMAND_LONG_SET_PATH                         (L"--config-file")
+	#define COMMAND_LONG_SET_PATH                         (L"--config-path")
 	#define COMMAND_SHORT_HELP                            (L"-h")
+	#define COMMAND_SHORT_LOG_FILE                        (L"-l")
 	#define COMMAND_SHORT_PRINT_VERSION                   (L"-v")
 	#define COMMAND_SHORT_SET_PATH                        (L"-c")
 	#define CONFIG_FILE_NAME_LIST_WCS                     {(L"Config.ini"), (L"Config.conf"), (L"Config.cfg"), (L"Config")}
@@ -288,9 +292,11 @@
 	#define COMMAND_KEYPAIR_GENERATOR                     ("--keypair-generator")
 	#define COMMAND_LIB_VERSION                           ("--lib-version")
 	#define COMMAND_LONG_HELP                             ("--help")
+	#define COMMAND_LONG_LOG_FILE                         ("--log-file")
 	#define COMMAND_LONG_PRINT_VERSION                    ("--version")
-	#define COMMAND_LONG_SET_PATH                         ("--config-file")
+	#define COMMAND_LONG_SET_PATH                         ("--config-path")
 	#define COMMAND_SHORT_HELP                            ("-h")
+	#define COMMAND_SHORT_LOG_FILE                        ("-l")
 	#define COMMAND_SHORT_PRINT_VERSION                   ("-v")
 	#define COMMAND_SHORT_SET_PATH                        ("-c")
 	#define CONFIG_FILE_NAME_LIST_WCS                     {(L"Config.conf"), (L"Config.ini"), (L"Config.cfg"), (L"Config")}

@@ -8,6 +8,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+How to install:
+Please read specific platform ReadMe_xx text files!
+
+
 Special attention:
   * If you need to let the flow of the program through the system routing level of the agent (such as VPN, etc.) for functional variable name resolution, select one of the options, restart the configuration after the completion of the service:
     * Direct Request = IPv4
@@ -84,20 +88,22 @@ Program Operation Parameter Description:
 Because some features can not be specified by using the configuration file, so use the program plug-in parameters to support
 All plug-in parameters can also be queried with the -h and --help parameters
 
-* -c Path and --config-file Path
+* --config-path Path
    Starts the job directory where the profile is located
-* -h and --help
+* --help
    Output the program description information to the screen
-* -v and --version
+* --version
    Export the program version number to the screen
 * --flush-dns
    Immediately empty all programs and DNS buffers within the system
 * --flush-dns Domain
    Immediately clear the function variable name for the Domain and all systems within the DNS cache
-* - keypair-generator
+* --keypair-generator
    Generate the key group required for the DNSCurve (DNSCrypt) protocol to KeyPair.txt
 * --lib-version
    Outputs the version number of the library used for the program to the screen
+* --log-file Path+Name
+  Set location of log file, output to stderr or stdout if Path+Name set to them.
 * --disable-daemon
    Turn off daemon mode (Linux)
 * --first-setup

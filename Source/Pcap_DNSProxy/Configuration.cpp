@@ -474,15 +474,15 @@ bool ReadParameter(
 	//Create file list.
 		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_WCS;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		const char *MBS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_MBS;
+		const char *ConfigFileNameList_MBS[] = CONFIG_FILE_NAME_LIST_MBS;
 	#endif
 		for (FileIndex = 0;FileIndex < sizeof(WCS_ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->front();
 			FileDataTemp.FileName.append(WCS_ConfigFileNameList[FileIndex]);
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileDataTemp.MBS_FileName = GlobalRunningStatus.MBS_Path_Global->front();
-			FileDataTemp.MBS_FileName.append(MBS_ConfigFileNameList[FileIndex]);
+			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->front();
+			FileDataTemp.FileName_MBS.append(ConfigFileNameList_MBS[FileIndex]);
 		#endif
 			FileDataTemp.ModificationTime = 0;
 
@@ -495,7 +495,7 @@ bool ReadParameter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), ("rb"));
+			FileHandle = fopen(FileList_Config.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
 			{
@@ -562,7 +562,7 @@ bool ReadParameter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), ("rb"));
+			FileHandle = fopen(FileList_Config.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
 			{
@@ -612,8 +612,8 @@ bool ReadParameter(
 					FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(FileIndex);
 					FileDataTemp.FileName.append(*DNSCurveParameter.DatabaseName);
 				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-					FileDataTemp.MBS_FileName = GlobalRunningStatus.MBS_Path_Global->at(FileIndex);
-					FileDataTemp.MBS_FileName.append(*DNSCurveParameter.MBS_DatabaseName);
+					FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(FileIndex);
+					FileDataTemp.FileName_MBS.append(*DNSCurveParameter.DatabaseName_MBS);
 				#endif
 					FileDataTemp.ModificationTime = 0;
 
@@ -624,8 +624,8 @@ bool ReadParameter(
 				delete DNSCurveParameter.DatabaseName;
 				DNSCurveParameter.DatabaseName = nullptr;
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				delete DNSCurveParameter.MBS_DatabaseName;
-				DNSCurveParameter.MBS_DatabaseName = nullptr;
+				delete DNSCurveParameter.DatabaseName_MBS;
+				DNSCurveParameter.DatabaseName_MBS = nullptr;
 			#endif
 				delete DNSCurveParameter.Database_Target_Server_Main_IPv6;
 				delete DNSCurveParameter.Database_Target_Server_Alternate_IPv6;
@@ -666,7 +666,7 @@ bool ReadParameter(
 			#if defined(PLATFORM_WIN)
 				if (_wfopen_s(&FileHandle, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).MBS_FileName.c_str(), ("rb"));
+				FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).FileName_MBS.c_str(), "rb");
 				if (FileHandle == nullptr)
 			#endif
 				{
@@ -770,8 +770,8 @@ void ReadIPFilter(
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_IPFilter->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileDataTemp.MBS_FileName = GlobalRunningStatus.MBS_Path_Global->at(Index);
-			FileDataTemp.MBS_FileName.append(GlobalRunningStatus.MBS_FileList_IPFilter->at(FileIndex));
+			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(Index);
+			FileDataTemp.FileName_MBS.append(GlobalRunningStatus.FileList_IPFilter_MBS->at(FileIndex));
 		#endif
 			FileDataTemp.ModificationTime = 0;
 
@@ -805,7 +805,7 @@ void ReadIPFilter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_IPFilter.at(FileIndex).MBS_FileName.c_str(), ("rb"));
+			FileHandle = fopen(FileList_IPFilter.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
 				continue;
@@ -880,8 +880,8 @@ void ReadHosts(
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_Hosts->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileDataTemp.MBS_FileName = GlobalRunningStatus.MBS_Path_Global->at(Index);
-			FileDataTemp.MBS_FileName.append(GlobalRunningStatus.MBS_FileList_Hosts->at(FileIndex));
+			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(Index);
+			FileDataTemp.FileName_MBS.append(GlobalRunningStatus.FileList_Hosts_MBS->at(FileIndex));
 		#endif
 			FileDataTemp.ModificationTime = 0;
 
@@ -915,7 +915,7 @@ void ReadHosts(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Hosts.at(FileIndex).MBS_FileName.c_str(), ("rb"));
+			FileHandle = fopen(FileList_Hosts.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
 				continue;
@@ -1000,7 +1000,7 @@ bool ReadFileAttributesLoop(
 			GetFileExInfoStandard, 
 			&FileAttributeData) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (stat(FileListIter.MBS_FileName.c_str(), &FileStatData) != 0)
+	if (stat(FileListIter.FileName_MBS.c_str(), &FileStatData) != 0)
 #endif
 	{
 	//Clear list data.

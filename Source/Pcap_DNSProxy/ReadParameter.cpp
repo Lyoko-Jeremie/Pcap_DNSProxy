@@ -167,7 +167,7 @@ bool Parameter_CheckSetting(
 		else if (!Parameter.EDNS_Label)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		
+
 		//Enable all process
 			Parameter.EDNS_Label = true;
 			Parameter.EDNS_Switch_Local = true;
@@ -190,7 +190,7 @@ bool Parameter_CheckSetting(
 		else if (!Parameter.EDNS_Label)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-			
+
 		//Enable all process
 			Parameter.EDNS_Label = true;
 			Parameter.EDNS_Switch_Local = true;
@@ -436,7 +436,7 @@ bool Parameter_CheckSetting(
 		if (Parameter.DNSSEC_ForceRecord && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Force Record require EDNS Label and DNSSEC Request", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-			
+
 		//Enable all process
 			Parameter.EDNS_Label = true;
 			Parameter.EDNS_Switch_Local = true;
@@ -458,7 +458,7 @@ bool Parameter_CheckSetting(
 			if (Parameter.EDNS_ClientSubnet_Relay)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-				
+
 			//Enable all process
 				Parameter.EDNS_Label = true;
 				Parameter.EDNS_Switch_Local = true;
@@ -476,7 +476,7 @@ bool Parameter_CheckSetting(
 			if (Parameter.DNSSEC_Request)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Request require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-				
+
 			//Enable all process
 				Parameter.EDNS_Label = true;
 				Parameter.EDNS_Switch_Local = true;
@@ -698,7 +698,7 @@ bool Parameter_CheckSetting(
 				//HTTP version 1.x is not allowed to set ":" in the first byte in header Names field.
 					if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 					{
-						if (IsLiteralFlag && StringIter.compare(0, strlen(":"), (":")) == 0)
+						if (IsLiteralFlag && StringIter.compare(0, strlen(":"), ":") == 0)
 						{
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT header field data error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 							return false;
@@ -734,13 +734,13 @@ bool Parameter_CheckSetting(
 			if (!Parameter.HTTP_CONNECT_TLS_Handshake)
 			{
 				delete Parameter.HTTP_CONNECT_TLS_SNI;
-				delete Parameter.MBS_HTTP_CONNECT_TLS_SNI;
+				delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
 			#endif
 				Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
-				Parameter.MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+				Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
@@ -764,22 +764,22 @@ bool Parameter_CheckSetting(
 			#endif
 
 			//Mark TLS Server Name Indication/SNI.
-				if (Parameter.MBS_HTTP_CONNECT_TLS_SNI != nullptr && !Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty())
+				if (Parameter.HTTP_CONNECT_TLS_SNI_MBS != nullptr && !Parameter.HTTP_CONNECT_TLS_SNI_MBS->empty())
 				{
-					if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str()), Parameter.MBS_HTTP_CONNECT_TLS_SNI->length(), *Parameter.HTTP_CONNECT_TLS_SNI))
+					if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(Parameter.HTTP_CONNECT_TLS_SNI_MBS->c_str()), Parameter.HTTP_CONNECT_TLS_SNI_MBS->length(), *Parameter.HTTP_CONNECT_TLS_SNI))
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 						delete Parameter.HTTP_CONNECT_TLS_SNI;
-						delete Parameter.MBS_HTTP_CONNECT_TLS_SNI;
+						delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
 						Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
-						Parameter.MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+						Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 					}
 				}
 				else {
 					delete Parameter.HTTP_CONNECT_TLS_SNI;
-					delete Parameter.MBS_HTTP_CONNECT_TLS_SNI;
+					delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
 					Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
-					Parameter.MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+					Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 				}
 
 			//TLS ALPN extension check
@@ -796,7 +796,7 @@ bool Parameter_CheckSetting(
 		{
 		//TLS Server Name Indication/SNI check
 			if ((Parameter.HTTP_CONNECT_TLS_SNI == nullptr || Parameter.HTTP_CONNECT_TLS_SNI->empty() || 
-				Parameter.MBS_HTTP_CONNECT_TLS_SNI == nullptr || Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty()) && 
+				Parameter.HTTP_CONNECT_TLS_SNI_MBS == nullptr || Parameter.HTTP_CONNECT_TLS_SNI_MBS->empty()) && 
 				Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP version 2 require TLS SNI extension", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -826,7 +826,7 @@ bool Parameter_CheckSetting(
 	#endif
 	#if defined(ENABLE_TLS)
 		delete Parameter.HTTP_CONNECT_TLS_SNI;
-		delete Parameter.MBS_HTTP_CONNECT_TLS_SNI;
+		delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
@@ -838,7 +838,7 @@ bool Parameter_CheckSetting(
 		Parameter.HTTP_CONNECT_ProxyAuthorization = nullptr;
 	#if defined(ENABLE_TLS)
 		Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
-		Parameter.MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+		Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 		Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
@@ -1646,16 +1646,16 @@ bool ReadParameterData_Whole(
 //Remove spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Remove comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
 //Additional Path, Hosts File Name, IPFilter File Name, HTTP CONNECT Header Field and DNSCurve Database Name must not be removed spaces or horizontal tab/HT.
-	if (Data.compare(0, strlen("#"), ("#")) == 0 || Data.compare(0, strlen("/"), ("/")) == 0)
+	if (Data.compare(0, strlen("#"), "#") == 0 || Data.compare(0, strlen("/"), "/") == 0)
 	{
 		return true;
 	}
-	else if (Data.compare(0, strlen("Additional Path = "), ("Additional Path = ")) != 0 && 
-		Data.compare(0, strlen("IPFilter File Name = "), ("IPFilter File Name = ")) != 0 && 
-		Data.compare(0, strlen("Hosts File Name ="), ("Hosts File Name =")) != 0 && 
-		Data.compare(0, strlen("HTTP CONNECT Header Field = "), ("HTTP CONNECT Header Field = ")) != 0
+	else if (Data.compare(0, strlen("Additional Path = "), "Additional Path = ") != 0 && 
+		Data.compare(0, strlen("IPFilter File Name = "), "IPFilter File Name = ") != 0 && 
+		Data.compare(0, strlen("Hosts File Name ="), "Hosts File Name =") != 0 && 
+		Data.compare(0, strlen("HTTP CONNECT Header Field = "), "HTTP CONNECT Header Field = ") != 0
 	#if defined(ENABLE_LIBSODIUM)
-		&& Data.compare(0, strlen("DNSCurve Database Name = "), ("DNSCurve Database Name = ")) != 0
+		&& Data.compare(0, strlen("DNSCurve Database Name = "), "DNSCurve Database Name = ") != 0
 	#endif
 		)
 	{
@@ -1798,7 +1798,7 @@ bool ReadParameterData_Base(
 	size_t UnsignedResult = 0;
 
 //[Base] block
-	if (Data.compare(0, strlen("Version="), ("Version=")) == 0)
+	if (Data.compare(0, strlen("Version="), "Version=") == 0)
 	{
 		if (Data.length() > strlen("Version=") && Data.length() < strlen("Version=") + CONFIG_VERSION_MAXSIZE && //Version = x.x(x)
 			Data.find(ASCII_PERIOD) != std::string::npos && Data.find(ASCII_MINUS) == std::string::npos)
@@ -1832,7 +1832,7 @@ bool ReadParameterData_Base(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("FileRefreshTime="), ("FileRefreshTime=")) == 0 && Data.length() > strlen("FileRefreshTime="))
+	else if (Data.compare(0, strlen("FileRefreshTime="), "FileRefreshTime=") == 0 && Data.length() > strlen("FileRefreshTime="))
 	{
 		if (Data.length() < strlen("FileRefreshTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -1852,7 +1852,7 @@ bool ReadParameterData_Base(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("LargeBufferSize="), ("LargeBufferSize=")) == 0 && Data.length() > strlen("LargeBufferSize="))
+		if (Data.compare(0, strlen("LargeBufferSize="), "LargeBufferSize=") == 0 && Data.length() > strlen("LargeBufferSize="))
 		{
 			if (Data.length() < strlen("LargeBufferSize=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -1869,36 +1869,36 @@ bool ReadParameterData_Base(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("Additional Path = "), ("Additional Path = ")) == 0 && Data.length() > strlen("Additional Path = "))
+		else if (Data.compare(0, strlen("Additional Path = "), "Additional Path = ") == 0 && Data.length() > strlen("Additional Path = "))
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadName_PathFile(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, FileIndex, Line))
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (!ReadName_PathFile(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, GlobalRunningStatus.MBS_Path_Global, FileIndex, Line))
+			if (!ReadName_PathFile(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, GlobalRunningStatus.Path_Global_MBS, FileIndex, Line))
 		#endif
 				return false;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("Hosts File Name = "), ("Hosts File Name = ")) == 0 && Data.length() > strlen("Hosts File Name = "))
+		else if (Data.compare(0, strlen("Hosts File Name = "), "Hosts File Name = ") == 0 && Data.length() > strlen("Hosts File Name = "))
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadName_PathFile(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, FileIndex, Line))
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (!ReadName_PathFile(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, GlobalRunningStatus.MBS_FileList_Hosts, FileIndex, Line))
+			if (!ReadName_PathFile(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, GlobalRunningStatus.FileList_Hosts_MBS, FileIndex, Line))
 		#endif
 				return false;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPFilter File Name = "), ("IPFilter File Name = ")) == 0 && Data.length() > strlen("IPFilter File Name = "))
+		else if (Data.compare(0, strlen("IPFilter File Name = "), "IPFilter File Name = ") == 0 && Data.length() > strlen("IPFilter File Name = "))
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadName_PathFile(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, FileIndex, Line))
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (!ReadName_PathFile(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, GlobalRunningStatus.MBS_FileList_IPFilter, FileIndex, Line))
+			if (!ReadName_PathFile(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, GlobalRunningStatus.FileList_IPFilter_MBS, FileIndex, Line))
 		#endif
 				return false;
 
@@ -1927,7 +1927,7 @@ bool ReadParameterData_Log(
 	size_t UnsignedResult = 0;
 
 //[Log] block
-	if (Data.compare(0, strlen("PrintLogLevel="), ("PrintLogLevel=")) == 0)
+	if (Data.compare(0, strlen("PrintLogLevel="), "PrintLogLevel=") == 0)
 	{
 		if (Data.length() == strlen("PrintLogLevel=") + NULL_TERMINATE_LENGTH && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -1957,7 +1957,7 @@ bool ReadParameterData_Log(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("LogMaximumSize="), ("LogMaximumSize=")) == 0 && Data.length() > strlen("LogMaximumSize="))
+	else if (Data.compare(0, strlen("LogMaximumSize="), "LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
 	{
 	//Format check
 		if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2045,24 +2045,24 @@ bool ReadParameterData_Listen(
 //[Listen] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("ProcessUnique=1"), ("ProcessUnique=1")) == 0)
+		if (Data.compare(0, strlen("ProcessUnique=1"), "ProcessUnique=1") == 0)
 		{
 			Parameter.IsProcessUnique = true;
 			IsFoundParameter = true;
 		}
 
 	#if defined(ENABLE_PCAP)
-		else if (Data.compare(0, strlen("PcapCapture=1"), ("PcapCapture=1")) == 0)
+		else if (Data.compare(0, strlen("PcapCapture=1"), "PcapCapture=1") == 0)
 		{
 			Parameter.IsPcapCapture = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("PcapDevicesBlacklist="), ("PcapDevicesBlacklist=")) == 0)
+		else if (Data.compare(0, strlen("PcapDevicesBlacklist="), "PcapDevicesBlacklist=") == 0)
 		{
 			GetParameterListData(*Parameter.PcapDevicesBlacklist, Data, strlen("PcapDevicesBlacklist="), Data.length(), ASCII_VERTICAL, true, false);
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("PcapReadingTimeout="), ("PcapReadingTimeout=")) == 0)
+		else if (Data.compare(0, strlen("PcapReadingTimeout="), "PcapReadingTimeout=") == 0)
 		{
 			if (Data.length() < strlen("PcapReadingTimeout=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -2080,7 +2080,7 @@ bool ReadParameterData_Listen(
 			}
 		}
 	#endif
-		else if (Data.compare(0, strlen("ListenProtocol="), ("ListenProtocol=")) == 0 && Data.length() > strlen("ListenProtocol="))
+		else if (Data.compare(0, strlen("ListenProtocol="), "ListenProtocol=") == 0 && Data.length() > strlen("ListenProtocol="))
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -2100,7 +2100,7 @@ bool ReadParameterData_Listen(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("ListenPort="), ("ListenPort=")) == 0 && Data.length() > strlen("ListenPort="))
+		else if (Data.compare(0, strlen("ListenPort="), "ListenPort=") == 0 && Data.length() > strlen("ListenPort="))
 		{
 		//Format check
 			if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2133,7 +2133,7 @@ bool ReadParameterData_Listen(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("OperationMode="), ("OperationMode=")) == 0 && Data.length() > strlen("OperationMode="))
+		else if (Data.compare(0, strlen("OperationMode="), "OperationMode=") == 0 && Data.length() > strlen("OperationMode="))
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -2160,17 +2160,17 @@ bool ReadParameterData_Listen(
 		}
 	}
 
-	if (Data.compare(0, strlen("IPFilterType="), ("IPFilterType=")) == 0 && Data.length() > strlen("IPFilterType="))
+	if (Data.compare(0, strlen("IPFilterType="), "IPFilterType=") == 0 && Data.length() > strlen("IPFilterType="))
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
-		if (InnerData.compare(0, strlen("IPFILTERTYPE=PERMIT"), ("IPFILTERTYPE=PERMIT")) == 0)
+		if (InnerData.compare(0, strlen("IPFILTERTYPE=PERMIT"), "IPFILTERTYPE=PERMIT") == 0)
 		{
 			ParameterPointer->IsIPFilterTypePermit = true;
 			IsFoundParameter = true;
 		}
 	}
-	else if (Data.compare(0, strlen("IPFilterLevel<"), ("IPFilterLevel<")) == 0 && Data.length() > strlen("IPFilterLevel<"))
+	else if (Data.compare(0, strlen("IPFilterLevel<"), "IPFilterLevel<") == 0 && Data.length() > strlen("IPFilterLevel<"))
 	{
 		if (Data.length() < strlen("IPFilterLevel<") + UINT8_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -2191,7 +2191,7 @@ bool ReadParameterData_Listen(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("AcceptType="), ("AcceptType=")) == 0 && Data.length() > strlen("AcceptType="))
+	else if (Data.compare(0, strlen("AcceptType="), "AcceptType=") == 0 && Data.length() > strlen("AcceptType="))
 	{
 		if (Data.find(ASCII_COLON) == std::string::npos || 
 			Data.find(ASCII_MINUS) != std::string::npos)
@@ -2257,7 +2257,7 @@ bool ReadParameterData_DNS(
 	size_t UnsignedResult = 0;
 
 //[DNS] block
-	if (IsFirstRead && Data.compare(0, strlen("OutgoingProtocol="), ("OutgoingProtocol=")) == 0 && Data.length() > strlen("OutgoingProtocol="))
+	if (IsFirstRead && Data.compare(0, strlen("OutgoingProtocol="), "OutgoingProtocol=") == 0 && Data.length() > strlen("OutgoingProtocol="))
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
@@ -2288,9 +2288,9 @@ bool ReadParameterData_DNS(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DirectRequest="), ("DirectRequest=")) == 0 && Data.length() > strlen("DirectRequest="))
+	else if (Data.compare(0, strlen("DirectRequest="), "DirectRequest=") == 0 && Data.length() > strlen("DirectRequest="))
 	{
-		if (Data.compare(0, strlen("DirectRequest=1"), ("DirectRequest=1")) == 0)
+		if (Data.compare(0, strlen("DirectRequest=1"), "DirectRequest=1") == 0)
 		{
 			ParameterPointer->DirectRequest_Protocol = REQUEST_MODE_DIRECT::BOTH;
 		}
@@ -2313,7 +2313,7 @@ bool ReadParameterData_DNS(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("CacheType="), ("CacheType=")) == 0 && Data.length() > strlen("CacheType="))
+		if (Data.compare(0, strlen("CacheType="), "CacheType=") == 0 && Data.length() > strlen("CacheType="))
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -2333,7 +2333,7 @@ bool ReadParameterData_DNS(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("CacheParameter="), ("CacheParameter="))== 0 && Data.length() > strlen("CacheParameter="))
+		else if (Data.compare(0, strlen("CacheParameter="), "CacheParameter=")== 0 && Data.length() > strlen("CacheParameter="))
 		{
 		//Format check
 			if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2350,7 +2350,7 @@ bool ReadParameterData_DNS(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("CacheSingleIPv4AddressPrefix="), ("CacheSingleIPv4AddressPrefix="))== 0 && Data.length() > strlen("CacheSingleIPv4AddressPrefix="))
+		else if (Data.compare(0, strlen("CacheSingleIPv4AddressPrefix="), "CacheSingleIPv4AddressPrefix=") == 0 && Data.length() > strlen("CacheSingleIPv4AddressPrefix="))
 		{
 		//Format check
 			if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2364,8 +2364,12 @@ bool ReadParameterData_DNS(
 				Parameter.DNS_CacheSinglePrefix_IPv4 = UnsignedResult;
 				IsFoundParameter = true;
 			}
+			else if (UnsignedResult != 0)
+			{
+				goto PrintDataFormatError;
+			}
 		}
-		else if (Data.compare(0, strlen("CacheSingleIPv6AddressPrefix="), ("CacheSingleIPv6AddressPrefix="))== 0 && Data.length() > strlen("CacheSingleIPv6AddressPrefix="))
+		else if (Data.compare(0, strlen("CacheSingleIPv6AddressPrefix="), "CacheSingleIPv6AddressPrefix=") == 0 && Data.length() > strlen("CacheSingleIPv6AddressPrefix="))
 		{
 		//Format check
 			if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2379,10 +2383,14 @@ bool ReadParameterData_DNS(
 				Parameter.DNS_CacheSinglePrefix_IPv6 = UnsignedResult;
 				IsFoundParameter = true;
 			}
+			else if (UnsignedResult != 0)
+			{
+				goto PrintDataFormatError;
+			}
 		}
 	}
 
-	if (Data.compare(0, strlen("DefaultTTL="), ("DefaultTTL=")) == 0 && Data.length() > strlen("DefaultTTL="))
+	if (Data.compare(0, strlen("DefaultTTL="), "DefaultTTL=") == 0 && Data.length() > strlen("DefaultTTL="))
 	{
 		if (Data.length() < strlen("DefaultTTL=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -2422,7 +2430,7 @@ bool ReadParameterData_Local_DNS(
 	bool &IsFoundParameter)
 {
 //[Local DNS] block
-	if (Data.compare(0, strlen("LocalProtocol="), ("LocalProtocol=")) == 0)
+	if (Data.compare(0, strlen("LocalProtocol="), "LocalProtocol=") == 0)
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
@@ -2456,17 +2464,17 @@ bool ReadParameterData_Local_DNS(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("LocalHosts=1"), ("LocalHosts=1")) == 0)
+		if (Data.compare(0, strlen("LocalHosts=1"), "LocalHosts=1") == 0)
 		{
 			Parameter.IsLocalHosts = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("LocalRouting=1"), ("LocalRouting=1")) == 0)
+		else if (Data.compare(0, strlen("LocalRouting=1"), "LocalRouting=1") == 0)
 		{
 			Parameter.IsLocalRouting = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("LocalForceRequest=1"), ("LocalForceRequest=1")) == 0)
+		else if (Data.compare(0, strlen("LocalForceRequest=1"), "LocalForceRequest=1") == 0)
 		{
 			Parameter.IsLocalForce = true;
 			IsFoundParameter = true;
@@ -2495,7 +2503,7 @@ bool ReadParameterData_Addresses(
 //[Addresses] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("IPv4ListenAddress="), ("IPv4ListenAddress=")) == 0 && 
+		if (Data.compare(0, strlen("IPv4ListenAddress="), "IPv4ListenAddress=") == 0 && 
 			Data.length() > strlen("IPv4ListenAddress="))
 		{
 		//Get list data.
@@ -2510,7 +2518,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv4EDNSClientSubnetAddress="), ("IPv4EDNSClientSubnetAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv4EDNSClientSubnetAddress="), "IPv4EDNSClientSubnetAddress=") == 0 && 
 			Data.length() > strlen("IPv4EDNSClientSubnetAddress="))
 		{
 			if (!ReadAddressPrefixBlock(AF_INET, Data, strlen("IPv4EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv4, FileList_Config, FileIndex, Line))
@@ -2519,7 +2527,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv4MainDNSAddress="), ("IPv4MainDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv4MainDNSAddress="), "IPv4MainDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv4MainDNSAddress="))
 		{
 			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4MainDNSAddress="), Parameter.Target_Server_IPv4_Multiple, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -2528,7 +2536,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv4AlternateDNSAddress="), ("IPv4AlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv4AlternateDNSAddress="), "IPv4AlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv4AlternateDNSAddress="))
 		{
 			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4AlternateDNSAddress="), Parameter.Target_Server_IPv4_Multiple, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -2537,7 +2545,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv4LocalMainDNSAddress="), ("IPv4LocalMainDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv4LocalMainDNSAddress="), "IPv4LocalMainDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv4LocalMainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -2550,7 +2558,7 @@ bool ReadParameterData_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("IPv4LocalAlternateDNSAddress="), ("IPv4LocalAlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv4LocalAlternateDNSAddress="), "IPv4LocalAlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv4LocalAlternateDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -2563,7 +2571,7 @@ bool ReadParameterData_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("IPv6ListenAddress="), ("IPv6ListenAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6ListenAddress="), "IPv6ListenAddress=") == 0 && 
 			Data.length() > strlen("IPv6ListenAddress="))
 		{
 		//Get list data.
@@ -2578,7 +2586,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv6EDNSClientSubnetAddress="), ("IPv6EDNSClientSubnetAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6EDNSClientSubnetAddress="), "IPv6EDNSClientSubnetAddress=") == 0 && 
 			Data.length() > strlen("IPv6EDNSClientSubnetAddress="))
 		{
 			if (!ReadAddressPrefixBlock(AF_INET6, Data, strlen("IPv6EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv6, FileList_Config, FileIndex, Line))
@@ -2587,7 +2595,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv6MainDNSAddress="), ("IPv6MainDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6MainDNSAddress="), "IPv6MainDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv6MainDNSAddress="))
 		{
 			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6MainDNSAddress="), Parameter.Target_Server_IPv6_Multiple, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -2596,7 +2604,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv6AlternateDNSAddress="), ("IPv6AlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6AlternateDNSAddress="), "IPv6AlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv6AlternateDNSAddress="))
 		{
 			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6AlternateDNSAddress="), Parameter.Target_Server_IPv6_Multiple, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -2605,7 +2613,7 @@ bool ReadParameterData_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("IPv6LocalMainDNSAddress="), ("IPv6LocalMainDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6LocalMainDNSAddress="), "IPv6LocalMainDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv6LocalMainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -2618,7 +2626,7 @@ bool ReadParameterData_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("IPv6LocalAlternateDNSAddress="), ("IPv6LocalAlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("IPv6LocalAlternateDNSAddress="), "IPv6LocalAlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("IPv6LocalAlternateDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -2657,7 +2665,7 @@ bool ReadParameterData_Values(
 //[Values] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("ThreadPoolBaseNumber="), ("ThreadPoolBaseNumber=")) == 0 && Data.length() > strlen("ThreadPoolBaseNumber="))
+		if (Data.compare(0, strlen("ThreadPoolBaseNumber="), "ThreadPoolBaseNumber=") == 0 && Data.length() > strlen("ThreadPoolBaseNumber="))
 		{
 			if (Data.length() < strlen("ThreadPoolBaseNumber=") + UINT32_STRING_MAXLEN - 1U && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -2674,7 +2682,7 @@ bool ReadParameterData_Values(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("ThreadPoolMaximumNumber="), ("ThreadPoolMaximumNumber=")) == 0 && Data.length() > strlen("ThreadPoolMaximumNumber="))
+		else if (Data.compare(0, strlen("ThreadPoolMaximumNumber="), "ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber="))
 		{
 			if (Data.length() < strlen("ThreadPoolMaximumNumber=") + UINT32_STRING_MAXLEN - 1U && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -2693,7 +2701,7 @@ bool ReadParameterData_Values(
 		}
 	}
 
-	if (Data.compare(0, strlen("ThreadPoolResetTime="), ("ThreadPoolResetTime=")) == 0 && Data.length() > strlen("ThreadPoolResetTime="))
+	if (Data.compare(0, strlen("ThreadPoolResetTime="), "ThreadPoolResetTime=") == 0 && Data.length() > strlen("ThreadPoolResetTime="))
 	{
 		if (Data.length() < strlen("ThreadPoolResetTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -2713,7 +2721,7 @@ bool ReadParameterData_Values(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("QueueLimitsResetTime="), ("QueueLimitsResetTime=")) == 0 && Data.length() > strlen("QueueLimitsResetTime="))
+		if (Data.compare(0, strlen("QueueLimitsResetTime="), "QueueLimitsResetTime=") == 0 && Data.length() > strlen("QueueLimitsResetTime="))
 		{
 			if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -2730,7 +2738,7 @@ bool ReadParameterData_Values(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("EDNSPayloadSize="), ("EDNSPayloadSize=")) == 0 && Data.length() > strlen("EDNSPayloadSize="))
+		else if (Data.compare(0, strlen("EDNSPayloadSize="), "EDNSPayloadSize=") == 0 && Data.length() > strlen("EDNSPayloadSize="))
 		{
 			if (Data.length() < strlen("EDNSPayloadSize=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -2749,7 +2757,7 @@ bool ReadParameterData_Values(
 		}
 	}
 
-	if (Data.compare(0, strlen("IPv4PacketTTL="), ("IPv4PacketTTL=")) == 0 && Data.length() > strlen("IPv4PacketTTL="))
+	if (Data.compare(0, strlen("IPv4PacketTTL="), "IPv4PacketTTL=") == 0 && Data.length() > strlen("IPv4PacketTTL="))
 	{
 	//Range
 		if (Data.find(ASCII_MINUS) != std::string::npos && Data.length() > Data.find(ASCII_MINUS) + 1U)
@@ -2824,7 +2832,7 @@ bool ReadParameterData_Values(
 	}
 
 #if defined(ENABLE_PCAP)
-	else if (Data.compare(0, strlen("IPv4MainDNSTTL="), ("IPv4MainDNSTTL=")) == 0 && Data.length() > strlen("IPv4MainDNSTTL="))
+	else if (Data.compare(0, strlen("IPv4MainDNSTTL="), "IPv4MainDNSTTL=") == 0 && Data.length() > strlen("IPv4MainDNSTTL="))
 	{
 		if (!ReadHopLimitsData(AF_INET, Data, strlen("IPv4MainDNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
@@ -2832,7 +2840,7 @@ bool ReadParameterData_Values(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("IPv4AlternateDNSTTL="), ("IPv4AlternateDNSTTL=")) == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
+	else if (Data.compare(0, strlen("IPv4AlternateDNSTTL="), "IPv4AlternateDNSTTL=") == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
 	{
 		if (!ReadHopLimitsData(AF_INET, Data, strlen("IPv4AlternateDNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
@@ -2840,7 +2848,7 @@ bool ReadParameterData_Values(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("IPv6MainDNSHopLimits="), ("IPv6MainDNSHopLimits=")) == 0 && Data.length() > strlen("IPv6MainDNSHopLimits="))
+	else if (Data.compare(0, strlen("IPv6MainDNSHopLimits="), "IPv6MainDNSHopLimits=") == 0 && Data.length() > strlen("IPv6MainDNSHopLimits="))
 	{
 		if (!ReadHopLimitsData(AF_INET6, Data, strlen("IPv6MainDNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
@@ -2848,7 +2856,7 @@ bool ReadParameterData_Values(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("IPv6AlternateDNSHopLimits="), ("IPv6AlternateDNSHopLimits=")) == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
+	else if (Data.compare(0, strlen("IPv6AlternateDNSHopLimits="), "IPv6AlternateDNSHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
 	{
 		if (!ReadHopLimitsData(AF_INET6, Data, strlen("IPv6AlternateDNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
@@ -2858,7 +2866,7 @@ bool ReadParameterData_Values(
 	}
 #endif
 
-	else if (Data.compare(0, strlen("IPv6PacketHopLimits="), ("IPv6PacketHopLimits=")) == 0 && Data.length() > strlen("IPv6PacketHopLimits="))
+	else if (Data.compare(0, strlen("IPv6PacketHopLimits="), "IPv6PacketHopLimits=") == 0 && Data.length() > strlen("IPv6PacketHopLimits="))
 	{
 	//Range
 		if (Data.find(ASCII_MINUS) != std::string::npos)
@@ -2932,7 +2940,7 @@ bool ReadParameterData_Values(
 	}
 
 #if defined(ENABLE_PCAP)
-	else if (Data.compare(0, strlen("HopLimitsFluctuation="), ("HopLimitsFluctuation=")) == 0 && Data.length() > strlen("HopLimitsFluctuation="))
+	else if (Data.compare(0, strlen("HopLimitsFluctuation="), "HopLimitsFluctuation=") == 0 && Data.length() > strlen("HopLimitsFluctuation="))
 	{
 		if (Data.length() < strlen("HopLimitsFluctuation=") + UINT8_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -2951,7 +2959,7 @@ bool ReadParameterData_Values(
 	}
 #endif
 
-	else if (Data.compare(0, strlen("ReliableOnceSocketTimeout="), ("ReliableOnceSocketTimeout=")) == 0 && 
+	else if (Data.compare(0, strlen("ReliableOnceSocketTimeout="), "ReliableOnceSocketTimeout=") == 0 && 
 		Data.length() > strlen("ReliableOnceSocketTimeout="))
 	{
 		if (Data.length() < strlen("ReliableOnceSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -2974,7 +2982,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("ReliableSerialSocketTimeout="), ("ReliableSerialSocketTimeout=")) == 0 && 
+	else if (Data.compare(0, strlen("ReliableSerialSocketTimeout="), "ReliableSerialSocketTimeout=") == 0 && 
 		Data.length() > strlen("ReliableSerialSocketTimeout="))
 	{
 		if (Data.length() < strlen("ReliableSerialSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -2997,7 +3005,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("UnreliableOnceSocketTimeout="), ("UnreliableOnceSocketTimeout=")) == 0 && 
+	else if (Data.compare(0, strlen("UnreliableOnceSocketTimeout="), "UnreliableOnceSocketTimeout=") == 0 && 
 		Data.length() > strlen("UnreliableOnceSocketTimeout="))
 	{
 		if (Data.length() < strlen("UnreliableOnceSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -3020,7 +3028,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("UnreliableSerialSocketTimeout="), ("UnreliableSerialSocketTimeout=")) == 0 && 
+	else if (Data.compare(0, strlen("UnreliableSerialSocketTimeout="), "UnreliableSerialSocketTimeout=") == 0 && 
 		Data.length() > strlen("UnreliableSerialSocketTimeout="))
 	{
 		if (Data.length() < strlen("UnreliableSerialSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -3043,7 +3051,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (IsFirstRead && Data.compare(0, strlen("TCPFastOpen="), ("TCPFastOpen=")) == 0 && Data.length() > strlen("TCPFastOpen="))
+	else if (IsFirstRead && Data.compare(0, strlen("TCPFastOpen="), "TCPFastOpen=") == 0 && Data.length() > strlen("TCPFastOpen="))
 	{
 		if (Data.length() < strlen("TCPFastOpen=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -3060,7 +3068,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("ReceiveWaiting="), ("ReceiveWaiting=")) == 0 && Data.length() > strlen("ReceiveWaiting="))
+	else if (Data.compare(0, strlen("ReceiveWaiting="), "ReceiveWaiting=") == 0 && Data.length() > strlen("ReceiveWaiting="))
 	{
 		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -3079,7 +3087,7 @@ bool ReadParameterData_Values(
 	}
 
 #if defined(ENABLE_PCAP)
-	else if (Data.compare(0, strlen("ICMPTest="), ("ICMPTest=")) == 0 && Data.length() > strlen("ICMPTest="))
+	else if (Data.compare(0, strlen("ICMPTest="), "ICMPTest=") == 0 && Data.length() > strlen("ICMPTest="))
 	{
 		if (Data.length() < strlen("ICMPTest=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -3100,7 +3108,7 @@ bool ReadParameterData_Values(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("DomainTest="), ("DomainTest=")) == 0 && Data.length() > strlen("DomainTest="))
+	else if (Data.compare(0, strlen("DomainTest="), "DomainTest=") == 0 && Data.length() > strlen("DomainTest="))
 	{
 		if (Data.length() < strlen("DomainTest=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -3123,7 +3131,7 @@ bool ReadParameterData_Values(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("AlternateTimes="), ("AlternateTimes=")) == 0 && Data.length() > strlen("AlternateTimes="))
+		if (Data.compare(0, strlen("AlternateTimes="), "AlternateTimes=") == 0 && Data.length() > strlen("AlternateTimes="))
 		{
 			if (Data.length() < strlen("AlternateTimes=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3140,7 +3148,7 @@ bool ReadParameterData_Values(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("AlternateTimeRange="), ("AlternateTimeRange=")) == 0 && Data.length() > strlen("AlternateTimeRange="))
+		else if (Data.compare(0, strlen("AlternateTimeRange="), "AlternateTimeRange=") == 0 && Data.length() > strlen("AlternateTimeRange="))
 		{
 			if (Data.length() < strlen("AlternateTimeRange=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3157,7 +3165,7 @@ bool ReadParameterData_Values(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("AlternateResetTime="), ("AlternateResetTime=")) == 0 && Data.length() > strlen("AlternateResetTime="))
+		else if (Data.compare(0, strlen("AlternateResetTime="), "AlternateResetTime=") == 0 && Data.length() > strlen("AlternateResetTime="))
 		{
 			if (Data.length() < strlen("AlternateResetTime=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3176,7 +3184,7 @@ bool ReadParameterData_Values(
 		}
 	}
 
-	if (Data.compare(0, strlen("MultipleRequestTimes="), ("MultipleRequestTimes=")) == 0 && Data.length() > strlen("MultipleRequestTimes="))
+	if (Data.compare(0, strlen("MultipleRequestTimes="), "MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes="))
 	{
 		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -3212,7 +3220,7 @@ bool ReadParameterData_Switches(
 	bool &IsFoundParameter)
 {
 //[Switches] block
-	if (Data.compare(0, strlen("DomainCaseConversion=1"), ("DomainCaseConversion=1")) == 0)
+	if (Data.compare(0, strlen("DomainCaseConversion=1"), "DomainCaseConversion=1") == 0)
 	{
 		ParameterPointer->DomainCaseConversion = true;
 		IsFoundParameter = true;
@@ -3220,7 +3228,7 @@ bool ReadParameterData_Switches(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("CompressionPointerMutation="), ("CompressionPointerMutation=")) == 0 && Data.length() > strlen("CompressionPointerMutation="))
+		if (Data.compare(0, strlen("CompressionPointerMutation="), "CompressionPointerMutation=") == 0 && Data.length() > strlen("CompressionPointerMutation="))
 		{
 			if (Data.find(ASCII_ONE) != std::string::npos)
 				Parameter.CPM_PointerToHeader = true;
@@ -3234,7 +3242,7 @@ bool ReadParameterData_Switches(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("EDNSLabel="), ("EDNSLabel=")) == 0)
+		else if (Data.compare(0, strlen("EDNSLabel="), "EDNSLabel=") == 0)
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -3250,8 +3258,8 @@ bool ReadParameterData_Switches(
 			}
 
 		//Process mode check
-			if (InnerData.compare(0, strlen("EDNSLABEL=1"), ("EDNSLABEL=1")) == 0 || 
-				InnerData.compare(0, strlen("EDNSLABEL=ALL"), ("EDNSLABEL=ALL")) == 0)
+			if (InnerData.compare(0, strlen("EDNSLABEL=1"), "EDNSLABEL=1") == 0 || 
+				InnerData.compare(0, strlen("EDNSLABEL=ALL"), "EDNSLABEL=ALL") == 0)
 			{
 			//Enable all process
 				Parameter.EDNS_Label = true;
@@ -3323,53 +3331,53 @@ bool ReadParameterData_Switches(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("EDNSClientSubnetRelay=1"), ("EDNSClientSubnetRelay=1")) == 0)
+		else if (Data.compare(0, strlen("EDNSClientSubnetRelay=1"), "EDNSClientSubnetRelay=1") == 0)
 		{
 			Parameter.EDNS_ClientSubnet_Relay = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSSECRequest=1"), ("DNSSECRequest=1")) == 0)
+		else if (Data.compare(0, strlen("DNSSECRequest=1"), "DNSSECRequest=1") == 0)
 		{
 			Parameter.DNSSEC_Request = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSSECForceRecord=1"), ("DNSSECForceRecord=1")) == 0)
+		else if (Data.compare(0, strlen("DNSSECForceRecord=1"), "DNSSECForceRecord=1") == 0)
 		{
 			Parameter.DNSSEC_ForceRecord = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("AlternateMultipleRequest=1"), ("AlternateMultipleRequest=1")) == 0)
+		else if (Data.compare(0, strlen("AlternateMultipleRequest=1"), "AlternateMultipleRequest=1") == 0)
 		{
 			Parameter.AlternateMultipleRequest = true;
 			IsFoundParameter = true;
 		}
 	}
 
-	if (Data.compare(0, strlen("IPv4DoNotFragment=1"), ("IPv4DoNotFragment=1")) == 0)
+	if (Data.compare(0, strlen("IPv4DoNotFragment=1"), "IPv4DoNotFragment=1") == 0)
 	{
 		ParameterPointer->DoNotFragment_IPv4 = true;
 		IsFoundParameter = true;
 	}
 
 #if defined(ENABLE_PCAP)
-	else if (Data.compare(0, strlen("TCPDataFilter=1"), ("TCPDataFilter=1")) == 0)
+	else if (Data.compare(0, strlen("TCPDataFilter=1"), "TCPDataFilter=1") == 0)
 	{
 		ParameterPointer->PacketCheck_TCP = true;
 		IsFoundParameter = true;
 	}
 #endif
 
-	else if (Data.compare(0, strlen("DNSDataFilter=1"), ("DNSDataFilter=1")) == 0)
+	else if (Data.compare(0, strlen("DNSDataFilter=1"), "DNSDataFilter=1") == 0)
 	{
 		ParameterPointer->PacketCheck_DNS = true;
 		IsFoundParameter = true;
 	}
-	else if (IsFirstRead && Data.compare(0, strlen("BlacklistFilter=1"), ("BlacklistFilter=1")) == 0)
+	else if (IsFirstRead && Data.compare(0, strlen("BlacklistFilter=1"), "BlacklistFilter=1") == 0)
 	{
 		Parameter.DataCheck_Blacklist = true;
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("ResourceRecordSetTTLFilter=1"), ("ResourceRecordSetTTLFilter=1")) == 0)
+	else if (Data.compare(0, strlen("ResourceRecordSetTTLFilter=1"), "ResourceRecordSetTTLFilter=1") == 0)
 	{
 		ParameterPointer->DataCheck_RRSetTTL = true;
 		IsFoundParameter = true;
@@ -3398,7 +3406,7 @@ bool ReadParameterData_Data(
 	if (IsFirstRead)
 	{
 	#if defined(ENABLE_PCAP)
-		if (Data.compare(0, strlen("ICMPID="), ("ICMPID=")) == 0 && Data.length() > strlen("ICMPID="))
+		if (Data.compare(0, strlen("ICMPID="), "ICMPID=") == 0 && Data.length() > strlen("ICMPID="))
 		{
 			if (Data.length() < strlen("ICMPID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3415,7 +3423,7 @@ bool ReadParameterData_Data(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("ICMPSequence="), ("ICMPSequence=")) == 0 && Data.length() > strlen("ICMPSequence="))
+		else if (Data.compare(0, strlen("ICMPSequence="), "ICMPSequence=") == 0 && Data.length() > strlen("ICMPSequence="))
 		{
 			if (Data.length() < strlen("ICMPSequence=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3432,7 +3440,7 @@ bool ReadParameterData_Data(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("ICMPPaddingData="), ("ICMPPaddingData=")) == 0 && Data.length() > strlen("ICMPPaddingData="))
+		else if (Data.compare(0, strlen("ICMPPaddingData="), "ICMPPaddingData=") == 0 && Data.length() > strlen("ICMPPaddingData="))
 		{
 			if (Data.length() > strlen("ICMPPaddingData=") + ICMP_PADDING_MINSIZE && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U)
 			{
@@ -3448,7 +3456,7 @@ bool ReadParameterData_Data(
 		}
 	}
 
-	if (Data.compare(0, strlen("DomainTestProtocol="), ("DomainTestProtocol=")) == 0 && Data.length() > strlen("DomainTestProtocol="))
+	if (Data.compare(0, strlen("DomainTestProtocol="), "DomainTestProtocol=") == 0 && Data.length() > strlen("DomainTestProtocol="))
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
@@ -3465,7 +3473,7 @@ bool ReadParameterData_Data(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("DomainTestID="), ("DomainTestID=")) == 0 && Data.length() > strlen("DomainTestID="))
+		if (Data.compare(0, strlen("DomainTestID="), "DomainTestID=") == 0 && Data.length() > strlen("DomainTestID="))
 		{
 			if (Data.length() < strlen("DomainTestID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -3482,7 +3490,7 @@ bool ReadParameterData_Data(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("DomainTestData="), ("DomainTestData=")) == 0 && Data.length() > strlen("DomainTestData="))
+		else if (Data.compare(0, strlen("DomainTestData="), "DomainTestData=") == 0 && Data.length() > strlen("DomainTestData="))
 		{
 			if (Data.length() > strlen("DomainTestData=") + DOMAIN_MINSIZE && Data.length() < strlen("DomainTestData=") + DOMAIN_DATA_MAXSIZE)
 				memcpy_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE, Data.c_str() + strlen("DomainTestData="), Data.length() - strlen("DomainTestData="));
@@ -3493,7 +3501,7 @@ bool ReadParameterData_Data(
 			IsFoundParameter = true;
 		}
 	#endif
-		if (Data.compare(0, strlen("LocalMachineServerName="), ("LocalMachineServerName=")) == 0 && Data.length() > strlen("LocalMachineServerName="))
+		if (Data.compare(0, strlen("LocalMachineServerName="), "LocalMachineServerName=") == 0 && Data.length() > strlen("LocalMachineServerName="))
 		{
 			if (Data.length() > strlen("LocalMachineServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalMachineServerName=") + DOMAIN_DATA_MAXSIZE)
 			{
@@ -3545,12 +3553,12 @@ bool ReadParameterData_Proxy(
 //[Proxy] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("SOCKSProxy=1"), ("SOCKSProxy=1")) == 0)
+		if (Data.compare(0, strlen("SOCKSProxy=1"), "SOCKSProxy=1") == 0)
 		{
 			Parameter.SOCKS_Proxy = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("SOCKSVersion="), ("SOCKSVersion=")) == 0 && 
+		else if (Data.compare(0, strlen("SOCKSVersion="), "SOCKSVersion=") == 0 && 
 			Data.length() > strlen("SOCKSVersion="))
 		{
 			std::string InnerData(Data);
@@ -3575,7 +3583,7 @@ bool ReadParameterData_Proxy(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("SOCKSProtocol="), ("SOCKSProtocol=")) == 0)
+		else if (Data.compare(0, strlen("SOCKSProtocol="), "SOCKSProtocol=") == 0)
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -3606,17 +3614,17 @@ bool ReadParameterData_Proxy(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("SOCKSUDPNoHandshake=1"), ("SOCKSUDPNoHandshake=1")) == 0)
+		else if (Data.compare(0, strlen("SOCKSUDPNoHandshake=1"), "SOCKSUDPNoHandshake=1") == 0)
 		{
 			Parameter.SOCKS_UDP_NoHandshake = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("SOCKSProxyOnly=1"), ("SOCKSProxyOnly=1")) == 0)
+		else if (Data.compare(0, strlen("SOCKSProxyOnly=1"), "SOCKSProxyOnly=1") == 0)
 		{
 			Parameter.SOCKS_Only = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("SOCKSIPv4Address="), ("SOCKSIPv4Address=")) == 0 && 
+		else if (Data.compare(0, strlen("SOCKSIPv4Address="), "SOCKSIPv4Address=") == 0 && 
 			Data.length() > strlen("SOCKSIPv4Address="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -3629,7 +3637,7 @@ bool ReadParameterData_Proxy(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("SOCKSIPv6Address="), ("SOCKSIPv6Address=")) == 0 && 
+		else if (Data.compare(0, strlen("SOCKSIPv6Address="), "SOCKSIPv6Address=") == 0 && 
 			Data.length() > strlen("SOCKSIPv6Address="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -3644,7 +3652,7 @@ bool ReadParameterData_Proxy(
 		}
 	}
 
-	if (Data.compare(0, strlen("SOCKSTargetServer="), ("SOCKSTargetServer=")) == 0 && 
+	if (Data.compare(0, strlen("SOCKSTargetServer="), "SOCKSTargetServer=") == 0 && 
 		Data.length() > strlen("SOCKSTargetServer="))
 	{
 		if (!Read_SOCKS_AddressDomain(Data, strlen("SOCKSTargetServer="), ParameterPointer, FileIndex, Line))
@@ -3653,7 +3661,7 @@ bool ReadParameterData_Proxy(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("SOCKSUsername="), ("SOCKSUsername=")) == 0 && 
+	else if (Data.compare(0, strlen("SOCKSUsername="), "SOCKSUsername=") == 0 && 
 		Data.length() > strlen("SOCKSUsername="))
 	{
 		if (Data.length() < strlen("SOCKSUsername=") + SOCKS_USERNAME_PASSWORD_MAXNUM)
@@ -3668,7 +3676,7 @@ bool ReadParameterData_Proxy(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("SOCKSPassword="), ("SOCKSPassword=")) == 0 && 
+	else if (Data.compare(0, strlen("SOCKSPassword="), "SOCKSPassword=") == 0 && 
 		Data.length() > strlen("SOCKSPassword="))
 	{
 		if (Data.length() < strlen("SOCKSPassword=") + SOCKS_USERNAME_PASSWORD_MAXNUM)
@@ -3686,12 +3694,12 @@ bool ReadParameterData_Proxy(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("HTTPCONNECTProxy=1"), ("HTTPCONNECTProxy=1")) == 0)
+		if (Data.compare(0, strlen("HTTPCONNECTProxy=1"), "HTTPCONNECTProxy=1") == 0)
 		{
 			Parameter.HTTP_CONNECT_Proxy = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("HTTPCONNECTProtocol="), ("HTTPCONNECTProtocol=")) == 0)
+		else if (Data.compare(0, strlen("HTTPCONNECTProtocol="), "HTTPCONNECTProtocol=") == 0)
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -3709,12 +3717,12 @@ bool ReadParameterData_Proxy(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("HTTPCONNECTProxyOnly=1"), ("HTTPCONNECTProxyOnly=1")) == 0)
+		else if (Data.compare(0, strlen("HTTPCONNECTProxyOnly=1"), "HTTPCONNECTProxyOnly=1") == 0)
 		{
 			Parameter.HTTP_CONNECT_Only = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("HTTPCONNECTIPv4Address="), ("HTTPCONNECTIPv4Address=")) == 0 && 
+		else if (Data.compare(0, strlen("HTTPCONNECTIPv4Address="), "HTTPCONNECTIPv4Address=") == 0 && 
 			Data.length() > strlen("HTTPCONNECTIPv4Address="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -3733,7 +3741,7 @@ bool ReadParameterData_Proxy(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("HTTPCONNECTIPv6Address="), ("HTTPCONNECTIPv6Address=")) == 0 && 
+		else if (Data.compare(0, strlen("HTTPCONNECTIPv6Address="), "HTTPCONNECTIPv6Address=") == 0 && 
 			Data.length() > strlen("HTTPCONNECTIPv6Address="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -3754,7 +3762,7 @@ bool ReadParameterData_Proxy(
 		}
 	}
 
-	if (Data.compare(0, strlen("HTTPCONNECTTargetServer="), ("HTTPCONNECTTargetServer=")) == 0 && 
+	if (Data.compare(0, strlen("HTTPCONNECTTargetServer="), "HTTPCONNECTTargetServer=") == 0 && 
 		Data.length() > strlen("HTTPCONNECTTargetServer="))
 	{
 		ParameterPointer->HTTP_CONNECT_TargetDomain->clear();
@@ -3765,21 +3773,21 @@ bool ReadParameterData_Proxy(
 	}
 
 #if defined(ENABLE_TLS)
-	else if (IsFirstRead && Data.compare(0, strlen("HTTPCONNECTTLSHandshake=1"), ("HTTPCONNECTTLSHandshake=1")) == 0)
+	else if (IsFirstRead && Data.compare(0, strlen("HTTPCONNECTTLSHandshake=1"), "HTTPCONNECTTLSHandshake=1") == 0)
 	{
 		Parameter.HTTP_CONNECT_TLS_Handshake = true;
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("HTTPCONNECTTLSVersion="), ("HTTPCONNECTTLSVersion=")) == 0 && 
+	else if (Data.compare(0, strlen("HTTPCONNECTTLSVersion="), "HTTPCONNECTTLSVersion=") == 0 && 
 		Data.length() > strlen("HTTPCONNECTTLSVersion="))
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
-		if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.2"), ("HTTPCONNECTTLSVERSION=1.2")) == 0) //TLS 1.2
+		if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.2"), "HTTPCONNECTTLSVERSION=1.2") == 0) //TLS 1.2
 			ParameterPointer->HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_1_2;
-		else if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.1"), ("HTTPCONNECTTLSVERSION=1.1")) == 0) //TLS 1.1
+		else if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.1"), "HTTPCONNECTTLSVERSION=1.1") == 0) //TLS 1.1
 			ParameterPointer->HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_1_1;
-		else if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.0"), ("HTTPCONNECTTLSVERSION=1.0")) == 0) //TLS 1.0
+		else if (InnerData.compare(0, strlen("HTTPCONNECTTLSVERSION=1.0"), "HTTPCONNECTTLSVERSION=1.0") == 0) //TLS 1.0
 			ParameterPointer->HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_1_0;
 		else //Auto-select
 			ParameterPointer->HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_AUTO;
@@ -3787,7 +3795,7 @@ bool ReadParameterData_Proxy(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("HTTPCONNECTTLSValidation=1"), ("HTTPCONNECTTLSValidation=1")) == 0)
+	else if (Data.compare(0, strlen("HTTPCONNECTTLSValidation=1"), "HTTPCONNECTTLSValidation=1") == 0)
 	{
 		ParameterPointer->HTTP_CONNECT_TLS_Validation = true;
 		IsFoundParameter = true;
@@ -3797,17 +3805,17 @@ bool ReadParameterData_Proxy(
 	if (IsFirstRead)
 	{
 	#if defined(ENABLE_TLS)
-		if (Data.compare(0, strlen("HTTPCONNECTTLSServerNameIndication="), ("HTTPCONNECTTLSServerNameIndication=")) == 0 && 
+		if (Data.compare(0, strlen("HTTPCONNECTTLSServerNameIndication="), "HTTPCONNECTTLSServerNameIndication=") == 0 && 
 			Data.length() > strlen("HTTPCONNECTTLSServerNameIndication=") + DOMAIN_MINSIZE)
 		{
-			Parameter.MBS_HTTP_CONNECT_TLS_SNI->clear();
-			Parameter.MBS_HTTP_CONNECT_TLS_SNI->append(Data, strlen("HTTPCONNECTTLSServerNameIndication="), Data.length() - strlen("HTTPCONNECTTLSServerNameIndication="));
-			
+			Parameter.HTTP_CONNECT_TLS_SNI_MBS->clear();
+			Parameter.HTTP_CONNECT_TLS_SNI_MBS->append(Data, strlen("HTTPCONNECTTLSServerNameIndication="), Data.length() - strlen("HTTPCONNECTTLSServerNameIndication="));
+
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
 	#if !defined(PLATFORM_WIN_XP)
-		else if (Data.compare(0, strlen("HTTPCONNECTTLSALPN=1"), ("HTTPCONNECTTLSALPN=1")) == 0)
+		else if (Data.compare(0, strlen("HTTPCONNECTTLSALPN=1"), "HTTPCONNECTTLSALPN=1") == 0)
 		{
 			Parameter.HTTP_CONNECT_TLS_ALPN = true;
 			IsFoundParameter = true;
@@ -3815,7 +3823,7 @@ bool ReadParameterData_Proxy(
 		else 
 	#endif
 	#endif
-		if (Data.compare(0, strlen("HTTPCONNECTVersion="), ("HTTPCONNECTVersion=")) == 0 && 
+		if (Data.compare(0, strlen("HTTPCONNECTVersion="), "HTTPCONNECTVersion=") == 0 && 
 		Data.length() > strlen("HTTPCONNECTVersion="))
 		{
 			if (Data.length() > strlen("HTTPCONNECTVersion=") && Data.length() <= strlen("HTTPCONNECTVersion=") + HTTP_VERSION_MAXSIZE && 
@@ -3846,12 +3854,12 @@ bool ReadParameterData_Proxy(
 					else 
 						goto PrintDataFormatError;
 				}
-				else if (Data.compare(0, strlen("HTTPCONNECTVersion=2"), ("HTTPCONNECTVersion=2")) == 0 && 
+				else if (Data.compare(0, strlen("HTTPCONNECTVersion=2"), "HTTPCONNECTVersion=2") == 0 && 
 					Data.length() == strlen("HTTPCONNECTVersion=2")) //HTTP 2.x
 				{
 					Version_Major = 2U;
 				}
-				else if (Data.compare(0, strlen("HTTPCONNECTVersion=1"), ("HTTPCONNECTVersion=1")) == 0 && 
+				else if (Data.compare(0, strlen("HTTPCONNECTVersion=1"), "HTTPCONNECTVersion=1") == 0 && 
 					Data.length() == strlen("HTTPCONNECTVersion=1")) //HTTP 1.x
 				{
 					Version_Major = 1U;
@@ -3892,7 +3900,7 @@ bool ReadParameterData_Proxy(
 		}
 	}
 
-	if (Data.compare(0, strlen("HTTP CONNECT Header Field = "), ("HTTP CONNECT Header Field = ")) == 0 && 
+	if (Data.compare(0, strlen("HTTP CONNECT Header Field = "), "HTTP CONNECT Header Field = ") == 0 && 
 		Data.length() > strlen("HTTP CONNECT Header Field = "))
 	{
 		if (Data.find(": ") == std::string::npos || Data.rfind(": ") == std::string::npos || Data.find(": ") != Data.rfind(": ") || 
@@ -3914,13 +3922,13 @@ bool ReadParameterData_Proxy(
 //			IsFoundParameter = true;
 		}
 	}
-	else if (Data.compare(0, strlen("HTTPCONNECTProxyAuthorization="), ("HTTPCONNECTProxyAuthorization=")) == 0 && 
+	else if (Data.compare(0, strlen("HTTPCONNECTProxyAuthorization="), "HTTPCONNECTProxyAuthorization=") == 0 && 
 		Data.length() > strlen("HTTPCONNECTProxyAuthorization="))
 	{
 		if (Data.length() < HTTP_AUTHORIZATION_MAXSIZE)
 		{
 		//Mark fixed part.
-			memcpy_s(ParameterPointer->HTTP_CONNECT_ProxyAuthorization, strlen("Basic "), ("Basic "), strlen("Basic "));
+			memcpy_s(ParameterPointer->HTTP_CONNECT_ProxyAuthorization, strlen("Basic "), "Basic ", strlen("Basic "));
 			ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength = strlen("Basic ");
 
 		//Convert string to base64.
@@ -3978,12 +3986,12 @@ bool ReadParameterData_DNSCurve(
 //[DNSCurve] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("DNSCurve=1"), ("DNSCurve=1")) == 0)
+		if (Data.compare(0, strlen("DNSCurve=1"), "DNSCurve=1") == 0)
 		{
 			Parameter.IsDNSCurve = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveProtocol="), ("DNSCurveProtocol=")) == 0)
+		else if (Data.compare(0, strlen("DNSCurveProtocol="), "DNSCurveProtocol=") == 0)
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
@@ -4014,7 +4022,7 @@ bool ReadParameterData_DNSCurve(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurvePayloadSize="), ("DNSCurvePayloadSize=")) == 0 && Data.length() > strlen("DNSCurvePayloadSize="))
+		else if (Data.compare(0, strlen("DNSCurvePayloadSize="), "DNSCurvePayloadSize=") == 0 && Data.length() > strlen("DNSCurvePayloadSize="))
 		{
 			if (Data.length() > strlen("DNSCurvePayloadSize=") + 2U && 
 				Data.find(ASCII_MINUS) == std::string::npos)
@@ -4033,7 +4041,7 @@ bool ReadParameterData_DNSCurve(
 		}
 	}
 
-	if (Data.compare(0, strlen("DNSCurveReliableSocketTimeout="), ("DNSCurveReliableSocketTimeout=")) == 0 && 
+	if (Data.compare(0, strlen("DNSCurveReliableSocketTimeout="), "DNSCurveReliableSocketTimeout=") == 0 && 
 		Data.length() > strlen("DNSCurveReliableSocketTimeout="))
 	{
 		if (Data.length() < strlen("DNSCurveReliableSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -4056,7 +4064,7 @@ bool ReadParameterData_DNSCurve(
 			goto PrintDataFormatError;
 		}
 	}
-	else if (Data.compare(0, strlen("DNSCurveUnreliableSocketTimeout="), ("DNSCurveUnreliableSocketTimeout=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveUnreliableSocketTimeout="), "DNSCurveUnreliableSocketTimeout=") == 0 && 
 		Data.length() > strlen("DNSCurveUnreliableSocketTimeout="))
 	{
 		if (Data.length() < strlen("DNSCurveUnreliableSocketTimeout=") + UINT32_STRING_MAXLEN && 
@@ -4082,24 +4090,24 @@ bool ReadParameterData_DNSCurve(
 
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("DNSCurveEncryption=1"), ("DNSCurveEncryption=1")) == 0)
+		if (Data.compare(0, strlen("DNSCurveEncryption=1"), "DNSCurveEncryption=1") == 0)
 		{
 			DNSCurveParameter.IsEncryption = true;
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveEncryptionOnly=1"), ("DNSCurveEncryptionOnly=1")) == 0)
+		else if (Data.compare(0, strlen("DNSCurveEncryptionOnly=1"), "DNSCurveEncryptionOnly=1") == 0)
 		{
 			DNSCurveParameter.IsEncryptionOnly = true;
 			IsFoundParameter = true;
 		}
 	}
 
-	if (Data.compare(0, strlen("DNSCurveClientEphemeralKey=1"), ("DNSCurveClientEphemeralKey=1")) == 0)
+	if (Data.compare(0, strlen("DNSCurveClientEphemeralKey=1"), "DNSCurveClientEphemeralKey=1") == 0)
 	{
 		DNSCurveParameter.IsClientEphemeralKey = true;
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveKeyRecheckTime="), ("DNSCurveKeyRecheckTime=")) == 0 && Data.length() > strlen("DNSCurveKeyRecheckTime="))
+	else if (Data.compare(0, strlen("DNSCurveKeyRecheckTime="), "DNSCurveKeyRecheckTime=") == 0 && Data.length() > strlen("DNSCurveKeyRecheckTime="))
 	{
 		if (Data.length() < strlen("DNSCurveKeyRecheckTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
@@ -4138,7 +4146,7 @@ bool ReadParameterData_DNSCurve_Database(
 //[DNSCurve Database] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("DNSCurve Database Name = "), ("DNSCurve Database Name = ")) == 0 && Data.length() > strlen("DNSCurve Database Name = "))
+		if (Data.compare(0, strlen("DNSCurve Database Name = "), "DNSCurve Database Name = ") == 0 && Data.length() > strlen("DNSCurve Database Name = "))
 		{
 		//Convert to wide string.
 			if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(Data.c_str() + strlen("DNSCurve Database Name = ")), Data.length() - strlen("DNSCurve Database Name = "), *DNSCurveParameter.DatabaseName))
@@ -4146,28 +4154,28 @@ bool ReadParameterData_DNSCurve_Database(
 
 		//Mark database name.
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			DNSCurveParameter.MBS_DatabaseName->append(Data, strlen("DNSCurve Database Name = "), Data.length() - strlen("DNSCurve Database Name = "));
+			DNSCurveParameter.DatabaseName_MBS->append(Data, strlen("DNSCurve Database Name = "), Data.length() - strlen("DNSCurve Database Name = "));
 		#endif
 
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv4MainDNS="), ("DNSCurveDatabaseIPv4MainDNS=")) == 0 && Data.length() > strlen("DNSCurveDatabaseIPv4MainDNS="))
+		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv4MainDNS="), "DNSCurveDatabaseIPv4MainDNS=") == 0 && Data.length() > strlen("DNSCurveDatabaseIPv4MainDNS="))
 		{
 			DNSCurveParameter.Database_Target_Server_Main_IPv4->append(Data, strlen("DNSCurveDatabaseIPv4MainDNS="), Data.length() - strlen("DNSCurveDatabaseIPv4MainDNS="));
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv4AlternateDNS="), ("DNSCurveDatabaseIPv4AlternateDNS=")) == 0 && Data.length() > strlen("DNSCurveDatabaseIPv4AlternateDNS="))
+		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv4AlternateDNS="), "DNSCurveDatabaseIPv4AlternateDNS=") == 0 && Data.length() > strlen("DNSCurveDatabaseIPv4AlternateDNS="))
 		{
 			DNSCurveParameter.Database_Target_Server_Alternate_IPv4->append(Data, strlen("DNSCurveDatabaseIPv4AlternateDNS="), Data.length() - strlen("DNSCurveDatabaseIPv4AlternateDNS="));
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv6MainDNS="), ("DNSCurveDatabaseIPv6MainDNS=")) == 0 && Data.length() > strlen("DNSCurveDatabaseIPv6MainDNS="))
+		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv6MainDNS="), "DNSCurveDatabaseIPv6MainDNS=") == 0 && Data.length() > strlen("DNSCurveDatabaseIPv6MainDNS="))
 		{
 			DNSCurveParameter.Database_Target_Server_Main_IPv6->append(Data, strlen("DNSCurveDatabaseIPv6MainDNS="), Data.length() - strlen("DNSCurveDatabaseIPv6MainDNS="));
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv6AlternateDNS="), ("DNSCurveDatabaseIPv6AlternateDNS=")) == 0 && Data.length() > strlen("DNSCurveDatabaseIPv6AlternateDNS="))
+		else if (Data.compare(0, strlen("DNSCurveDatabaseIPv6AlternateDNS="), "DNSCurveDatabaseIPv6AlternateDNS=") == 0 && Data.length() > strlen("DNSCurveDatabaseIPv6AlternateDNS="))
 		{
 			DNSCurveParameter.Database_Target_Server_Alternate_IPv6->append(Data, strlen("DNSCurveDatabaseIPv6AlternateDNS="), Data.length() - strlen("DNSCurveDatabaseIPv6AlternateDNS="));
 			IsFoundParameter = true;
@@ -4195,7 +4203,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 //[DNSCurve Addresses] block
 	if (IsFirstRead)
 	{
-		if (Data.compare(0, strlen("DNSCurveIPv4MainDNSAddress="), ("DNSCurveIPv4MainDNSAddress=")) == 0 && 
+		if (Data.compare(0, strlen("DNSCurveIPv4MainDNSAddress="), "DNSCurveIPv4MainDNSAddress=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv4MainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -4208,7 +4216,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSAddress="), ("DNSCurveIPv4AlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSAddress="), "DNSCurveIPv4AlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv4AlternateDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -4221,7 +4229,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSAddress="), ("DNSCurveIPv6MainDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSAddress="), "DNSCurveIPv6MainDNSAddress=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv6MainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -4234,7 +4242,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSAddress="), ("DNSCurveIPv6AlternateDNSAddress=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSAddress="), "DNSCurveIPv6AlternateDNSAddress=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv6AlternateDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
@@ -4247,7 +4255,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 				IsFoundParameter = true;
 			}
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv4MainProviderName="), ("DNSCurveIPv4MainProviderName=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv4MainProviderName="), "DNSCurveIPv4MainProviderName=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv4MainProviderName="))
 		{
 			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4256,7 +4264,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv4AlternateProviderName="), ("DNSCurveIPv4AlternateProviderName=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv4AlternateProviderName="), "DNSCurveIPv4AlternateProviderName=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv4AlternateProviderName="))
 		{
 			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4265,7 +4273,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv6MainProviderName="), ("DNSCurveIPv6MainProviderName=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv6MainProviderName="), "DNSCurveIPv6MainProviderName=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv6MainProviderName="))
 		{
 			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4274,7 +4282,7 @@ bool ReadParameterData_DNSCurve_Addresses(
 		//Mark parameter found.
 			IsFoundParameter = true;
 		}
-		else if (Data.compare(0, strlen("DNSCurveIPv6AlternateProviderName="), ("DNSCurveIPv6AlternateProviderName=")) == 0 && 
+		else if (Data.compare(0, strlen("DNSCurveIPv6AlternateProviderName="), "DNSCurveIPv6AlternateProviderName=") == 0 && 
 			Data.length() > strlen("DNSCurveIPv6AlternateProviderName="))
 		{
 			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4306,7 +4314,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	bool &IsFoundParameter)
 {
 //[DNSCurve Keys] block
-	if (Data.compare(0, strlen("DNSCurveClientPublicKey="), ("DNSCurveClientPublicKey=")) == 0 && 
+	if (Data.compare(0, strlen("DNSCurveClientPublicKey="), "DNSCurveClientPublicKey=") == 0 && 
 		Data.length() > strlen("DNSCurveClientPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveClientPublicKey="), DNSCurveParameterPointer->Client_PublicKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4315,7 +4323,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveClientSecretKey="), ("DNSCurveClientSecretKey=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveClientSecretKey="), "DNSCurveClientSecretKey=") == 0 && 
 		Data.length() > strlen("DNSCurveClientSecretKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveClientSecretKey="), DNSCurveParameterPointer->Client_SecretKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4324,7 +4332,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSPublicKey="), ("DNSCurveIPv4MainDNSPublicKey=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSPublicKey="), "DNSCurveIPv4MainDNSPublicKey=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4MainDNSPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4MainDNSPublicKey="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4333,7 +4341,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSPublicKey="), ("DNSCurveIPv4AlternateDNSPublicKey=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSPublicKey="), "DNSCurveIPv4AlternateDNSPublicKey=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4AlternateDNSPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4AlternateDNSPublicKey="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4342,7 +4350,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSPublicKey="), ("DNSCurveIPv6MainDNSPublicKey=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSPublicKey="), "DNSCurveIPv6MainDNSPublicKey=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6MainDNSPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6MainDNSPublicKey="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4351,7 +4359,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSPublicKey="), ("DNSCurveIPv6AlternateDNSPublicKey=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSPublicKey="), "DNSCurveIPv6AlternateDNSPublicKey=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6AlternateDNSPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6AlternateDNSPublicKey="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4360,7 +4368,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSFingerprint="), ("DNSCurveIPv4MainDNSFingerprint=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSFingerprint="), "DNSCurveIPv4MainDNSFingerprint=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4MainDNSFingerprint="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4MainDNSFingerprint="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4369,7 +4377,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSFingerprint="), ("DNSCurveIPv4AlternateDNSFingerprint=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSFingerprint="), "DNSCurveIPv4AlternateDNSFingerprint=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4AlternateDNSFingerprint="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4AlternateDNSFingerprint="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4378,7 +4386,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSFingerprint="), ("DNSCurveIPv6MainDNSFingerprint=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSFingerprint="), "DNSCurveIPv6MainDNSFingerprint=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6MainDNSFingerprint="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6MainDNSFingerprint="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4387,7 +4395,7 @@ bool ReadParameterData_DNSCurve_Keys(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSFingerprint="), ("DNSCurveIPv6AlternateDNSFingerprint=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSFingerprint="), "DNSCurveIPv6AlternateDNSFingerprint=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6AlternateDNSFingerprint="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6AlternateDNSFingerprint="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
@@ -4418,7 +4426,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	bool &IsFoundParameter)
 {
 //[DNSCurve Magic Number] block
-	if (Data.compare(0, strlen("DNSCurveIPv4MainReceiveMagicNumber="), ("DNSCurveIPv4MainReceiveMagicNumber=")) == 0 && 
+	if (Data.compare(0, strlen("DNSCurveIPv4MainReceiveMagicNumber="), "DNSCurveIPv4MainReceiveMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4MainReceiveMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4MainReceiveMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, FileIndex, Line))
@@ -4427,7 +4435,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateReceiveMagicNumber="), ("DNSCurveIPv4AlternateReceiveMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateReceiveMagicNumber="), "DNSCurveIPv4AlternateReceiveMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4AlternateReceiveMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4AlternateReceiveMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, FileIndex, Line))
@@ -4436,7 +4444,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6MainReceiveMagicNumber="), ("DNSCurveIPv6MainReceiveMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6MainReceiveMagicNumber="), "DNSCurveIPv6MainReceiveMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6MainReceiveMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6MainReceiveMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, FileIndex, Line))
@@ -4445,7 +4453,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateReceiveMagicNumber="), ("DNSCurveIPv6AlternateReceiveMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateReceiveMagicNumber="), "DNSCurveIPv6AlternateReceiveMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6AlternateReceiveMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6AlternateReceiveMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, FileIndex, Line))
@@ -4454,7 +4462,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSMagicNumber="), ("DNSCurveIPv4MainDNSMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4MainDNSMagicNumber="), "DNSCurveIPv4MainDNSMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4MainDNSMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4MainDNSMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, FileIndex, Line))
@@ -4463,7 +4471,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSMagicNumber="), ("DNSCurveIPv4AlternateDNSMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv4AlternateDNSMagicNumber="), "DNSCurveIPv4AlternateDNSMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv4AlternateDNSMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4AlternateDNSMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, FileIndex, Line))
@@ -4472,7 +4480,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSMagicNumber="), ("DNSCurveIPv6MainDNSMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6MainDNSMagicNumber="), "DNSCurveIPv6MainDNSMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6MainDNSMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6MainDNSMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, FileIndex, Line))
@@ -4481,7 +4489,7 @@ bool ReadParameterData_DNSCurve_Magic_Number(
 	//Mark parameter found.
 		IsFoundParameter = true;
 	}
-	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSMagicNumber="), ("DNSCurveIPv6AlternateDNSMagicNumber=")) == 0 && 
+	else if (Data.compare(0, strlen("DNSCurveIPv6AlternateDNSMagicNumber="), "DNSCurveIPv6AlternateDNSMagicNumber=") == 0 && 
 		Data.length() > strlen("DNSCurveIPv6AlternateDNSMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6AlternateDNSMagicNumber="), DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, FileIndex, Line))
@@ -4509,7 +4517,7 @@ bool ReadName_PathFile(
 	const bool IsPath, 
 	std::vector<std::wstring> * const ListData, 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::vector<std::string> * const MBS_ListData, 
+	std::vector<std::string> * const ListData_MBS, 
 #endif
 	const size_t FileIndex, 
 	const size_t Line)
@@ -4582,15 +4590,15 @@ bool ReadName_PathFile(
 			}
 
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			for (auto InnerStringIter = GlobalRunningStatus.MBS_Path_Global->begin();InnerStringIter < GlobalRunningStatus.MBS_Path_Global->end();++InnerStringIter)
+			for (auto InnerStringIter = GlobalRunningStatus.Path_Global_MBS->begin();InnerStringIter < GlobalRunningStatus.Path_Global_MBS->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == StringIter)
 				{
 					break;
 				}
-				else if (InnerStringIter + 1U == GlobalRunningStatus.MBS_Path_Global->end())
+				else if (InnerStringIter + 1U == GlobalRunningStatus.Path_Global_MBS->end())
 				{
-					GlobalRunningStatus.MBS_Path_Global->push_back(StringIter);
+					GlobalRunningStatus.Path_Global_MBS->push_back(StringIter);
 					break;
 				}
 			}
@@ -4630,20 +4638,20 @@ bool ReadName_PathFile(
 			}
 
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (MBS_ListData->empty())
+			if (ListData_MBS->empty())
 			{
-				MBS_ListData->push_back(StringIter);
+				ListData_MBS->push_back(StringIter);
 			}
 			else {
-				for (auto InnerStringIter = MBS_ListData->begin();InnerStringIter != MBS_ListData->end();++InnerStringIter)
+				for (auto InnerStringIter = ListData_MBS->begin();InnerStringIter != ListData_MBS->end();++InnerStringIter)
 				{
 					if (*InnerStringIter == StringIter)
 					{
 						break;
 					}
-					else if (InnerStringIter + 1U == MBS_ListData->end())
+					else if (InnerStringIter + 1U == ListData_MBS->end())
 					{
-						MBS_ListData->push_back(StringIter);
+						ListData_MBS->push_back(StringIter);
 						break;
 					}
 				}
@@ -4728,7 +4736,7 @@ bool ReadMultipleAddresses(
 		//Convert IPv6 port.
 			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 			memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find("]:") + strlen("]:"), StringIter.length() - (StringIter.find("]:") + strlen("]:")));
-			if (strstr(reinterpret_cast<const char *>(AddrBuffer), ("-")) != nullptr)
+			if (strstr(reinterpret_cast<const char *>(AddrBuffer), "-") != nullptr)
 			{
 			#if defined(ENABLE_LIBSODIUM)
 				if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
@@ -4739,7 +4747,7 @@ bool ReadMultipleAddresses(
 
 				return false;
 			}
-			
+
 		//Convert type.
 			UnsignedResult = ServiceNameToBinary(AddrBuffer);
 			if (UnsignedResult == 0)
@@ -4829,7 +4837,7 @@ bool ReadMultipleAddresses(
 		//Convert IPv4 port.
 			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 			memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_COLON) + strlen(":"), StringIter.length() - (StringIter.find(ASCII_COLON) + strlen(":")));
-			if (strstr(reinterpret_cast<const char *>(AddrBuffer), ("-")) != nullptr)
+			if (strstr(reinterpret_cast<const char *>(AddrBuffer), "-") != nullptr)
 			{
 			#if defined(ENABLE_LIBSODIUM)
 				if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
@@ -4945,7 +4953,7 @@ bool Read_SOCKS_AddressDomain(
 		//Convert IPv6 port.
 			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 			memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find("]:") + strlen("]:"), Data.length() - (Data.find("]:") + strlen("]:")));
-			if (strstr(reinterpret_cast<const char *>(AddrBuffer), ("-")) != nullptr)
+			if (strstr(reinterpret_cast<const char *>(AddrBuffer), "-") != nullptr)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -4997,7 +5005,7 @@ bool Read_SOCKS_AddressDomain(
 
 		//Convert port.
 			memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
-			if (strstr(reinterpret_cast<const char *>(AddrBuffer), ("-")) != nullptr)
+			if (strstr(reinterpret_cast<const char *>(AddrBuffer), "-") != nullptr)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -5039,7 +5047,7 @@ bool Read_SOCKS_AddressDomain(
 		//Convert IPv4 port.
 			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 			memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
-			if (strstr(reinterpret_cast<const char *>(AddrBuffer), ("-")) != nullptr)
+			if (strstr(reinterpret_cast<const char *>(AddrBuffer), "-") != nullptr)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -5194,7 +5202,7 @@ void ReadDNSCurveDatabaseData(
 
 //CSV title check
 //The title data is <Name,"Full name","Description","Location","Coordinates",URL,Version,DNSSEC validation,No logs,Namecoin,Resolver address,Provider name,Provider public key,Provider public key TXT record>.
-	if (Data.compare(0, strlen("Name,"), ("Name,")) == 0 || 
+	if (Data.compare(0, strlen("Name,"), "Name,") == 0 || 
 		Data.find(",\"Full name\",") != std::string::npos || 
 		Data.find(",\"Description\",") != std::string::npos || 
 		Data.find(",\"Location\",") != std::string::npos || 

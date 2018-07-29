@@ -39,6 +39,7 @@ typedef struct _icmp_event_argument_
 	size_t                                    RecvSize;
 	size_t                                    TotalSleepTime;
 	size_t                                    OnceTimes;
+	size_t                                    RetestTimes;
 	uint64_t                                  FileModifiedTime;
 #if defined(PLATFORM_LINUX)
 #if !defined(ENABLE_LIBSODIUM)

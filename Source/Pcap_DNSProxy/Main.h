@@ -33,12 +33,16 @@ bool ReadCommand(
 	int argc, 
 	wchar_t *argv[]);
 bool FileNameInit(
-	const std::wstring &OriginalPath);
+	const std::wstring &OriginalPath, 
+	const bool IsStartupLoad, 
+	const bool IsRewriteLogFile);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool ReadCommand(
 	int argc, 
 	char *argv[]);
 bool FileNameInit(
-	const std::string &OriginalPath);
+	const std::string &OriginalPath, 
+	const bool IsStartupLoad, 
+	const bool IsRewriteLogFile);
 #endif
 #endif

@@ -72,7 +72,7 @@ bool DomainTestRequest(
 	DataLength += sizeof(dns_hdr);
 
 //Send request.
-	size_t TotalSleepTime = 0, Times = 0;
+	size_t TotalSleepTime = 0, OnceTimes = 0, RetestTimes = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	for (;;)
 	{
@@ -106,9 +106,10 @@ bool DomainTestRequest(
 		}
 
 	//Interval time
-		if (Times == SENDING_ONCE_INTERVAL_TIMES)
+		if (OnceTimes >= SENDING_ONCE_INTERVAL_TIMES)
 		{
-			Times = 0;
+		//Reset once times.
+			OnceTimes = 0;
 
 		//Test again check.
 			if (Protocol == AF_INET6)
@@ -171,9 +172,23 @@ bool DomainTestRequest(
 			TotalSleepTime += Parameter.FileRefreshTime;
 			continue;
 
-		//Jump here to restart.
+		//Jump here to restart, but retest no more than a value times.
 		JumpTo_Retest:
-			Sleep(SENDING_INTERVAL_TIME);
+			if (RetestTimes + 1U >= SENDING_MAX_INTERVAL_TIMES)
+			{
+				RetestTimes = 0;
+
+			//Keep to retest if no any available gateways.
+				if (!GlobalRunningStatus.GatewayAvailable_IPv4 && !GlobalRunningStatus.GatewayAvailable_IPv6)
+					Sleep(SENDING_INTERVAL_TIME);
+			//Wait for testing again.
+				else 
+					TotalSleepTime += Parameter.FileRefreshTime;
+			}
+			else {
+				++RetestTimes;
+				Sleep(SENDING_INTERVAL_TIME);
+			}
 		}
 		else {
 		//Make random domain request.
@@ -221,7 +236,7 @@ bool DomainTestRequest(
 
 		//Interval time
 			Sleep(SENDING_INTERVAL_TIME);
-			++Times;
+			++OnceTimes;
 		}
 	}
 
@@ -403,7 +418,7 @@ void ICMP_TestTimerCallback(
 		return;
 	}
 //Not enough once check times
-	else if (CallbackArgument->OnceTimes < SENDING_ONCE_INTERVAL_TIMES)
+	else if (CallbackArgument->OnceTimes + 1U < SENDING_ONCE_INTERVAL_TIMES)
 	{
 		++CallbackArgument->OnceTimes;
 	}
@@ -458,8 +473,12 @@ void ICMP_TestTimerCallback(
 			}
 		}
 
-	//Retest if Hop Limits/TTLs are not exist.
-		if (IsHopLimitExist)
+	//Keep to retest if no any available gateways.
+		if (!GlobalRunningStatus.GatewayAvailable_IPv4 && !GlobalRunningStatus.GatewayAvailable_IPv6)
+			CallbackArgument->RetestTimes = 0;
+
+	//Retest if Hop Limits/TTLs are not exist or retest not more than a value times.
+		if (IsHopLimitExist || CallbackArgument->RetestTimes + 1U >= SENDING_MAX_INTERVAL_TIMES)
 		{
 		//Mark total sleep time.
 			size_t LoopInterval = 0;
@@ -468,7 +487,7 @@ void ICMP_TestTimerCallback(
 			else 
 				LoopInterval = Parameter.FileRefreshTime;
 			CallbackArgument->TotalSleepTime += LoopInterval;
-		
+
 		//Interval time is not enough.
 			if (CallbackArgument->TotalSleepTime < Parameter.ICMP_Speed)
 			{
@@ -484,9 +503,18 @@ void ICMP_TestTimerCallback(
 
 				return;
 			}
+		//Interval time is enough, reset retest times.
+			else {
+				CallbackArgument->RetestTimes = 0;
+			}
 		}
-		
-	//Interval time is enough, next recheck time.
+	//Mark retest times.
+		else if (GlobalRunningStatus.GatewayAvailable_IPv4 || GlobalRunningStatus.GatewayAvailable_IPv6)
+		{
+			++CallbackArgument->RetestTimes;
+		}
+
+	//Interval time is enough, next recheck process.
 		CallbackArgument->TotalSleepTime = 0;
 		CallbackArgument->OnceTimes = 0;
 	}

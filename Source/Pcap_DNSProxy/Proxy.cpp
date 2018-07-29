@@ -1675,7 +1675,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 		{
 			IsGotResponseResult = true;
 		}
-		else if (HTTP_String.compare(0, strlen("HTTP/"), ("HTTP/")) == 0 && 
+		else if (HTTP_String.compare(0, strlen("HTTP/"), "HTTP/") == 0 && 
 			HTTP_String.find(ASCII_SPACE) != std::string::npos && HTTP_String.find("\r\n\r\n") != std::string::npos)
 		{
 			if (HTTP_String.find("\r\n") != std::string::npos)
@@ -1703,7 +1703,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 
 		//HTTP version 1.x response
 			std::string HTTP_String(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()));
-			if (HTTP_String.compare(0, strlen("HTTP/"), ("HTTP/")) == 0 && 
+			if (HTTP_String.compare(0, strlen("HTTP/"), "HTTP/") == 0 && 
 				HTTP_String.find(ASCII_SPACE) != std::string::npos && HTTP_String.find("\r\n\r\n") != std::string::npos)
 			{
 				if (HTTP_String.find("\r\n") != std::string::npos)

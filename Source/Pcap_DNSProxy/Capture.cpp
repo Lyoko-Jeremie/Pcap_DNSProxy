@@ -278,8 +278,7 @@ bool CaptureFilterRulesInit(
 //Initialization(Part 2)
 	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 	std::string AddrString;
-	FilterRules.clear();
-	FilterRules.append("(src host ");
+	FilterRules = "(src host ";
 	ssize_t Result = 0;
 
 //List all target addresses.
@@ -1443,6 +1442,7 @@ StopLoop:
 				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
 				Port == reinterpret_cast<const sockaddr_in *>(&SocketDataIter.SockAddr)->sin_port))) //IPv4
 			{
+			//Waiting ends.
 				if (PortTableIter.ReceiveIndex == ReceiveIndex)
 				{
 				//EDNS options check
@@ -1462,6 +1462,7 @@ StopLoop:
 					PortTableIter.SocketData_Input.Socket = INVALID_SOCKET;
 					goto ClearListData;
 				}
+			//Drop all packets which in the top.
 				else {
 					return false;
 				}

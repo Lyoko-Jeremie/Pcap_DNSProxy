@@ -43,7 +43,7 @@ bool ReadIPFilterData(
 		return true;
 
 //Remove spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs).
-	if (Data.compare(0, strlen("#"), ("#")) == 0 || Data.compare(0, strlen("/"), ("/")) == 0)
+	if (Data.compare(0, strlen("#"), "#") == 0 || Data.compare(0, strlen("/"), "/") == 0)
 		return true;
 
 //Case insensitive
@@ -64,7 +64,7 @@ bool ReadIPFilterData(
 	}
 
 //[IPFilter] block
-	if (InsensitiveString.compare(0, strlen("[IPFILTER]"), ("[IPFILTER]")) == 0)
+	if (InsensitiveString.compare(0, strlen("[IPFILTER]"), "[IPFILTER]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_TYPE::NORMAL;
 		IsStopLabel = false;
@@ -73,7 +73,7 @@ bool ReadIPFilterData(
 	}
 
 //[Blacklist] block(A part)
-	else if (InsensitiveString.compare(0, strlen("[BLACKLIST]"), ("[BLACKLIST]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[BLACKLIST]"), "[BLACKLIST]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_TYPE::BLACKLIST;
 		IsStopLabel = false;
@@ -82,7 +82,7 @@ bool ReadIPFilterData(
 	}
 
 //[Local Routing] block(B part)
-	else if (InsensitiveString.compare(0, strlen("[LOCAL ROUTING]"), ("[LOCAL ROUTING]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[LOCAL ROUTING]"), "[LOCAL ROUTING]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_TYPE::LOCAL_ROUTING;
 		IsStopLabel = false;
@@ -91,14 +91,14 @@ bool ReadIPFilterData(
 	}
 
 //Temporary stop read.
-	else if (InsensitiveString.compare(0, strlen("[STOP"), ("[STOP")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[STOP"), "[STOP") == 0)
 	{
 		if (InsensitiveString.find("END]") != std::string::npos)
 		{
 			IsStopLabel = false;
 			return true;
 		}
-		else if (InsensitiveString.compare(0, strlen("[STOP]"), ("[STOP]")) == 0)
+		else if (InsensitiveString.compare(0, strlen("[STOP]"), "[STOP]") == 0)
 		{
 			IsStopLabel = true;
 			return true;
@@ -738,33 +738,33 @@ bool ReadMainIPFilterData(
 
 		//Remove all zeros before minus or after commas in addresses range.
 			while (Data.find(".0") != std::string::npos)
-				Data.replace(Data.find(".0"), strlen(".0"), ("."));
+				Data.replace(Data.find(".0"), strlen(".0"), ".");
 			while (Data.find("-0") != std::string::npos)
-				Data.replace(Data.find("-0"), strlen("-0"), ("-"));
+				Data.replace(Data.find("-0"), strlen("-0"), "-");
 			while (Data.find("..") != std::string::npos)
-				Data.replace(Data.find(".."), strlen(".."), (".0."));
+				Data.replace(Data.find(".."), strlen(".."), ".0.");
 			if (Data.find(".-") != std::string::npos)
-				Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
+				Data.replace(Data.find(".-"), strlen(".-"), ".0-");
 			if (Data.find("-.") != std::string::npos)
-				Data.replace(Data.find("-."), strlen("-."), ("-0."));
+				Data.replace(Data.find("-."), strlen("-."), "-0.");
 			if (Data.front() == ASCII_PERIOD)
-				Data.replace(0, 1U, ("0."));
+				Data.replace(0, 1U, "0.");
 		}
 
 	//Remove all zeros before minus or after commas in ipfilter level.
 		while (Data.find(",000,") != std::string::npos)
-			Data.replace(Data.find(",000,"), strlen(",000,"), (",0,"));
+			Data.replace(Data.find(",000,"), strlen(",000,"), ",0,");
 		while (Data.find(",00,") != std::string::npos)
-			Data.replace(Data.find(",00,"), strlen(",00,"), (",0,"));
+			Data.replace(Data.find(",00,"), strlen(",00,"), ",0,");
 		while (Data.find(",00") != std::string::npos)
-			Data.replace(Data.find(",00"), strlen(",00"), (","));
+			Data.replace(Data.find(",00"), strlen(",00"), ",");
 		if (Data.find(",0") != std::string::npos && Data.at(Data.find(",0") + 2U) != ASCII_COMMA)
-			Data.replace(Data.find(",0"), strlen(",0"), (","));
+			Data.replace(Data.find(",0"), strlen(",0"), ",");
 
 	//Mark ipfilter level.
 		uint8_t Level[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 		memcpy_s(Level, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
-		if (strstr(reinterpret_cast<const char *>(Level), ("-")) != nullptr)
+		if (strstr(reinterpret_cast<const char *>(Level), "-") != nullptr)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"Level error", errno, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -807,17 +807,17 @@ bool ReadMainIPFilterData(
 
 		//Remove all zeros before minus or after commas in addresses range.
 			while (Data.find(".0") != std::string::npos)
-				Data.replace(Data.find(".0"), strlen(".0"), ("."));
+				Data.replace(Data.find(".0"), strlen(".0"), ".");
 			while (Data.find("-0") != std::string::npos)
-				Data.replace(Data.find("-0"), strlen("-0"), ("-"));
+				Data.replace(Data.find("-0"), strlen("-0"), "-");
 			while (Data.find("..") != std::string::npos)
-				Data.replace(Data.find(".."), strlen(".."), (".0."));
+				Data.replace(Data.find(".."), strlen(".."), ".0.");
 			if (Data.find(".-") != std::string::npos)
-				Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
+				Data.replace(Data.find(".-"), strlen(".-"), ".0-");
 			if (Data.find("-.") != std::string::npos)
-				Data.replace(Data.find("-."), strlen("-."), ("-0."));
+				Data.replace(Data.find("-."), strlen("-."), "-0.");
 			if (Data.front() == ASCII_PERIOD)
-				Data.replace(0, 1U, ("0."));
+				Data.replace(0, 1U, "0.");
 			if (Data.at(Data.length() - 1U) == ASCII_PERIOD)
 				Data.append("0");
 		}
@@ -842,17 +842,17 @@ bool ReadMainIPFilterData(
 
 			//Remove all zeros before minus or after commas in addresses range.
 				while (Data.find(".0") != std::string::npos)
-					Data.replace(Data.find(".0"), strlen(".0"), ("."));
+					Data.replace(Data.find(".0"), strlen(".0"), ".");
 				while (Data.find("-0") != std::string::npos)
-					Data.replace(Data.find("-0"), strlen("-0"), ("-"));
+					Data.replace(Data.find("-0"), strlen("-0"), "-");
 				while (Data.find("..") != std::string::npos)
-					Data.replace(Data.find(".."), strlen(".."), (".0."));
+					Data.replace(Data.find(".."), strlen(".."), ".0.");
 				if (Data.find(".-") != std::string::npos)
-					Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
+					Data.replace(Data.find(".-"), strlen(".-"), ".0-");
 				if (Data.find("-.") != std::string::npos)
-					Data.replace(Data.find("-."), strlen("-."), ("-0."));
+					Data.replace(Data.find("-."), strlen("-."), "-0.");
 				if (Data.front() == ASCII_PERIOD)
-					Data.replace(0, 1U, ("0."));
+					Data.replace(0, 1U, "0.");
 				if (Data.at(Data.length() - 1U) == ASCII_PERIOD)
 					Data.append("0");
 			}

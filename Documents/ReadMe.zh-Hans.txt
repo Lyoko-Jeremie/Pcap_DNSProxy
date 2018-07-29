@@ -8,6 +8,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+部署说明：
+参见各个平台的 ReadMe_xx 文档！
+
+
 特别注意：
   * 如果需要让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
     * Direct Request = IPv4
@@ -84,11 +88,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 由于部分功能无法通过使用配置文件指定使用，故而使用程序外挂参数进行支持
 所有外挂参数也可通过 -h 和 --help 参数查询
 
-* -c Path 和 --config-file Path
+* --config-path Path
   启动时指定配置文件所在的工作目录
-* -h 和 --help
+* --help
   输出程序帮助信息到屏幕上
-* -v 和 --version
+* --version
   输出程序版本号信息到屏幕上
 * --flush-dns
   立即清空所有程序内以及系统内的 DNS 缓存
@@ -98,6 +102,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   生成 DNSCurve(DNSCrypt) 协议所需使用的密钥对到 KeyPair.txt
 * --lib-version
   输出程序所用库的版本号信息到屏幕上
+* --log-file Path+Name
+  启动时指定日志文件的储存位置，当 Path+Name 为 stderr 或 stdout 时将按标准流方式输出
 * --disable-daemon
   关闭守护进程模式 (Linux)
 * --first-setup

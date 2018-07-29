@@ -43,7 +43,7 @@ bool ReadHostsData(
 		return true;
 
 //Remove comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
-	if (Data.compare(0, strlen("#"), ("#")) == 0 || Data.compare(0, strlen("/"), ("/")) == 0)
+	if (Data.compare(0, strlen("#"), "#") == 0 || Data.compare(0, strlen("/"), "/") == 0)
 		return true;
 	if (Data.rfind(" //") != std::string::npos)
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -70,7 +70,7 @@ bool ReadHostsData(
 	}
 
 //[Address Hosts] block
-	if (InsensitiveString.compare(0, strlen("[SOURCE HOSTS]"), ("[SOURCE HOSTS]")) == 0)
+	if (InsensitiveString.compare(0, strlen("[SOURCE HOSTS]"), "[SOURCE HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE::SOURCE;
 		IsStopLabel = false;
@@ -79,7 +79,7 @@ bool ReadHostsData(
 	}
 
 //[Hosts] block
-	else if (InsensitiveString.compare(0, strlen("[HOSTS]"), ("[HOSTS]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[HOSTS]"), "[HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE::NORMAL;
 		IsStopLabel = false;
@@ -88,7 +88,7 @@ bool ReadHostsData(
 	}
 
 //[Local Hosts] block(B part)
-	else if (InsensitiveString.compare(0, strlen("[LOCAL HOSTS]"), ("[LOCAL HOSTS]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[LOCAL HOSTS]"), "[LOCAL HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE::LOCAL;
 		IsStopLabel = false;
@@ -97,7 +97,7 @@ bool ReadHostsData(
 	}
 
 //[CNAME Hosts] block
-	else if (InsensitiveString.compare(0, strlen("[CNAME HOSTS]"), ("[CNAME HOSTS]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[CNAME HOSTS]"), "[CNAME HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE::CNAME;
 		IsStopLabel = false;
@@ -106,7 +106,7 @@ bool ReadHostsData(
 	}
 
 //[Address Hosts] block
-	else if (InsensitiveString.compare(0, strlen("[ADDRESS HOSTS]"), ("[ADDRESS HOSTS]")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[ADDRESS HOSTS]"), "[ADDRESS HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE::ADDRESS;
 		IsStopLabel = false;
@@ -115,9 +115,9 @@ bool ReadHostsData(
 	}
 
 //Temporary stop read.
-	else if (InsensitiveString.compare(0, strlen("[STOP"), ("[STOP")) == 0)
+	else if (InsensitiveString.compare(0, strlen("[STOP"), "[STOP") == 0)
 	{
-		if (InsensitiveString.compare(0, strlen("[STOP]"), ("[STOP]")) == 0)
+		if (InsensitiveString.compare(0, strlen("[STOP]"), "[STOP]") == 0)
 		{
 			IsStopLabel = true;
 			return true;
@@ -135,14 +135,14 @@ bool ReadHostsData(
 
 //Whitelist, Banned and their Extended items
 	auto LabelTypeTemp = LABEL_HOSTS_TYPE::NONE;
-	if (InsensitiveString.compare(0, strlen("NULL "), ("NULL ")) == 0 || InsensitiveString.compare(0, strlen("NULL,"), ("NULL,")) == 0)
+	if (InsensitiveString.compare(0, strlen("NULL "), "NULL ") == 0 || InsensitiveString.compare(0, strlen("NULL,"), "NULL,") == 0)
 		LabelTypeTemp = LABEL_HOSTS_TYPE::WHITE;
-	else if (InsensitiveString.compare(0, strlen("BAN "), ("BAN ")) == 0 || InsensitiveString.compare(0, strlen("BAN,"), ("BAN,")) == 0 || 
-		InsensitiveString.compare(0, strlen("BANNED "), ("BANNED ")) == 0 || InsensitiveString.compare(0, strlen("BANNED,"), ("BANNED,")) == 0)
+	else if (InsensitiveString.compare(0, strlen("BAN "), "BAN ") == 0 || InsensitiveString.compare(0, strlen("BAN,"), "BAN,") == 0 || 
+		InsensitiveString.compare(0, strlen("BANNED "), "BANNED ") == 0 || InsensitiveString.compare(0, strlen("BANNED,"), "BANNED,") == 0)
 			LabelTypeTemp = LABEL_HOSTS_TYPE::BANNED;
-	else if (InsensitiveString.compare(0, strlen("NULL"), ("NULL")) == 0)
+	else if (InsensitiveString.compare(0, strlen("NULL"), "NULL") == 0)
 		LabelTypeTemp = LABEL_HOSTS_TYPE::WHITE_EXTENDED;
-	else if (InsensitiveString.compare(0, strlen("BAN"), ("BAN")) == 0 || InsensitiveString.compare(0, strlen("BANNED"), ("BANNED")) == 0)
+	else if (InsensitiveString.compare(0, strlen("BAN"), "BAN") == 0 || InsensitiveString.compare(0, strlen("BANNED"), "BANNED") == 0)
 		LabelTypeTemp = LABEL_HOSTS_TYPE::BANNED_EXTENDED;
 	if (LabelTypeTemp != LABEL_HOSTS_TYPE::NONE)
 	{
@@ -326,7 +326,7 @@ bool ReadLocalHostsData(
 	CaseConvert(InsensitiveString, true);
 
 //Dnsmasq format, please visit http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html.
-	if (Data.compare(0, strlen("--"), ("--")) == 0)
+	if (Data.compare(0, strlen("--"), "--") == 0)
 	{
 		if (InsensitiveString.find("--SERVER=/") == std::string::npos)
 		{
@@ -338,7 +338,7 @@ bool ReadLocalHostsData(
 			SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
 		}
 	}
-	else if (InsensitiveString.compare(0, strlen("SERVER=/"), ("SERVER=/")) == 0)
+	else if (InsensitiveString.compare(0, strlen("SERVER=/"), "SERVER=/") == 0)
 	{
 		IsDnsmasqFormat = true;
 		SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
@@ -976,9 +976,9 @@ bool ReadMainHostsData(
 		Separated = Data.find(ASCII_SPACE);
 	}
 //Dnsmasq format, please visit http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html.
-	else if (HostsType != HOSTS_TYPE::SOURCE && Data.compare(0, strlen("--"), ("--")) == 0)
+	else if (HostsType != HOSTS_TYPE::SOURCE && Data.compare(0, strlen("--"), "--") == 0)
 	{
-		if (InsensitiveString.find("--ADDRESS=/") == std::string::npos || InsensitiveString.compare(0, strlen("--ADDRESS=//"), ("--ADDRESS=//")) == 0)
+		if (InsensitiveString.find("--ADDRESS=/") == std::string::npos || InsensitiveString.compare(0, strlen("--ADDRESS=//"), "--ADDRESS=//") == 0)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -988,9 +988,9 @@ bool ReadMainHostsData(
 			Separated = Data.find(ASCII_SLASH);
 		}
 	}
-	else if (HostsType != HOSTS_TYPE::SOURCE && InsensitiveString.compare(0, strlen("ADDRESS=/"), ("ADDRESS=/")) == 0)
+	else if (HostsType != HOSTS_TYPE::SOURCE && InsensitiveString.compare(0, strlen("ADDRESS=/"), "ADDRESS=/") == 0)
 	{
-		if (InsensitiveString.compare(0, strlen("ADDRESS=//"), ("ADDRESS=//")) == 0)
+		if (InsensitiveString.compare(0, strlen("ADDRESS=//"), "ADDRESS=//") == 0)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;

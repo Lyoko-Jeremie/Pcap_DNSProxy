@@ -1,4 +1,26 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.9 changelog(2018-07-14):
+﻿Pcap_DNSProxy 0.4.9.10 changelog(2018-07-29):
+
+* Add --log-file command, which can set location of log file. [LGA1150/Syrone Wong]
+* Change set path command from --config-file to --config-path.
+* Change default log output to stderr. (OpenWrt) [Syrone Wong]
+* Fix interval time in Domain Test and ICMP Test module.
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.9.5-0.4.9.9 changelog(2018-07-14):
 
 * Add EDNS Label transparency support.
 * Add libevent support.

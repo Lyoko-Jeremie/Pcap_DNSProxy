@@ -335,6 +335,7 @@ bool PrintError(
 	const size_t Line);
 void PrintToScreen(
 	const bool IsInnerLock, 
+	const bool IsStandardOut, 
 	const wchar_t * const Format, 
 	...
 );

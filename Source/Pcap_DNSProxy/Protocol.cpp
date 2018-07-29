@@ -65,12 +65,12 @@ bool AddressStringToBinary(
 	//Check abbreviation format.
 		if (AddrString.find(ASCII_COLON) == std::string::npos)
 		{
-			AddrString = ("::");
+			AddrString = "::";
 			AddrString.append(reinterpret_cast<const char *>(AddrBuffer));
 		}
 		else if (AddrString.find(ASCII_COLON) == AddrString.rfind(ASCII_COLON))
 		{
-			AddrString.replace(AddrString.find(ASCII_COLON), 1U, ("::"));
+			AddrString.replace(AddrString.find(ASCII_COLON), 1U, "::");
 		}
 
 	//Convert to binary.
@@ -124,26 +124,26 @@ bool AddressStringToBinary(
 		{
 			case 0:
 			{
-				AddrString = ("0.0.0.");
+				AddrString = "0.0.0.";
 				AddrString.append(reinterpret_cast<const char *>(AddrBuffer));
 			}break;
 			case 1U:
 			{
-				AddrString.replace(AddrString.find(ASCII_PERIOD), 1U, (".0.0."));
+				AddrString.replace(AddrString.find(ASCII_PERIOD), 1U, ".0.0.");
 			}break;
 			case 2U:
 			{
-				AddrString.replace(AddrString.find(ASCII_PERIOD), 1U, (".0."));
+				AddrString.replace(AddrString.find(ASCII_PERIOD), 1U, ".0.");
 			}break;
 		}
 
 	//Remove zeros before whole data.
 		while (AddrString.find(".00") != std::string::npos)
-			AddrString.replace(AddrString.find(".00"), 3U, ("."));
+			AddrString.replace(AddrString.find(".00"), 3U, ".");
 		while (AddrString.find(".0") != std::string::npos)
-			AddrString.replace(AddrString.find(".0"), 2U, ("."));
+			AddrString.replace(AddrString.find(".0"), 2U, ".");
 		while (AddrString.find("..") != std::string::npos)
-			AddrString.replace(AddrString.find(".."), 2U, (".0."));
+			AddrString.replace(AddrString.find(".."), 2U, ".0.");
 		if (AddrString.at(AddrString.length() - 1U) == ASCII_PERIOD)
 			AddrString.append("0");
 
@@ -570,7 +570,7 @@ bool OperationModeFilter(
 //Proxy Mode address filter
 	else if (OperationMode == LISTEN_MODE::PROXY)
 	{
-		if ((Protocol == AF_INET6 && memcmp(OriginalAddr, &in6addr_loopback, sizeof(in6_addr)) == 0) || //Loopback address(::1, Section 2.5.3 in RFC 4291
+		if ((Protocol == AF_INET6 && memcmp(OriginalAddr, &in6addr_loopback, sizeof(in6_addr)) == 0) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			(Protocol == AF_INET && static_cast<const in_addr *>(OriginalAddr)->s_addr == htonl(INADDR_LOOPBACK))) //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				return true;
 	}
@@ -581,8 +581,8 @@ bool OperationModeFilter(
 		if (Protocol == AF_INET6)
 		{
 			if ((static_cast<const in6_addr *>(OriginalAddr)->s6_addr[0] >= 0xFC && static_cast<const in6_addr *>(OriginalAddr)->s6_addr[0] <= 0xFD) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-				(static_cast<const in6_addr *>(OriginalAddr)->s6_addr[0] == 0xFE && static_cast<const in6_addr *>(OriginalAddr)->s6_addr[1U] >= 0x80 && static_cast<const in6_addr *>(OriginalAddr)->s6_addr[1U] <= 0xBF) || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				(memcmp(OriginalAddr, &in6addr_loopback, sizeof(in6_addr)) == 0)) //Loopback address(::1, Section 2.5.3 in RFC 4291
+				(static_cast<const in6_addr *>(OriginalAddr)->s6_addr[0] == 0xFE && static_cast<const in6_addr *>(OriginalAddr)->s6_addr[1U] >= 0x80 && static_cast<const in6_addr *>(OriginalAddr)->s6_addr[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+				(memcmp(OriginalAddr, &in6addr_loopback, sizeof(in6_addr)) == 0)) //Loopback address(::1, Section 2.5.3 in RFC 4291)
 					return true;
 		}
 	//IPv4
@@ -1028,8 +1028,8 @@ bool CheckConnectionStreamFin(
 	//HTTP version 1.x response
 		std::string DataStream(reinterpret_cast<const char *>(Stream));
 		if (DataStream.find("\r\n\r\n") != std::string::npos && 
-			(DataStream.compare(0, strlen("HTTP/1.0 200 "), ("HTTP/1.0 200 ")) == 0 || 
-			DataStream.compare(0, strlen("HTTP/1.1 200 "), ("HTTP/1.1 200 ")) == 0))
+			(DataStream.compare(0, strlen("HTTP/1.0 200 "), "HTTP/1.0 200 ") == 0 || 
+			DataStream.compare(0, strlen("HTTP/1.1 200 "), "HTTP/1.1 200 ") == 0))
 				return true;
 	}
 //HTTP version 2 CONNECT method

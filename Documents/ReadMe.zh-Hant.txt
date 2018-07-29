@@ -8,6 +8,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+部署說明：
+參見各個平臺的 ReadMe_xx 文檔！
+
+
 特別注意：
   * 如果需要讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行網域名稱解析，請選擇其中一種方案，配置完成後重啟服務：
     * Direct Request = IPv4
@@ -84,11 +88,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 由於部分功能無法通過使用配置文件指定使用，故而使用程序外掛參數進行支持
 所有外掛參數也可通過-h 和--help 參數查詢
 
-* -c Path 和 --config-file Path
+* --config-path Path
   啟動時指定設定檔所在的工作目錄
-* -h 和 --help
+* --help
   輸出程式説明資訊到螢幕上
-* -v 和 --version
+* --version
   輸出程式版本號資訊到螢幕上
 * --flush-dns
   立即清空所有程式內以及系統內的 DNS 緩存
@@ -98,6 +102,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   生成 DNSCurve(DNSCrypt) 協定所需使用的金鑰組到 KeyPair.txt
 * --lib-version
   輸出程式所用庫的版本號資訊到螢幕上
+* --log-file Path+Name
+  啟動時指定日誌檔的儲存位置，當 Path+Name 為 stderr 或 stdout 時將按標準流方式輸出
 * --disable-daemon
   關閉守護進程模式 (Linux)
 * --first-setup

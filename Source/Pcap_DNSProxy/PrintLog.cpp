@@ -32,34 +32,10 @@ bool PrintError(
 	if (Parameter.PrintLogLevel == LOG_LEVEL_TYPE::LEVEL_0 || Message == nullptr || ErrorLevel > Parameter.PrintLogLevel)
 		return false;
 	std::wstring ErrorMessage(Message);
-	if (ErrorMessage.size() < ERROR_MESSAGE_MINSIZE)
-		return false;
-	else 
+	if (ErrorMessage.length() >= ERROR_MESSAGE_MINSIZE)
 		ErrorMessage.clear();
-
-//Convert file name.
-	std::wstring FileNameString;
-	if (FileName != nullptr)
-	{
-	//FileName length check
-		FileNameString.append(FileName);
-		if (FileNameString.empty())
-			return false;
-		else 
-			FileNameString.clear();
-
-	//Add file name.
-		FileNameString.append(L" in ");
-		FileNameString.append(FileName);
-	#if defined(PLATFORM_WIN)
-		while (FileNameString.find(L"\\\\") != std::wstring::npos)
-			FileNameString.erase(FileNameString.find(L"\\\\"), wcslen(L"\\")); //Remove double backslash.
-	#endif
-
-	//Add line number.
-		if (Line > 0)
-			FileNameString.append(L"(Line %u)");
-	}
+	else 
+		return false;
 
 //Log type
 	switch (ErrorType)
@@ -111,7 +87,7 @@ bool PrintError(
 			ErrorMessage.append(Message);
 			ErrorMessage.append(L"\n");
 
-			return WriteMessage_ScreenFile(ErrorMessage, ErrorCode, Line);
+			return WriteMessageToStream(ErrorMessage, ErrorCode, Line);
 		}break;
 	#endif
 	//DNSCurve Error
@@ -147,89 +123,187 @@ bool PrintError(
 		}
 	}
 
-//Add error messages, error code details, file name and its line number.
+//Add error message, error code details, and line number.
 	ErrorMessage.append(Message);
 	ErrorCodeToMessage(ErrorType, ErrorCode, ErrorMessage);
-	if (!FileNameString.empty())
+
+//Convert and add file name.
+	if (FileName != nullptr)
+	{
+	//FileName length check
+		std::wstring FileNameString(FileName);
+		if (FileNameString.empty())
+			return false;
+		else 
+			FileNameString.clear();
+
+	//Add file name.
+		FileNameString.append(L" in ");
+		FileNameString.append(FileName);
+
+	//Remove double backslash.
+	#if defined(PLATFORM_WIN)
+		while (FileNameString.find(L"\\\\") != std::wstring::npos)
+			FileNameString.erase(FileNameString.find(L"\\\\"), wcslen(L"\\"));
+	#endif
+
+	//Add line number.
+		if (Line > 0)
+			FileNameString.append(L"(Line %u)");
+
+	//Add file name to string.
 		ErrorMessage.append(FileNameString);
-	ErrorMessage.append(L".\n");
+	}
 
 //Print error log.
-	return WriteMessage_ScreenFile(ErrorMessage, ErrorCode, Line);
+	ErrorMessage.append(L".\n");
+	return WriteMessageToStream(ErrorMessage, ErrorCode, Line);
 }
 
-//Write to screen and file
-bool WriteMessage_ScreenFile(
+//Write message to stream
+bool WriteMessageToStream(
 	const std::wstring &Message, 
 	const ssize_t ErrorCode, 
 	const size_t Line)
 {
-//Get current date and time.
-	tm CurrentTimeStructure;
-	memset(&CurrentTimeStructure, 0, sizeof(CurrentTimeStructure));
-	const auto CurrentTimeValue = time(nullptr);
-#if defined(PLATFORM_WIN)
-	if (CurrentTimeValue <= 0 || localtime_s(&CurrentTimeStructure, &CurrentTimeValue) != 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (CurrentTimeValue <= 0 || localtime_r(&CurrentTimeValue, &CurrentTimeStructure) == nullptr)
-#endif
-		return false;
+//Buffer initialization
+	auto MessageBuffer = std::make_unique<wchar_t[]>(ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
 
-//Print startup time at first printing.
-	time_t LogStartupTimeValue = 0;
-	tm LogStartupTimeStructure;
-	memset(&LogStartupTimeStructure, 0, sizeof(LogStartupTimeStructure));
+//Get current date and time.
+	std::wstring CurrentTimeString;
+	if (CurrentTimeString.empty())
+	{
+	//Get current time.
+		const auto TimeValue = time(nullptr);
+		tm TimeStructure;
+		memset(&TimeStructure, 0, sizeof(TimeStructure));
+	#if defined(PLATFORM_WIN)
+		if (TimeValue <= 0 || localtime_s(&TimeStructure, &TimeValue) != 0)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		if (TimeValue <= 0 || localtime_r(&TimeValue, &TimeStructure) == nullptr)
+	#endif
+			return false;
+
+	//Convert time structure to string.
+		if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec) < 0)
+		{
+			return false;
+		}
+		else {
+			CurrentTimeString.append(MessageBuffer.get());
+			memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+		}
+	}
+	else {
+		return false;
+	}
+
+//Get startup time at first printing.
+	std::wstring LogStartupTimeString;
 	if (GlobalRunningStatus.StartupTime > 0)
 	{
 	//Copy startup time and reset global value.
-		LogStartupTimeValue = GlobalRunningStatus.StartupTime;
+		const auto TimeValue = GlobalRunningStatus.StartupTime;
 		GlobalRunningStatus.StartupTime = 0;
 
 	//Get log startup time.
+		tm TimeStructure;
+		memset(&TimeStructure, 0, sizeof(TimeStructure));
 	#if defined(PLATFORM_WIN)
-		if (localtime_s(&LogStartupTimeStructure, &LogStartupTimeValue) != 0)
+		if (localtime_s(&TimeStructure, &TimeValue) != 0)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		if (localtime_r(&LogStartupTimeValue, &LogStartupTimeStructure) == nullptr)
+		if (localtime_r(&TimeValue, &TimeStructure) == nullptr)
 	#endif
 			return false;
+
+	//Convert time structure to string.
+		if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec) < 0)
+		{
+					return false;
+		}
+		else {
+			LogStartupTimeString.append(MessageBuffer.get());
+			memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+		}
 	}
 
-//Print to screen.
-#if defined(PLATFORM_WIN)
-	if (GlobalRunningStatus.IsConsole)
-#elif defined(PLATFORM_LINUX)
-	if (!GlobalRunningStatus.IsDaemon)
-#endif
+//Prepare the whole error message.
+	std::wstring OutputString(CurrentTimeString);
+	if (OutputString.empty())
 	{
-	//Print startup time.
-		if (LogStartupTimeValue > 0)
+		return false;
+	}
+	else {
+	//Convert message to string.
+		if (Line > 0 && ErrorCode != 0)
 		{
-			PrintToScreen(true, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
-				LogStartupTimeStructure.tm_year + 1900, 
-				LogStartupTimeStructure.tm_mon + 1, 
-				LogStartupTimeStructure.tm_mday, 
-				LogStartupTimeStructure.tm_hour, 
-				LogStartupTimeStructure.tm_min, 
-				LogStartupTimeStructure.tm_sec);
+			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode, Line) < 0)
+				return false;
+			else 
+				OutputString.append(MessageBuffer.get());
+		}
+		else if (Line > 0)
+		{
+			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), Line) < 0)
+				return false;
+			else 
+				OutputString.append(MessageBuffer.get());
+		}
+		else if (ErrorCode != 0)
+		{
+			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode) < 0)
+				return false;
+			else 
+				OutputString.append(MessageBuffer.get());
+		}
+		else {
+			OutputString.append(Message);
+		}
+	}
+
+//Reset buffer pointer.
+	MessageBuffer.reset();
+
+//Print to screen.
+	if (*GlobalRunningStatus.Path_ErrorLog == L"stderr" || *GlobalRunningStatus.Path_ErrorLog == L"stdout"
+	#if defined(PLATFORM_WIN)
+		|| GlobalRunningStatus.IsConsole
+	#elif defined(PLATFORM_LINUX)
+		|| !GlobalRunningStatus.IsDaemon
+	#endif
+		)
+	{
+	//Print log startup time first.
+		if (!LogStartupTimeString.empty())
+		{
+			if (*GlobalRunningStatus.Path_ErrorLog == L"stdout")
+				PrintToScreen(true, true, L"%ls", LogStartupTimeString.c_str());
+			else 
+				PrintToScreen(true, false, L"%ls", LogStartupTimeString.c_str());
 		}
 
 	//Print message.
-		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-		PrintToScreen(false, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
-			CurrentTimeStructure.tm_year + 1900, 
-			CurrentTimeStructure.tm_mon + 1, 
-			CurrentTimeStructure.tm_mday, 
-			CurrentTimeStructure.tm_hour, 
-			CurrentTimeStructure.tm_min, 
-			CurrentTimeStructure.tm_sec);
-		if (Line > 0 && ErrorCode != 0)
-			PrintToScreen(false, Message.c_str(), ErrorCode, Line);
-		else if (Line > 0)
-			PrintToScreen(false, Message.c_str(), Line);
-		else if (ErrorCode != 0)
-			PrintToScreen(false, Message.c_str(), ErrorCode);
+		if (*GlobalRunningStatus.Path_ErrorLog == L"stdout")
+			PrintToScreen(true, true, L"%ls", OutputString.c_str());
 		else 
-			PrintToScreen(false, Message.c_str());
+			PrintToScreen(true, false, L"%ls", OutputString.c_str());
+
+	//Print to screen only.
+		if (*GlobalRunningStatus.Path_ErrorLog == L"stderr" || *GlobalRunningStatus.Path_ErrorLog == L"stdout")
+			return true;
 	}
 
 //Check whole file size.
@@ -260,9 +334,9 @@ bool WriteMessage_ScreenFile(
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
 	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
-	if (stat(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= static_cast<off_t>(Parameter.LogMaxSize))
+	if (stat(GlobalRunningStatus.Path_ErrorLog_MBS->c_str(), &FileStatData) == 0 && FileStatData.st_size >= static_cast<off_t>(Parameter.LogMaxSize))
 	{
-		if (remove(GlobalRunningStatus.MBS_Path_ErrorLog->c_str()) == 0)
+		if (remove(GlobalRunningStatus.Path_ErrorLog_MBS->c_str()) == 0)
 			IsFileDeleted = true;
 		else 
 			return false;
@@ -274,51 +348,22 @@ bool WriteMessage_ScreenFile(
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	auto FileHandle = fopen(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), ("a"));
+	auto FileHandle = fopen(GlobalRunningStatus.Path_ErrorLog_MBS->c_str(), "a");
 	if (FileHandle != nullptr)
 #endif
 	{
-	//Print startup time.
-		if (LogStartupTimeValue > 0)
-		{
-			fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
-				LogStartupTimeStructure.tm_year + 1900, 
-				LogStartupTimeStructure.tm_mon + 1, 
-				LogStartupTimeStructure.tm_mday, 
-				LogStartupTimeStructure.tm_hour, 
-				LogStartupTimeStructure.tm_min, 
-				LogStartupTimeStructure.tm_sec);
-		}
+	//Print log startup time first.
+		if (!LogStartupTimeString.empty())
+			fwprintf_s(FileHandle, L"%ls", LogStartupTimeString.c_str());
 
 	//Print old file removed message.
 		if (IsFileDeleted)
-		{
-			fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Old log file was removed.\n", 
-				CurrentTimeStructure.tm_year + 1900, 
-				CurrentTimeStructure.tm_mon + 1, 
-				CurrentTimeStructure.tm_mday, 
-				CurrentTimeStructure.tm_hour, 
-				CurrentTimeStructure.tm_min, 
-				CurrentTimeStructure.tm_sec);
-		}
+			fwprintf_s(FileHandle, L"%ls[Notice] Old log file was removed.\n", CurrentTimeString.c_str());
 
 	//Print main message.
-		fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
-			CurrentTimeStructure.tm_year + 1900, 
-			CurrentTimeStructure.tm_mon + 1, 
-			CurrentTimeStructure.tm_mday, 
-			CurrentTimeStructure.tm_hour, 
-			CurrentTimeStructure.tm_min, 
-			CurrentTimeStructure.tm_sec);
-		if (Line > 0 && ErrorCode != 0)
-			fwprintf_s(FileHandle, Message.c_str(), ErrorCode, Line);
-		else if (Line > 0)
-			fwprintf_s(FileHandle, Message.c_str(), Line);
-		else if (ErrorCode != 0)
-			fwprintf_s(FileHandle, Message.c_str(), ErrorCode);
-		else 
-			fwprintf_s(FileHandle, Message.c_str());
+		fwprintf_s(FileHandle, L"%ls", OutputString.c_str());
 
+	//Close file handle.
 		fclose(FileHandle);
 	}
 	else {
@@ -331,6 +376,7 @@ bool WriteMessage_ScreenFile(
 //Print words to screen
 void PrintToScreen(
 	const bool IsInnerLock, 
+	const bool IsStandardOut, 
 	const wchar_t * const Format, 
 	...
 )
@@ -343,10 +389,16 @@ void PrintToScreen(
 	if (IsInnerLock)
 	{
 		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-		vfwprintf_s(stderr, Format, ArgList);
+		if (IsStandardOut)
+			vfwprintf_s(stdout, Format, ArgList);
+		else 
+			vfwprintf_s(stderr, Format, ArgList);
 	}
 	else {
-		vfwprintf_s(stderr, Format, ArgList);
+		if (IsStandardOut)
+			vfwprintf_s(stdout, Format, ArgList);
+		else 
+			vfwprintf_s(stderr, Format, ArgList);
 	}
 
 //Variable arguments cleanup

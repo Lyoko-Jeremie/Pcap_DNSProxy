@@ -261,7 +261,7 @@ typedef struct _file_data_
 {
 	std::wstring                         FileName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::string                          MBS_FileName;
+	std::string                          FileName_MBS;
 #endif
 	time_t                               ModificationTime;
 }FileData, FILE_DATA;
@@ -576,7 +576,7 @@ public:
 	TLS_VERSION_SELECTION                HTTP_CONNECT_TLS_Version;
 	bool                                 HTTP_CONNECT_TLS_Validation;
 	std::wstring                         *HTTP_CONNECT_TLS_SNI;
-	std::string                          *MBS_HTTP_CONNECT_TLS_SNI;
+	std::string                          *HTTP_CONNECT_TLS_SNI_MBS;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
@@ -667,10 +667,10 @@ public:
 	std::vector<std::wstring>            *FileList_Hosts;
 	std::vector<std::wstring>            *FileList_IPFilter;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::vector<std::string>             *MBS_Path_Global;
-	std::string                          *MBS_Path_ErrorLog;
-	std::vector<std::string>             *MBS_FileList_Hosts;
-	std::vector<std::string>             *MBS_FileList_IPFilter;
+	std::vector<std::string>             *Path_Global_MBS;
+	std::string                          *Path_ErrorLog_MBS;
+	std::vector<std::string>             *FileList_Hosts_MBS;
+	std::vector<std::string>             *FileList_IPFilter_MBS;
 #endif
 	uint64_t                             ConfigFileModifiedTime;
 
@@ -939,7 +939,7 @@ public:
 //[DNSCurve Database] block
 	std::wstring                            *DatabaseName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::string                             *MBS_DatabaseName;
+	std::string                             *DatabaseName_MBS;
 #endif
 	std::string                             *Database_Target_Server_Main_IPv6;
 	std::string                             *Database_Target_Server_Alternate_IPv6;

@@ -225,7 +225,7 @@ bool ReadName_PathFile(
 	const bool IsPath, 
 	std::vector<std::wstring> * const ListData, 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::vector<std::string> * const MBS_ListData, 
+	std::vector<std::string> * const ListData_MBS, 
 #endif
 	const size_t FileIndex, 
 	const size_t Line);

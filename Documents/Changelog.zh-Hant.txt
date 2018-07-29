@@ -1,4 +1,26 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.9 更新日誌(2018-07-14)：
+﻿Pcap_DNSProxy 0.4.9.10 更新日誌(2018-07-29)：
+
+* 添加 --log-file 參數，可在啟動時指定日誌檔的儲存位置 [LGA1150/Syrone Wong]
+* 參數 --config-file 改名為 --config-path
+* 調整日誌檔的初始輸出為 stderr (OpenWrt) [Syrone Wong]
+* 修正 Domain Test 和 ICMP Test 模組測試的間隔問題
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.9.5-0.4.9.9 更新日誌(2018-07-14)：
 
 * 添加完整的 EDNS 標籤透明轉發支援
 * 添加對 libevent 庫的支援

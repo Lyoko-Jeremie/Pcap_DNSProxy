@@ -24,13 +24,12 @@
 int wmain(
 	int argc, 
 	wchar_t *argv[])
-{
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 int main(
 	int argc, 
 	char *argv[])
-{
 #endif
+{
 //Get commands.
 	if (argc < COMMAND_COUNT_MIN)
 		return EXIT_FAILURE;
@@ -87,18 +86,18 @@ int main(
 		{
 			std::wstring Message(L"[System Error] Service start error.\n");
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-			PrintToScreen(false, Message.c_str());
-			PrintToScreen(false, L"[Notice] Program will continue to run in console mode.\n");
-			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
+			PrintToScreen(false, false, Message.c_str());
+			PrintToScreen(false, false, L"[Notice] Program will continue to run in console mode.\n");
+			PrintToScreen(false, false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
 		}
 		else {
 			std::wstring Message(L"[System Error] Service start error");
 			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), Message);
 			Message.append(L".\n");
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-			PrintToScreen(false, Message.c_str(), GetLastError());
-			PrintToScreen(false, L"[Notice] Program will continue to run in console mode.\n");
-			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
+			PrintToScreen(false, false, Message.c_str(), GetLastError());
+			PrintToScreen(false, false, L"[Notice] Program will continue to run in console mode.\n");
+			PrintToScreen(false, false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
 		}
 
 	//Main process

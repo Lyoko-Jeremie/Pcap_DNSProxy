@@ -122,7 +122,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
-		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
+		HTTP_CONNECT_TLS_SNI_MBS = new std::string();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
 		HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
@@ -189,7 +189,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#if defined(ENABLE_TLS)
 		delete HTTP_CONNECT_TLS_SNI;
-		delete MBS_HTTP_CONNECT_TLS_SNI;
+		delete HTTP_CONNECT_TLS_SNI_MBS;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		delete HTTP_CONNECT_TLS_AddressString_IPv6;
 		delete HTTP_CONNECT_TLS_AddressString_IPv4;
@@ -207,7 +207,7 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_Password = nullptr;
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = nullptr;
-		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+		HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
@@ -276,7 +276,7 @@ void ConfigurationTable::CopyMemberOperator(
 	#endif
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
-		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
+		HTTP_CONNECT_TLS_SNI_MBS = new std::string();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
 		HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
@@ -343,7 +343,7 @@ void ConfigurationTable::CopyMemberOperator(
 	#endif
 	#if defined(ENABLE_TLS)
 		delete HTTP_CONNECT_TLS_SNI;
-		delete MBS_HTTP_CONNECT_TLS_SNI;
+		delete HTTP_CONNECT_TLS_SNI_MBS;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		delete HTTP_CONNECT_TLS_AddressString_IPv6;
 		delete HTTP_CONNECT_TLS_AddressString_IPv4;
@@ -361,7 +361,7 @@ void ConfigurationTable::CopyMemberOperator(
 		SOCKS_Password = nullptr;
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = nullptr;
-		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+		HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
@@ -656,13 +656,13 @@ void ConfigurationTable::CopyMemberOperator(
 		delete HTTP_CONNECT_TLS_SNI;
 		HTTP_CONNECT_TLS_SNI = nullptr;
 	}
-	if (Reference.MBS_HTTP_CONNECT_TLS_SNI != nullptr)
+	if (Reference.HTTP_CONNECT_TLS_SNI_MBS != nullptr)
 	{
-		*MBS_HTTP_CONNECT_TLS_SNI = *Reference.MBS_HTTP_CONNECT_TLS_SNI;
+		*HTTP_CONNECT_TLS_SNI_MBS = *Reference.HTTP_CONNECT_TLS_SNI_MBS;
 	}
 	else {
-		delete MBS_HTTP_CONNECT_TLS_SNI;
-		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+		delete HTTP_CONNECT_TLS_SNI_MBS;
+		HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 	}
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (Reference.HTTP_CONNECT_TLS_AddressString_IPv6 != nullptr)
@@ -920,7 +920,7 @@ ConfigurationTable::~ConfigurationTable(
 #endif
 #if defined(ENABLE_TLS)
 	delete HTTP_CONNECT_TLS_SNI;
-	delete MBS_HTTP_CONNECT_TLS_SNI;
+	delete HTTP_CONNECT_TLS_SNI_MBS;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	delete HTTP_CONNECT_TLS_AddressString_IPv6;
 	delete HTTP_CONNECT_TLS_AddressString_IPv4;
@@ -938,7 +938,7 @@ ConfigurationTable::~ConfigurationTable(
 	SOCKS_Password = nullptr;
 #if defined(ENABLE_TLS)
 	HTTP_CONNECT_TLS_SNI = nullptr;
-	MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+	HTTP_CONNECT_TLS_SNI_MBS = nullptr;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 	HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
@@ -1265,10 +1265,10 @@ GlobalStatus::GlobalStatus(
 		FileList_Hosts = new std::vector<std::wstring>();
 		FileList_IPFilter = new std::vector<std::wstring>();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		MBS_Path_Global = new std::vector<std::string>();
-		MBS_Path_ErrorLog = new std::string();
-		MBS_FileList_Hosts = new std::vector<std::string>();
-		MBS_FileList_IPFilter = new std::vector<std::string>();
+		Path_Global_MBS = new std::vector<std::string>();
+		Path_ErrorLog_MBS = new std::string();
+		FileList_Hosts_MBS = new std::vector<std::string>();
+		FileList_IPFilter_MBS = new std::vector<std::string>();
 	#endif
 		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
@@ -1294,14 +1294,14 @@ GlobalStatus::GlobalStatus(
 		FileList_Hosts = nullptr;
 		FileList_IPFilter = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete MBS_Path_Global;
-		delete MBS_Path_ErrorLog;
-		delete MBS_FileList_Hosts;
-		delete MBS_FileList_IPFilter;
-		MBS_Path_Global = nullptr;
-		MBS_Path_ErrorLog = nullptr;
-		MBS_FileList_Hosts = nullptr;
-		MBS_FileList_IPFilter = nullptr;
+		delete Path_Global_MBS;
+		delete Path_ErrorLog_MBS;
+		delete FileList_Hosts_MBS;
+		delete FileList_IPFilter_MBS;
+		Path_Global_MBS = nullptr;
+		Path_ErrorLog_MBS = nullptr;
+		FileList_Hosts_MBS = nullptr;
+		FileList_IPFilter_MBS = nullptr;
 	#endif
 		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
 		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
@@ -1358,10 +1358,10 @@ void GlobalStatus::CopyMemberOperator(
 		FileList_Hosts = new std::vector<std::wstring>();
 		FileList_IPFilter = new std::vector<std::wstring>();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		MBS_Path_Global = new std::vector<std::string>();
-		MBS_Path_ErrorLog = new std::string();
-		MBS_FileList_Hosts = new std::vector<std::string>();
-		MBS_FileList_IPFilter = new std::vector<std::string>();
+		Path_Global_MBS = new std::vector<std::string>();
+		Path_ErrorLog_MBS = new std::string();
+		FileList_Hosts_MBS = new std::vector<std::string>();
+		FileList_IPFilter_MBS = new std::vector<std::string>();
 	#endif
 		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
@@ -1387,14 +1387,14 @@ void GlobalStatus::CopyMemberOperator(
 		FileList_Hosts = nullptr;
 		FileList_IPFilter = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete MBS_Path_Global;
-		delete MBS_Path_ErrorLog;
-		delete MBS_FileList_Hosts;
-		delete MBS_FileList_IPFilter;
-		MBS_Path_Global = nullptr;
-		MBS_Path_ErrorLog = nullptr;
-		MBS_FileList_Hosts = nullptr;
-		MBS_FileList_IPFilter = nullptr;
+		delete Path_Global_MBS;
+		delete Path_ErrorLog_MBS;
+		delete FileList_Hosts_MBS;
+		delete FileList_IPFilter_MBS;
+		Path_Global_MBS = nullptr;
+		Path_ErrorLog_MBS = nullptr;
+		FileList_Hosts_MBS = nullptr;
+		FileList_IPFilter_MBS = nullptr;
 	#endif
 		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
 		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
@@ -1488,37 +1488,37 @@ void GlobalStatus::CopyMemberOperator(
 		FileList_IPFilter = nullptr;
 	}
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (Reference.MBS_Path_Global != nullptr)
+	if (Reference.Path_Global_MBS != nullptr)
 	{
-		*MBS_Path_Global = *Reference.MBS_Path_Global;
+		*Path_Global_MBS = *Reference.Path_Global_MBS;
 	}
 	else {
-		delete MBS_Path_Global;
-		MBS_Path_Global = nullptr;
+		delete Path_Global_MBS;
+		Path_Global_MBS = nullptr;
 	}
-	if (Reference.MBS_Path_ErrorLog != nullptr)
+	if (Reference.Path_ErrorLog_MBS != nullptr)
 	{
-		*MBS_Path_ErrorLog = *Reference.MBS_Path_ErrorLog;
+		*Path_ErrorLog_MBS = *Reference.Path_ErrorLog_MBS;
 	}
 	else {
-		delete MBS_Path_ErrorLog;
-		MBS_Path_ErrorLog = nullptr;
+		delete Path_ErrorLog_MBS;
+		Path_ErrorLog_MBS = nullptr;
 	}
-	if (Reference.MBS_FileList_Hosts != nullptr)
+	if (Reference.FileList_Hosts_MBS != nullptr)
 	{
-		*MBS_FileList_Hosts = *Reference.MBS_FileList_Hosts;
+		*FileList_Hosts_MBS = *Reference.FileList_Hosts_MBS;
 	}
 	else {
-		delete MBS_FileList_Hosts;
-		MBS_FileList_Hosts = nullptr;
+		delete FileList_Hosts_MBS;
+		FileList_Hosts_MBS = nullptr;
 	}
-	if (Reference.MBS_FileList_IPFilter != nullptr)
+	if (Reference.FileList_IPFilter_MBS != nullptr)
 	{
-		*MBS_FileList_IPFilter = *Reference.MBS_FileList_IPFilter;
+		*FileList_IPFilter_MBS = *Reference.FileList_IPFilter_MBS;
 	}
 	else {
-		delete MBS_FileList_IPFilter;
-		MBS_FileList_IPFilter = nullptr;
+		delete FileList_IPFilter_MBS;
+		FileList_IPFilter_MBS = nullptr;
 	}
 #endif
 	memcpy_s(LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], PACKET_NORMAL_MAXSIZE, Reference.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], PACKET_NORMAL_MAXSIZE);
@@ -1648,14 +1648,14 @@ GlobalStatus::~GlobalStatus(
 	FileList_Hosts = nullptr;
 	FileList_IPFilter = nullptr;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	delete MBS_Path_Global;
-	delete MBS_Path_ErrorLog;
-	delete MBS_FileList_Hosts;
-	delete MBS_FileList_IPFilter;
-	MBS_Path_Global = nullptr;
-	MBS_Path_ErrorLog = nullptr;
-	MBS_FileList_Hosts = nullptr;
-	MBS_FileList_IPFilter = nullptr;
+	delete Path_Global_MBS;
+	delete Path_ErrorLog_MBS;
+	delete FileList_Hosts_MBS;
+	delete FileList_IPFilter_MBS;
+	Path_Global_MBS = nullptr;
+	Path_ErrorLog_MBS = nullptr;
+	FileList_Hosts_MBS = nullptr;
+	FileList_IPFilter_MBS = nullptr;
 #endif
 	delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
 	delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
@@ -1802,7 +1802,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	//[DNSCurve Database] block
 		DatabaseName = new std::wstring();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		MBS_DatabaseName = new std::string();
+		DatabaseName_MBS = new std::string();
 	#endif
 		Database_Target_Server_Main_IPv6 = new std::string();
 		Database_Target_Server_Alternate_IPv6 = new std::string();
@@ -1848,8 +1848,8 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 		delete DatabaseName;
 		DatabaseName = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete MBS_DatabaseName;
-		MBS_DatabaseName = nullptr;
+		delete DatabaseName_MBS;
+		DatabaseName_MBS = nullptr;
 	#endif
 		delete Database_Target_Server_Main_IPv6;
 		delete Database_Target_Server_Alternate_IPv6;
@@ -1945,7 +1945,7 @@ void DNSCurveConfigurationTable::CopyMemberOperator(
 	//[DNSCurve Database] block
 		DatabaseName = new std::wstring();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		MBS_DatabaseName = new std::string();
+		DatabaseName_MBS = new std::string();
 	#endif
 		Database_Target_Server_Main_IPv6 = new std::string();
 		Database_Target_Server_Alternate_IPv6 = new std::string();
@@ -1991,8 +1991,8 @@ void DNSCurveConfigurationTable::CopyMemberOperator(
 		delete DatabaseName;
 		DatabaseName = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete MBS_DatabaseName;
-		MBS_DatabaseName = nullptr;
+		delete DatabaseName_MBS;
+		DatabaseName_MBS = nullptr;
 	#endif
 		delete Database_Target_Server_Main_IPv6;
 		delete Database_Target_Server_Alternate_IPv6;
@@ -2093,13 +2093,13 @@ void DNSCurveConfigurationTable::CopyMemberOperator(
 		DatabaseName = nullptr;
 	}
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (Reference.MBS_DatabaseName != nullptr)
+	if (Reference.DatabaseName_MBS != nullptr)
 	{
-		*MBS_DatabaseName = *Reference.MBS_DatabaseName;
+		*DatabaseName_MBS = *Reference.DatabaseName_MBS;
 	}
 	else {
-		delete MBS_DatabaseName;
-		MBS_DatabaseName = nullptr;
+		delete DatabaseName_MBS;
+		DatabaseName_MBS = nullptr;
 	}
 #endif
 	if (Reference.Database_Target_Server_Main_IPv6 != nullptr)
@@ -2442,8 +2442,8 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(
 	delete DatabaseName;
 	DatabaseName = nullptr;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	delete MBS_DatabaseName;
-	MBS_DatabaseName = nullptr;
+	delete DatabaseName_MBS;
+	DatabaseName_MBS = nullptr;
 #endif
 	delete Database_Target_Server_Main_IPv6;
 	delete Database_Target_Server_Alternate_IPv6;
@@ -2525,8 +2525,8 @@ void DNSCurveConfigurationTable::SetToMonitorItem(
 	delete DatabaseName;
 	DatabaseName = nullptr;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	delete MBS_DatabaseName;
-	MBS_DatabaseName = nullptr;
+	delete DatabaseName_MBS;
+	DatabaseName_MBS = nullptr;
 #endif
 	delete Database_Target_Server_Main_IPv6;
 	delete Database_Target_Server_Alternate_IPv6;

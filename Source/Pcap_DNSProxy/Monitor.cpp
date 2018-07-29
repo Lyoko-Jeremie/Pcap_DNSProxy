@@ -1755,9 +1755,9 @@ void NetworkInformationMonitor(
 						#endif
 							{
 							#if defined(PLATFORM_WIN)
-								if (sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%x"), reinterpret_cast<sockaddr_in6 *>(LocalAddressTableIter->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
+								if (snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<sockaddr_in6 *>(LocalAddressTableIter->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#elif defined(PLATFORM_LINUX)
-								if (sprintf(reinterpret_cast<char *>(AddrBuffer), ("%x"), reinterpret_cast<sockaddr_in6 *>(InterfaceAddressIter->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
+								if (snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<sockaddr_in6 *>(InterfaceAddressIter->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#endif
 									strnlen_s(reinterpret_cast<const char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE) != 1U)
 								{
@@ -1770,9 +1770,9 @@ void NetworkInformationMonitor(
 							}
 							else {
 							#if defined(PLATFORM_WIN)
-								if (sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%x"), reinterpret_cast<sockaddr_in6 *>(LocalAddressTableIter->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
+								if (snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<sockaddr_in6 *>(LocalAddressTableIter->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#elif defined(PLATFORM_LINUX)
-								if (sprintf(reinterpret_cast<char *>(AddrBuffer), ("%x"), reinterpret_cast<sockaddr_in6 *>(InterfaceAddressIter->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
+								if (snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<sockaddr_in6 *>(InterfaceAddressIter->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#endif
 									strnlen_s(reinterpret_cast<const char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE) != 2U)
 								{
@@ -1899,33 +1899,33 @@ void NetworkInformationMonitor(
 						memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 						DomainString.clear();
 					#if defined(PLATFORM_WIN)
-						sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
 					#elif defined(PLATFORM_LINUX)
-						sprintf(reinterpret_cast<char *>(AddrBuffer), ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer));
 						memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
-						sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
 					#elif defined(PLATFORM_LINUX)
-						sprintf(reinterpret_cast<char *>(AddrBuffer), ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer));
 						memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
-						sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t)));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)) + sizeof(uint8_t)));
 					#elif defined(PLATFORM_LINUX)
-						sprintf(reinterpret_cast<char *>(AddrBuffer), ("%u"), *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t)));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)) + sizeof(uint8_t)));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer));
 						memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
-						sprintf_s(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, ("%u"), *(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr)));
 					#elif defined(PLATFORM_LINUX)
-						sprintf(reinterpret_cast<char *>(AddrBuffer), ("%u"), *(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)));
+						snprintf(reinterpret_cast<char *>(AddrBuffer), ADDRESS_STRING_MAXSIZE, "%u", *(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in *>(InterfaceAddressIter->ifa_addr)->sin_addr)));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer));
 						memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);

@@ -622,9 +622,17 @@ size_t CheckHostsProcess(
 		auto Is_PTR_ResponseSend = false;
 
 	//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
-		if (Domain == ("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa") || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-			Domain.find(".127.in-addr.arpa") != std::string::npos || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			Domain.find(".254.169.in-addr.arpa") != std::string::npos) //Link-local address(169.254.0.0/16, RFC 3927)
+		if (
+		//Loopback address(::1, Section 2.5.3 in RFC 4291)
+			Domain == ("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa") || 
+		//Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+//			ReverseDomain.compare(0, strlen("apra.6pi.f.e.8."), "apra.6pi.f.e.8.") == 0 || ReverseDomain.compare(0, strlen("apra.6pi.f.e.9."), "apra.6pi.f.e.9.") == 0 || 
+//			ReverseDomain.compare(0, strlen("apra.6pi.f.e.a."), "apra.6pi.f.e.a.") == 0 || ReverseDomain.compare(0, strlen("apra.6pi.f.e.b."), "apra.6pi.f.e.b.") == 0 || 
+		//Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			ReverseDomain.compare(0, strlen("apra.rdda-ni.721."), "apra.rdda-ni.721.") == 0
+		//Link-local address(169.254.0.0/16, RFC 3927)
+//			|| ReverseDomain.compare(0, strlen("apra.rdda-ni.961.452."), "apra.rdda-ni.961.452.") == 0)
+			)
 		{
 			Is_PTR_ResponseSend = true;
 		}
@@ -700,16 +708,16 @@ size_t CheckHostsProcess(
 	if (Parameter.Local_FQDN_String != nullptr && Domain == *Parameter.Local_FQDN_String
 /*
 	//Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
-		|| Domain.find("10.in-addr.arpa") != std::string::npos || 
+		|| ReverseDomain.compare(0, strlen("apra.rdda-ni.01."), "apra.rdda-ni.01.") == 0 || 
 	//Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)
-		Domain.find("16.172.in-addr.arpa") != std::string::npos || Domain.find("17.172.in-addr.arpa") != std::string::npos || Domain.find("18.172.in-addr.arpa") != std::string::npos || 
-		Domain.find("19.172.in-addr.arpa") != std::string::npos || Domain.find("20.172.in-addr.arpa") != std::string::npos || Domain.find("21.172.in-addr.arpa") != std::string::npos || 
-		Domain.find("22.172.in-addr.arpa") != std::string::npos || Domain.find("23.172.in-addr.arpa") != std::string::npos || Domain.find("24.172.in-addr.arpa") != std::string::npos || 
-		Domain.find("25.172.in-addr.arpa") != std::string::npos || Domain.find("26.172.in-addr.arpa") != std::string::npos || Domain.find("27.172.in-addr.arpa") != std::string::npos || 
-		Domain.find("28.172.in-addr.arpa") != std::string::npos || Domain.find("29.172.in-addr.arpa") != std::string::npos || Domain.find("30.172.in-addr.arpa") != std::string::npos || 
-		Domain.find("31.172.in-addr.arpa") != std::string::npos || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.61."), "apra.rdda-ni.271.61.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.71."), "apra.rdda-ni.271.71.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.81."), "apra.rdda-ni.271.81.") == 0 || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.91."), "apra.rdda-ni.271.91.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.02."), "apra.rdda-ni.271.02.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.12."), "apra.rdda-ni.271.12.") == 0 || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.22."), "apra.rdda-ni.271.22.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.32."), "apra.rdda-ni.271.32.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.42."), "apra.rdda-ni.271.42.") == 0 || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.52."), "apra.rdda-ni.271.52.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.62."), "apra.rdda-ni.271.62.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.72."), "apra.rdda-ni.271.72.") == 0 || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.82."), "apra.rdda-ni.271.82.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.92."), "apra.rdda-ni.271.92.") == 0 || ReverseDomain.compare(0, strlen("apra.rdda-ni.271.03."), "apra.rdda-ni.271.03.") == 0 || 
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.271.13."), "apra.rdda-ni.271.13.") == 0 || 
 	//Private class C addresses(192.168.0.0/16, Section 3 in RFC 1918)
-		Domain.find("168.192.in-addr.arpa") != std::string::npos
+		ReverseDomain.compare(0, strlen("apra.rdda-ni.291.861."), "apra.rdda-ni.291.861.") == 0
 */
 		)
 	{

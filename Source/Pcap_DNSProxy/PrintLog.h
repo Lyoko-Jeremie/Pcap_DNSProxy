@@ -35,7 +35,7 @@ extern std::mutex ScreenLock;
 std::mutex ErrorLogLock;
 
 //Functions
-bool WriteMessage_ScreenFile(
+bool WriteMessageToStream(
 	const std::wstring &Message, 
 	const ssize_t ErrorCode, 
 	const size_t Line);
