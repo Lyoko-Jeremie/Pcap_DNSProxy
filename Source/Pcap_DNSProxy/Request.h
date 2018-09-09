@@ -22,33 +22,6 @@
 
 #include "Include.h"
 
-//Structure definitions
-#if defined(ENABLE_PCAP)
-//Internet Control Message Protocol/ICMP echo request(Ping) event argument structure
-typedef struct _icmp_event_argument_
-{
-	uint16_t                                  Protocol;
-	timeval                                   SocketTimeout;
-	timeval                                   IntervalTimeout;
-	event_base                                *EventBase;
-	std::vector<event *>                      *EventList;
-	std::vector<SOCKET_DATA>                  *SocketData;
-	uint8_t                                   *SendBuffer;
-	uint8_t                                   *RecvBuffer;
-	size_t                                    SendSize;
-	size_t                                    RecvSize;
-	size_t                                    TotalSleepTime;
-	size_t                                    OnceTimes;
-	size_t                                    RetestTimes;
-	uint64_t                                  FileModifiedTime;
-#if defined(PLATFORM_LINUX)
-#if !defined(ENABLE_LIBSODIUM)
-	std::uniform_int_distribution<uint32_t>   *RandomDistribution;
-#endif
-#endif
-}ICMP_EventArgument, ICMP_EVENT_ARGUMENT;
-#endif
-
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;

@@ -56,7 +56,7 @@ force-reload|restart)
 status)
 	echo
 	/bin/ps -C Pcap_DNSProxy
-	echo "\nPcap_DNSProxy is not running when PID is empty."
+	echo -e "\nPcap_DNSProxy is not running when PID is empty."
 ;;
 *)
 	echo "Usage: PcapDNSProxyService {start|stop|force-reload|restart|status}"

@@ -1790,7 +1790,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 						if (HeaderBlockBuffer)
 							memcpy_s(HeaderBuffer.get(), HeaderBlockSize + ntohs(FrameHeader->Length_Low) + MEMORY_RESERVED_BYTES, HeaderBlockBuffer.get(), HeaderBlockLength);
 						std::swap(HeaderBlockBuffer, HeaderBuffer);
-						HeaderBlockSize += ntohs(FrameHeader->Length_Low) + MEMORY_RESERVED_BYTES;
+						HeaderBlockSize += static_cast<size_t>(ntohs(FrameHeader->Length_Low)) + MEMORY_RESERVED_BYTES;
 					}
 
 				//Write to buffer.
@@ -2720,7 +2720,7 @@ size_t HTTP_CONNECT_Transport(
 						if (DataBlockBuffer)
 							memcpy_s(DataBuffer.get(), DataBlockSize + ntohs(FrameHeader->Length_Low) + MEMORY_RESERVED_BYTES, DataBlockBuffer.get(), DataBlockLength);
 						std::swap(DataBlockBuffer, DataBuffer);
-						DataBlockSize += ntohs(FrameHeader->Length_Low) + MEMORY_RESERVED_BYTES;
+						DataBlockSize += static_cast<size_t>(ntohs(FrameHeader->Length_Low)) + MEMORY_RESERVED_BYTES;
 					}
 
 				//Write to buffer.

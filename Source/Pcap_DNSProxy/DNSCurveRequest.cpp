@@ -306,9 +306,9 @@ bool DNSCurve_TCP_SignatureRequest(
 		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV6)
-				++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6];
+				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6);
 			else if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV4)
-				++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4];
+				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4);
 		}
 
 		Sleep(SENDING_INTERVAL_TIME);
@@ -466,9 +466,9 @@ bool DNSCurve_UDP_SignatureRequest(
 		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV6)
-				++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6);
 			else if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV4)
-				++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 		}
 
 		Sleep(SENDING_INTERVAL_TIME);
@@ -567,9 +567,9 @@ size_t DNSCurve_TCP_RequestSingle(
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6);
 		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 	}
 
 //Close all sockets.
@@ -620,36 +620,36 @@ size_t DNSCurve_TCP_RequestMultiple(
 		return EXIT_FAILURE;
 
 //Socket selecting structure initialization
-	for (auto &SocketSelectingIter:TCPSocketSelectingDataList)
+	for (auto &SocketSelectingItem:TCPSocketSelectingDataList)
 	{
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(SocketSelectingIter.ServerType, &PacketTarget);
-			SocketSelectingIter.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
+			DNSCurvePacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
+			SocketSelectingItem.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate
-			if (SocketSelectingIter.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6 || SocketSelectingIter.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4)
+			if (SocketSelectingItem.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6 || SocketSelectingItem.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4)
 			{
-				SocketSelectingIter.PrecomputationKey = Alternate_PrecomputationKey;
-				SocketSelectingIter.SendBuffer = Alternate_SendBuffer.get();
-				SocketSelectingIter.SendSize = Alternate_DataLength;
+				SocketSelectingItem.PrecomputationKey = Alternate_PrecomputationKey;
+				SocketSelectingItem.SendBuffer = Alternate_SendBuffer.get();
+				SocketSelectingItem.SendSize = Alternate_DataLength;
 			}
 		//Main
 			else {
-				SocketSelectingIter.PrecomputationKey = PrecomputationKey;
-				SocketSelectingIter.SendBuffer = SendBuffer.get();
-				SocketSelectingIter.SendSize = DataLength;
+				SocketSelectingItem.PrecomputationKey = PrecomputationKey;
+				SocketSelectingItem.SendBuffer = SendBuffer.get();
+				SocketSelectingItem.SendSize = DataLength;
 			}
 		}
 	//Normal mode
 		else {
-			SocketSelectingIter.SendBuffer = SendBuffer.get();
-			SocketSelectingIter.SendSize = DataLength;
+			SocketSelectingItem.SendBuffer = SendBuffer.get();
+			SocketSelectingItem.SendSize = DataLength;
 		}
 
-		SocketSelectingIter.RecvLen = 0;
-		SocketSelectingIter.IsPacketDone = false;
+		SocketSelectingItem.RecvLen = 0;
+		SocketSelectingItem.IsPacketDone = false;
 	}
 
 //Socket selecting
@@ -658,16 +658,16 @@ size_t DNSCurve_TCP_RequestMultiple(
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6);
 		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 	}
 
 //Close all sockets.
-	for (auto &SocketIter:TCPSocketDataList)
+	for (auto &SocketItem:TCPSocketDataList)
 	{
-		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		if (SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;
@@ -765,9 +765,9 @@ size_t DNSCurve_UDP_RequestSingle(
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6);
 		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 	}
 
 //Close all sockets.
@@ -818,36 +818,36 @@ size_t DNSCurve_UDP_RequestMultiple(
 		return EXIT_FAILURE;
 
 //Socket selecting structure initialization
-	for (auto &SocketSelectingIter:UDPSocketSelectingDataList)
+	for (auto &SocketSelectingItem:UDPSocketSelectingDataList)
 	{
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(SocketSelectingIter.ServerType, &PacketTarget);
-			SocketSelectingIter.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
+			DNSCurvePacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
+			SocketSelectingItem.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate
-			if (SocketSelectingIter.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6 || SocketSelectingIter.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4)
+			if (SocketSelectingItem.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6 || SocketSelectingItem.ServerType == DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4)
 			{
-				SocketSelectingIter.PrecomputationKey = Alternate_PrecomputationKey;
-				SocketSelectingIter.SendBuffer = Alternate_SendBuffer.get();
-				SocketSelectingIter.SendSize = Alternate_DataLength;
+				SocketSelectingItem.PrecomputationKey = Alternate_PrecomputationKey;
+				SocketSelectingItem.SendBuffer = Alternate_SendBuffer.get();
+				SocketSelectingItem.SendSize = Alternate_DataLength;
 			}
 		//Main
 			else {
-				SocketSelectingIter.PrecomputationKey = PrecomputationKey;
-				SocketSelectingIter.SendBuffer = SendBuffer.get();
-				SocketSelectingIter.SendSize = DataLength;
+				SocketSelectingItem.PrecomputationKey = PrecomputationKey;
+				SocketSelectingItem.SendBuffer = SendBuffer.get();
+				SocketSelectingItem.SendSize = DataLength;
 			}
 		}
 	//Normal mode
 		else {
-			SocketSelectingIter.SendBuffer = const_cast<uint8_t *>(OriginalSend);
-			SocketSelectingIter.SendSize = SendSize;
+			SocketSelectingItem.SendBuffer = const_cast<uint8_t *>(OriginalSend);
+			SocketSelectingItem.SendSize = SendSize;
 		}
 
-		SocketSelectingIter.RecvLen = 0;
-		SocketSelectingIter.IsPacketDone = false;
+		SocketSelectingItem.RecvLen = 0;
+		SocketSelectingItem.IsPacketDone = false;
 	}
 
 //Socket selecting
@@ -856,16 +856,16 @@ size_t DNSCurve_UDP_RequestMultiple(
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6);
 		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
-			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+			++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 	}
 
 //Close all sockets.
-	for (auto &SocketIter:UDPSocketDataList)
+	for (auto &SocketItem:UDPSocketDataList)
 	{
-		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		if (SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;

@@ -76,7 +76,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行網域名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS緩存 > Local Hosts/境內 DNS 解析網域名稱清單 > 遠端 DNS 伺服器
   * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通請求（如有） > UDP 模式普通請求
 * 本工具的 DNSCurve(DNSCrypt) 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
-  * DNSCurve 協定為 Streamlined/精簡類型
   * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
   * DNSCrypt 官方工具會佔用本地 DNS 埠導致 Pcap_DNSProxy 部署失敗！
 
@@ -122,7 +121,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最小為 5
     * 本參數同時決定監視器的時間休眠時間片的細微性，其指休眠一段長時間時會根據此細微性啟動並檢查是否需要重新運行特定監視專案，而不需要等到長時間完全過去休眠完全結束後才能重新對此進行監視，此功能的適當配置對程式的網路狀況適應能力會有提高
-  * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 1500
+  * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 2048
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
     * 本參數支援同時讀取多個路徑，各路徑之間請使用 | 隔開
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取
@@ -156,7 +155,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
   * Listen Port - 監聽埠，本地監聽請求的埠：格式為 "埠A(|埠B)"（不含引號，括弧內為可選項目）
     * 埠可填入服務名稱，服務名稱清單參見下文
-    * 也可填入 1-65535 之間的埠，如果留空則為 53
+    * 也可填入 1 - 65535 之間的埠，如果留空則為 53
     * 填入多個埠時，將會同時監聽請求
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * Operation Mode - 程式的監聽工作模式：分 Server/伺服器模式、Private/私有網路模式 和 Proxy/代理模式
@@ -282,7 +281,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 位於私有位址的所有請求不受此參數控制，其擁有一個預設的緩存佇列
   * Cache Single IPv6 Address Prefix - IPv6 協定單獨 DNS 緩存佇列位址所使用的前置長度：單位為位，最大為 128 填入 0 為關閉此功能
     * 位於私有位址的所有請求不受此參數控制，其擁有一個預設的緩存佇列
-  * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
+  * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900 秒/15 分鐘
     * DNS 緩存的類型為混合類型時，本參數將同時決定最終的緩存時間
       * 如果解析結果的平均 TTL 值大於此值，則使用 [TTL + 此值] 為最終的緩存時間
       * 如果解析結果的平均 TTL 值小於等於此值，則使用 [此值] 為最終的緩存時間
@@ -359,7 +358,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 多個 IPv6 為 "[位址A]:埠|[位址B]:埠|[位址C]:埠"（不含引號）
       * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析網域名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multiple Request 參數（參見下文）
       * 可填入的伺服器數量為：填入主要/待命伺服器的數量
-      * Multiple Request Times = 總請求的數值，此數值不能超過 64
+      * Multiple Request Times = 總請求的數值，此數值不能超過 32
     * 帶前置長度位址的格式：
        * IPv4 為 "IPv4 位址/遮罩長度"（不含引號）
        * IPv6 為 "IPv6 位址/前置長度"（不含引號）
@@ -453,25 +452,25 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Values - 擴展參數值區域
   * Thread Pool Base Number - 執行緒池基礎最低保持執行緒數量：最小為 8 設置為 0 則關閉執行緒池的功能
-  * Thread Pool Maximum Number - 執行緒池最大執行緒數量以及緩衝區佇列數量限制：最小為 8
+  * Thread Pool Maximum Number - 執行緒池最大執行緒數量以及緩衝區佇列數量限制：最小為 8 可留空，留空時為 8
     * 啟用 Queue Limits Reset Time 參數時，此參數為單位時間內最多可接受請求的數量
     * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量
-  * Thread Pool Reset Time - 執行緒池中線程數量超出 Thread Pool Base Number 所指定數量後執行緒將會自動結束前所駐留的時間：單位為秒
+  * Thread Pool Reset Time - 執行緒池中線程數量超出 Thread Pool Base Number 所指定數量後執行緒將會自動結束前所駐留的時間：單位為秒，最小為 5 設置為 0 時關閉此功能
   * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，最小為 5 設置為 0 時關閉此功能
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)
-  * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1-255 之間
+  * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1 - 255 之間
     * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
-  * IPv4 Main DNS TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1-255 之間
+  * IPv4 Main DNS TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1 - 255 之間
     * 支援多個 TTL 值，與 IPv4 DNS Address 相對應
-  * IPv4 Alternate DNS TTL - IPv4 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1-255 之間
+  * IPv4 Alternate DNS TTL - IPv4 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1 - 255 之間
     * 支援多個 TTL 值，與 IPv4 Alternate DNS Address 相對應
-  * IPv6 Packet Hop Limits - 發出 IPv6 資料包頭部 HopLimits 值：0 為由作業系統自動決定，取值為 1-255 之間
+  * IPv6 Packet Hop Limits - 發出 IPv6 資料包頭部 HopLimits 值：0 為由作業系統自動決定，取值為 1 - 255 之間
     * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
-  * IPv6 Main DNS Hop Limits - IPv6 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1-255 之間
+  * IPv6 Main DNS Hop Limits - IPv6 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1 - 255 之間
     * 支援多個 Hop Limits 值，與 IPv6 DNS Address 相對應
-  * IPv6 Alternate DNS Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1-255 之間
+  * IPv6 Alternate DNS Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1 - 255 之間
     * 支援多個 Hop Limits 值，與 IPv6 Alternate DNS Address 相對應
-  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受範圍，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 數值的範圍內的資料包均可被接受，用於避免網路環境短暫變化造成解析失敗的問題：取值為 1-255 之間
+  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受範圍，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 數值的範圍內的資料包均可被接受，用於避免網路環境短暫變化造成解析失敗的問題：取值為 1 - 255 之間
   * Reliable Once Socket Timeout - 一次性可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 3000
     * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve(DNSCrypt) 協定
     * 可靠埠指 TCP 協定
@@ -505,14 +504,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
   * Domain Test - DNS 伺服器解析網域名稱測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
-  * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：單位為次
-  * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，最小為 5
-  * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，最小為 5
+  * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：單位為次 可留空，留空時為 5
+  * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，最小為 5 可留空，留空時為 10
+  * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，最小為 5 可留空，留空時為 300
   * Multiple Request Times - 一次向同一個遠端伺服器發送並行網域名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次.. 以此類推
     * 此值將應用到 Local Hosts 外所有遠端伺服器對所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！
     * 可填入的最大數值為：填入主要/待命伺服器的數量
-  * Multiple Request Times = 總請求的數值，此數值不能超過 64
-    * 一般除非丟包非常嚴重干擾正常使用否則不建議開啟，開啟也不建議將值設得太大。實際使用可以每次+1後重啟服務測試效果，找到最合適的值
+  * Multiple Request Times = 總請求的數值，此數值不能超過 32
+    * 一般除非丟包非常嚴重干擾正常使用否則不建議開啟，開啟也不建議將值設得太大。實際使用可以每次 +1 後重啟服務測試效果，找到最合適的值
   * 注意：
     * IPv4 協定使用多 TTL 值的格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
     * 使用同時請求多伺服器格式為 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 Hop Limits 都將由程式自動獲取
@@ -550,7 +549,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Data - 資料區域
   * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
   * ICMP Sequence - ICMP/Ping 資料包頭部 Sequence/序號 的值：格式為 0x**** 的十六進位字元，如果留空則為從 0x0001 開始每個請求回環式遞增
-  * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1500位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料
+  * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18 位元組 - 2048 位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料
   * Domain Test Protocol - 使用 Domain Test 發送請求時所使用的協定：可填入 TCP 和 UDP
   * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
   * Domain Test Data - DNS 伺服器解析網域名稱測試：請輸入正確、確認不會被投毒污染的網域名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個網域名稱進行測試
@@ -633,13 +632,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 最小為 DNS 協定實現要求的 512，留空則為 512
     * 最大為 Ethernet MTU 減去 DNSCurve 頭長度，建議不要超過 1220
     * DNSCurve 協定要求此值必須為 64 的倍數
-  * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500，可留空，留空時為 3000
-  * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500，可留空，留空時為 2000
+  * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500 可留空，留空時為 3000
+  * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500 可留空，留空時為 2000
   * DNSCurve Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為 1 /關閉為 0
   * DNSCurve Encryption Only - 只使用加密模式，所有請求將只通過 DNCurve 加密模式進行：開啟為 1 /關閉為 0
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
   * DNSCurve Client Ephemeral Key - 一次性用戶端金鑰組模式，每次請求解析均使用隨機生成的一次性用戶端金鑰組，提供前向安全性：開啟為 1 /關閉為 0
-  * DNSCurve Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10
+  * DNSCurve Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10 可留空，留空時為 1800
 
 * DNSCurve Database - DNSCurve 協定資料庫區域
   * DNSCurve Database Name - DNSCurve 協定資料庫的檔案名
@@ -917,7 +916,8 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 當 Local Routing 為開啟時，將檢查本清單的路由表是否命中，檢查與否與網域名稱請求是否使用 Local 伺服器有關，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
 有效參數格式為 "位址塊/網路前置長度"（不含引號）
   * 本路由表支援 IPv4 和 IPv6 協定
-  * IPv4 時網路前置長度範圍為 1-32，IPv6 時網路前置長度範圍為 1-128
+  * IPv4 時網路前置長度範圍為 1 - 32
+  * IPv6 時網路前置長度範圍為 1 - 128
 
 
 * Stop - 臨時停止讀取標籤
@@ -949,7 +949,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * IPv6 Packet Hop Limits
 * IPv6 Main DNS Hop Limits
 * IPv6 Alternate DNS Hop Limits
-* HopLimits Fluctuation
+* Hop Limits Fluctuation
 * Reliable Once Socket Timeout
 * Reliable Serial Socket Timeout
 * Unreliable Once Socket Timeout

@@ -85,14 +85,15 @@ bool DNSCurveVerifyKeypair(
 	const uint8_t * const SecretKey)
 {
 //Initialization
-	uint8_t TestPublicKey[crypto_box_PUBLICKEYBYTES]{0}, Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]{0};
+	std::array<uint8_t, crypto_box_PUBLICKEYBYTES> TestPublicKey{};
+	std::array<uint8_t, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES> Validation{};
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> TestSecretKey(crypto_box_PUBLICKEYBYTES);
 
 //Keypair and validation data initialization
 	if (crypto_box_keypair(
-			TestPublicKey, 
+			TestPublicKey.data(), 
 			TestSecretKey.Buffer) == 0)
-				memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
+				memcpy_s(Validation.data() + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
 	else 
 		return false;
 
@@ -103,15 +104,15 @@ bool DNSCurveVerifyKeypair(
 
 //Verify keys
 	if (crypto_box(
-			Validation, 
-			Validation, 
+			Validation.data(), 
+			Validation.data(), 
 			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, 
 			Nonce.Buffer, 
-			TestPublicKey, 
+			TestPublicKey.data(), 
 			SecretKey) != 0 || 
 		crypto_box_open(
-			Validation, 
-			Validation, 
+			Validation.data(), 
+			Validation.data(), 
 			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, 
 			Nonce.Buffer, 
 			PublicKey, 
@@ -136,12 +137,12 @@ uint16_t DNSCurveSelectTargetSocket(
 	{
 		if (Protocol == IPPROTO_TCP)
 		{
-			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6];
+			*IsAlternate = &AlternateSwapList.IsSwapped.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6);
 			return AF_INET6;
 		}
 		else if (Protocol == IPPROTO_UDP)
 		{
-			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+			*IsAlternate = &AlternateSwapList.IsSwapped.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6);
 			return AF_INET6;
 		}
 	}
@@ -150,12 +151,12 @@ uint16_t DNSCurveSelectTargetSocket(
 	{
 		if (Protocol == IPPROTO_TCP)
 		{
-			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4];
+			*IsAlternate = &AlternateSwapList.IsSwapped.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4);
 			return AF_INET;
 		}
 		else if (Protocol == IPPROTO_UDP)
 		{
-			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+			*IsAlternate = &AlternateSwapList.IsSwapped.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 			return AF_INET;
 		}
 	}
@@ -313,8 +314,8 @@ void DNSCurveSocketPrecomputation(
 	SocketDataTemp.Socket = INVALID_SOCKET;
 	std::vector<SOCKET_DATA> Alternate_SocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> Alternate_SocketSelectingDataList;
-	uint8_t Client_PublicKey_Buffer[crypto_box_PUBLICKEYBYTES]{0};
-	auto Client_PublicKey = Client_PublicKey_Buffer;
+	std::array<uint8_t, crypto_box_PUBLICKEYBYTES> Client_PublicKey_Buffer{};
+	auto Client_PublicKey = Client_PublicKey_Buffer.data();
 	size_t Index = 0, LoopLimits = 0;
 	uint16_t TransportSpecific = 0;
 	if (Protocol == IPPROTO_TCP)
@@ -363,8 +364,8 @@ void DNSCurveSocketPrecomputation(
 				SocketDataTemp.Socket = socket(AF_INET, TransportSpecific, Protocol);
 			}
 			else {
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 
@@ -379,8 +380,8 @@ void DNSCurveSocketPrecomputation(
 				(NetworkSpecific == AF_INET && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(TransportSpecific == IPPROTO_UDP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 
@@ -400,8 +401,8 @@ void DNSCurveSocketPrecomputation(
 				SocketSelectingDataTemp.ServerType = DNSCURVE_SERVER_TYPE::MAIN_IPV4;
 			}
 			else {
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 
@@ -418,8 +419,8 @@ void DNSCurveSocketPrecomputation(
 		{
 			if (!DNSCurvePrecomputationKeySetting(*PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 
@@ -440,8 +441,8 @@ void DNSCurveSocketPrecomputation(
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
@@ -465,8 +466,8 @@ SkipProcess_Main:
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
 	}
 	else {
-		for (auto &SocketDataIter:SocketDataList)
-			SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		for (auto &SocketDataItem:SocketDataList)
+			SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		SocketDataList.clear();
 		SocketSelectingDataList.clear();
 		DataLength = 0;
@@ -481,8 +482,8 @@ SkipProcess_Main:
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			for (auto &SocketDataIter:SocketDataList)
-				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			for (auto &SocketDataItem:SocketDataList)
+				SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketDataList.clear();
 			SocketSelectingDataList.clear();
 			DataLength = 0;
@@ -500,8 +501,8 @@ SkipProcess_Main:
 			LoopLimits = 1U;
 		}
 		else {
-			for (auto &SocketDataIter:SocketDataList)
-				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			for (auto &SocketDataItem:SocketDataList)
+				SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketDataList.clear();
 			SocketSelectingDataList.clear();
 			DataLength = 0;
@@ -522,13 +523,13 @@ SkipProcess_Main:
 				SocketDataTemp.Socket = socket(AF_INET, TransportSpecific, Protocol);
 			}
 			else {
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
-				for (auto &SocketDataIter:Alternate_SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:Alternate_SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				Alternate_SocketDataList.clear();
 				Alternate_SocketSelectingDataList.clear();
 
@@ -543,13 +544,13 @@ SkipProcess_Main:
 				(NetworkSpecific == AF_INET && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(Protocol == IPPROTO_UDP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
-				for (auto &SocketDataIter:Alternate_SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:Alternate_SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				Alternate_SocketDataList.clear();
 				Alternate_SocketSelectingDataList.clear();
 
@@ -569,13 +570,13 @@ SkipProcess_Main:
 				SocketSelectingDataTemp.ServerType = DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4;
 			}
 			else {
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
-				for (auto &SocketDataIter:Alternate_SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:Alternate_SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				Alternate_SocketDataList.clear();
 				Alternate_SocketSelectingDataList.clear();
 
@@ -592,13 +593,13 @@ SkipProcess_Main:
 		{
 			if (!DNSCurvePrecomputationKeySetting(*Alternate_PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
-				for (auto &SocketDataIter:Alternate_SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:Alternate_SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				Alternate_SocketDataList.clear();
 				Alternate_SocketSelectingDataList.clear();
 
@@ -620,13 +621,13 @@ SkipProcess_Main:
 			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
 			if (Alternate_DataLength < DNS_PACKET_MINSIZE)
 			{
-				for (auto &SocketDataIter:SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.clear();
 				SocketSelectingDataList.clear();
 				DataLength = 0;
-				for (auto &SocketDataIter:Alternate_SocketDataList)
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				for (auto &SocketDataItem:Alternate_SocketDataList)
+					SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				Alternate_SocketDataList.clear();
 				Alternate_SocketSelectingDataList.clear();
 				Alternate_DataLength = 0;
@@ -638,10 +639,10 @@ SkipProcess_Main:
 	//Register to global list.
 		if (!Alternate_SocketDataList.empty() && !Alternate_SocketSelectingDataList.empty())
 		{
-			for (auto &SocketDataIter:Alternate_SocketDataList)
-				SocketDataList.push_back(SocketDataIter);
-			for (auto &SocketSelectingIter:Alternate_SocketSelectingDataList)
-				SocketSelectingDataList.push_back(std::move(SocketSelectingIter));
+			for (auto &SocketDataItem:Alternate_SocketDataList)
+				SocketDataList.push_back(SocketDataItem);
+			for (auto &SocketSelectingItem:Alternate_SocketSelectingDataList)
+				SocketSelectingDataList.push_back(std::move(SocketSelectingItem));
 		}
 	}
 
@@ -664,7 +665,7 @@ size_t DNSCurvePacketEncryption(
 	{
 	//Make nonce.
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Nonce(crypto_box_NONCEBYTES);
-		randombytes_buf(Nonce.Buffer, crypto_box_HALF_NONCEBYTES);
+		GenerateRandomBuffer(Nonce.Buffer, crypto_box_HALF_NONCEBYTES, nullptr, 0, 0);
 
 	//Buffer initialization
 		std::unique_ptr<uint8_t[]> Buffer(nullptr);
@@ -772,7 +773,7 @@ ssize_t DNSCurvePacketDecryption(
 		if (crypto_box_open_afternm(
 				reinterpret_cast<unsigned char *>(OriginalRecv), 
 				reinterpret_cast<unsigned char *>(OriginalRecv), 
-				Length + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
+				Length + static_cast<ssize_t>(crypto_box_BOXZEROBYTES) - static_cast<ssize_t>(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
 				WholeNonce.Buffer, 
 				PrecomputationKey) != 0)
 					return EXIT_FAILURE;

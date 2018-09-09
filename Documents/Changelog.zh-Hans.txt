@@ -1,20 +1,22 @@
-﻿Pcap_DNSProxy 0.4.9.10 更新日志(2018-07-29)：
+﻿Pcap_DNSProxy 0.4.9.10 更新日志(2018-09-09)：
 
 * 添加 --log-file 参数，可在启动时指定日志文件的储存位置 [LGA1150/Syrone Wong]
 * 参数 --config-file 改名为 --config-path
 * 调整日志文件的初始输出为 stderr (OpenWrt) [Syrone Wong]
 * 修正 Domain Test 和 ICMP Test 模块测试的间隔问题
+* 修正 Hop Limits Fluctuation 参数范围不准确的问题
+* 修正脚本 echo 参数的问题 (Linux/macOS) [YKilin]
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: 3062694B2814362E0F835BC881455ACE7722ADE9CEFDB3FE7E5CCC491A8B1538
+    * Windows/Pcap_DNSProxy_x86.exe: CB5B5B0D632B9FF5A4AB1BF902096D0D645053D34B67FD2C023BFFB5E0F00449
+    * Windows/Pcap_DNSProxy_XP.exe: B7BACE61E73C61F26D3E51278CE968433F85FC45F3B8A9A5CAFAE2FB637770FE
+    * macOS/Pcap_DNSProxy: 8B66C1D7BE9379CCFBA2E95A62D2C28A329286A02DE8A64DE5FFE22E1E630D2F
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: A86BB2FDBD9C82431F231F5BF89851D14FAAF9B00461D865D0065A7506ADE8D1
+    * Windows/Pcap_DNSProxy_x86.exe: 0DD8959895020AEDDB5A1BA844A5FD27FB0E1D4780BB038ED2EE28EE8F04FA4A
+    * Windows/Pcap_DNSProxy_XP.exe: 4C9CFE387A83C8C396C86601ABC38528328EF592AFBE054607BD4B7479457CAA
+    * macOS/Pcap_DNSProxy: 37A487C298578106509F28BEF9A2C16B55B6EA2A2BF9F1546DD589E1F19F27D0
 
 
 -------------------------------------------------------------------------------

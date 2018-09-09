@@ -76,7 +76,6 @@ Function and technology:
   * Read the DNS server address directly from the web interface card settings Function Variable Name Resolution (small): Pcap_DNSProxy Hosts configuration file (Whitelist/whitelist entry> Hosts list)> DNS cache> Local Hosts/DNS resolution in the country Variable list of names> Remote DNS server
   * Requests the priority of the remote DNS server: Direct Request mode> DNSCurve Encryption/Unencrypted mode of TCP mode (if any)> DNSCurve Encrypted/Unencrypted mode in UDP mode (if any)> TCP mode Normal request (if any )> UDP mode normal request
 * The tool's DNSCurve (DNSCrypt) protocol is built-in implementation, do not need to install DNSCrypt official tool!
-  * DNSCurve agreement for Streamlined/Lite type
   * Automatically get the connection information must ensure that the system time is correct, otherwise the certificate will lead to failure to get the connection information failed!
   * DNSCrypt official tool will take up the local DNS port caused Pcap_DNSProxy deployment failed!
 
@@ -122,7 +121,7 @@ Base - the basic parameter area
   * Version - the version of the profile used to correctly identify the profile: this parameter is not related to the program version number, do not modify
   * File Refresh Time - File Refresh Interval: in seconds and a minimum of 5
     * This parameter also determines the sublimation of the time of the monitor's sleep time, which means that it will start for a long period of time and check if there is a need to re-run a specific monitoring project without waiting for a long time to complete the dormant To be able to re-monitor this, the appropriate configuration of this function on the program's network adaptability will be improved
-  * Large Buffer Size - Fixed length of the large data buffer: in bytes, with a minimum of 1500
+  * Large Buffer Size - Fixed length of the large data buffer: in bytes, with a minimum of 2048
   * Additional Path - additional data file to read the path, attached to the directory path under the Hosts file and IPFilter file will be read in order: Please fill in the directory of the absolute path
     * This parameter supports multiple paths at the same time. Please use|separate between paths
   * Hosts File Name - Hosts file name, attached to the Hosts file name will be read in turn
@@ -156,7 +155,7 @@ Base - the basic parameter area
     * Fill in the agreement can be arbitrarily combined, only fill IPv4 or IPv6 with UDP or TCP, only listen to the specified agreement of the local port
   * Listen Port - the port of the listening port, the local listening request: the format "port A (|port B)" (without quotation marks, brackets are optional items)
     * Port can be filled in the service name, service name list see below
-    * Can also fill in the port between 1-65535, if left to 53
+    * Port number must between 1 and 65535, default number is 53.
     * When multiple ports are filled in, the program will listen for requests at the same time
     * When the corresponding agreement Listen Address takes effect, this parameter of the corresponding agreement will be automatically ignored
   * Operation Mode - Program monitoring mode: Server/Server mode, Private/private network mode and Proxy/proxy mode
@@ -273,7 +272,7 @@ Base - the basic parameter area
       * Cache time in seconds
       * If the average TTL value of the resolution result is greater than this value, use [TTL + this value] for the final cache time
       * If the average TTL value of the resolution result is less than or equal to this value, use [this value] as the final cache time
-      * If you fill 0, the final cache time is TTL
+      * If fill 0, the final cache time is TTL
     Queue/Queue: Queue Length
     * Mixed type
       * Queue length
@@ -286,7 +285,7 @@ Base - the basic parameter area
     * When the DNS cache type is mixed, this parameter will determine the final cache time
       * If the average TTL value of the resolution result is greater than this value, use [TTL + this value] for the final cache time
       * If the average TTL value of the resolution result is less than or equal to this value, use [this value] as the final cache time
-      * If you fill 0, the final cache time is TTL
+      * If fill 0, the final cache time is TTL
   
 * Local DNS - Domestic function variable name resolution parameter area
   * Local Protocol - The protocol of sending request to local(ISP's) DNS server: Format is "Network Layer + Transport Layer( + Type)" (without quotation marks, items in brackets are optional).
@@ -359,7 +358,7 @@ Base - the basic parameter area
       * Multiple IPv6 is "[Address A]: Port|[Address B]: Port|[Address C]: Port" (without quotation marks)
       * Enable simultaneous request for multiple servers Simultaneous request to the server in the list to resolve the variable name and use the results of the fastest response server, and requests the alternate server to automatically enable the Alternate Multiple Request parameter (see below)
       * The number of servers that can be filled in is: Enter the number of primary/standby servers
-      * Multiple Request Times = Total requested value, this value can not exceed 64
+      * Multiple Request Times = Total requested value, this value can not exceed 32
     * Format with preamble length address:
        * IPv4 is "IPv4 address/mask length" (without quotation marks)
        * IPv6 is "IPv6 address/prefix length" (without quotation marks)
@@ -453,25 +452,25 @@ Base - the basic parameter area
 
 * Values ​​- Extended parameter value area
   * Thread Pool Base Number - Runtime Basis Minimum Hold Thread: Min 8 Set to 0 Turn off the function of the thread
-  * Thread Pool Maximum Number - the maximum number of threads in the execution thread and the number of buffer queues: a minimum of 8
+  * Thread Pool Maximum Number - Maximum threads in pool or buffer queue length: Minimum is 8, set to 8 if empty or 0.
     * When the Queue Limits Reset Time parameter is enabled, this parameter is the maximum number of requests per unit of time
     * The number of buffers used to receive data when the Queue Limits Reset Time parameter is not enabled
-  * Thread Pool Reset Time - the number of threads in the thread if the number of threads in the thread pool exceeds the number specified by Thread Pool Base Number after the thread will automatically end:
+  * Thread Pool Reset Time - Time between rescan thread number to match policy: In seconds, Min 5 Set to 0 Turn this feature off
   * Queue Limits Reset Time - Data Buffer Queue Quantity Limit Reset Time: In seconds, Min 5 Set to 0 Turn this feature off
   * EDNS Payload Size - EDNS label with the maximum load length used: minimum for the DNS protocol to achieve the requirements of 512 (bytes), leave the EDNS label is required to use the shortest 1220 (bytes)
-  * IPv4 Packet TTL - issue IPv4 packet header TTL value: 0 is automatically determined by the operating system, the value of 1-255 between
+  * IPv4 Packet TTL - issue IPv4 packet header TTL value: 0 is automatically determined by the operating system, the value of 1 - 255 between
     * This parameter supports the specified range of values. The value actually used at the time of sending each packet is randomly specified within this range. The specified range is a closed range
-  * IPv4 Main DNS TTL - IPv4 The primary DNS server accepts the requested remote DNS server packet TTL value: 0 is automatically fetched, the value is between 1-255
+  * IPv4 Main DNS TTL - IPv4 The primary DNS server accepts the requested remote DNS server packet TTL value: 0 is automatically fetched, the value is between 1 - 255
     * Supports multiple TTL values, corresponding to IPv4 DNS Address
-  * IPv4 Alternate DNS TTL - The IPv4 secondary DNS server accepts the TTL value of the remote DNS server package that is requested: 0 is automatically fetched, with a value between 1-255
+  * IPv4 Alternate DNS TTL - The IPv4 secondary DNS server accepts the TTL value of the remote DNS server package that is requested: 0 is automatically fetched, with a value between 1 - 255
     * Supports multiple TTL values, corresponding to IPv4 Alternate DNS Address
-  * IPv6 Packet Hop Limits - issue IPv6 header header HopLimits value: 0 is automatically determined by the operating system, the value of 1-255 between
+  * IPv6 Packet Hop Limits - issue IPv6 header header HopLimits value: 0 is automatically determined by the operating system, the value of 1 - 255 between
     * This parameter supports the specified range of values. The value actually used at the time of sending each packet is randomly specified within this range. The specified range is a closed range
-  * IPv6 Main DNS Hop Limits - IPv6 primary DNS server accepts the requested remote DNS server bundle Hop Limits value: 0 for automatic acquisition, the value is between 1-255
+  * IPv6 Main DNS Hop Limits - IPv6 primary DNS server accepts the requested remote DNS server bundle Hop Limits value: 0 for automatic acquisition, the value is between 1 - 255
     * Supports multiple Hop Limits values, corresponding to IPv6 DNS Address
-  * IPv6 Alternate DNS Hop Limits - IPv6 standby DNS server accepts the requested remote DNS server bundle Hop Limits value: 0 for automatic acquisition, the value is between 1-255
+  * IPv6 Alternate DNS Hop Limits - IPv6 standby DNS server accepts the requested remote DNS server bundle Hop Limits value: 0 for automatic acquisition, the value is between 1 - 255
     * Supports multiple Hop Limits values, corresponding to IPv6 Alternate DNS Address
-  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits Acceptable range, that is, IPv4 TTL/IPv6 Hop Limits value range of ± data packets can be accepted, to avoid the short-term changes in the network environment caused by the failure of the problem : The value is between 1-255
+  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits Acceptable range, that is, IPv4 TTL/IPv6 Hop Limits value range of ± data packets can be accepted, to avoid the short-term changes in the network environment caused by the failure of the problem : The value is between 1 - 255
   * Reliable Once Socket Timeout - one-time reliable protocol port timeout: in milliseconds, a minimum of 500 can be left blank, leave the time for the 3000
     * One-time refers to the request in a RTT round-trip network transmission can be completed, such as standard DNS and DNSCurve (DNSCrypt) agreement
     * Reliable port refers to TCP protocol
@@ -505,13 +504,13 @@ Base - the basic parameter area
     * In general, the reliability of the data package is likely to be higher
   * ICMP Test - ICMP/Ping test interval: in seconds, a minimum of 5 is set to 0 to turn off this function
   * Domain Test - DNS Server Resolution Function Variable Name Test Interval: In seconds, a minimum of 5 is set to 0 to turn off this feature
-  * Alternate Times - Standby server failure thresholds, if a threshold exceeds a threshold triggers a server switch:
-  * Alternate Time Range - Standby Server Failed Thresholds Calculation Period: In seconds, Min 5
-  * Alternate Reset Time - Standby Server Resets the toggle time. After this switchover, this event will switch back to the primary server: in seconds, min 5
+  * Alternate Times - Standby server failure thresholds, if a threshold exceeds a threshold triggers a server switch: In times, set to 5 if empty or 0.
+  * Alternate Time Range - Standby Server Failed Thresholds Calculation Period: In seconds, minimum is 5, set to 10 if empty or 0.
+  * Alternate Reset Time - Standby Server Resets the toggle time. After this switchover, this event will switch back to the primary server: In seconds, minimum is 5, set to 300 if empty or 0.
   * Multiple Request Times - Send parallel function to the same remote server at a time Variable name name Resolution request: 0 and 1 request 1 request when a request is received, 2 requests when a request is received 2, 3 Receive a request request 3 times .. and so on
     * This value will be applied to all remote servers except Local Hosts, so it may be stressful on the system and the remote server. Please consider the risk of opening!
     * The maximum number that can be filled in is: Enter the number of primary/standby servers
-  * Multiple Request Times = Total requested value, this value can not exceed 64
+  * Multiple Request Times = Total requested value, this value cannot exceed 32.
     * Generally, unless the packet is very serious interference with the normal use of this is not recommended to open, open does not recommend the value set too much. The actual use of each +1 can be restarted after the service test results, find the most appropriate value
   * Note:
     * The TTL protocol is TTL (A)|TTL (B)|TTL (C) "(without quotation marks), or can be directly preset (that is, only one 0 does not use this format) TTL will be automatically obtained by the program
@@ -550,7 +549,7 @@ Base - the basic parameter area
 * Data - data area
   * ICMP ID - ICMP/Ping packet header ID: hexadecimal character in the format 0x ****, if left blank, the thread ID of the thread is used as the request id
   * ICMP Sequence - ICMP/Ping Package Header Sequence/Serial Number: Hexadecimal character in the format 0x ****, if left blank, increments from 0x0001 to each request loopback increment
-  * ICMP PaddingData - ICMP Additional information, Ping program to send the request to make up the data to reach the Ethernet type network to send the minimum length of the data: length of 18 bytes - 1500 bytes between the ASCII data , Leave the ICMP extension using the Microsoft Windows Ping program
+  * ICMP PaddingData - ICMP Additional information, Ping program to send the request to make up the data to reach the Ethernet type network to send the minimum length of the data: length of 18 bytes - 2048 bytes between the ASCII data , Leave the ICMP extension using the Microsoft Windows Ping program
   * Domain Test Protocol - Protocol used when sending a request using Domain Test: Fill in TCP and UDP
   * Domain Test ID - DNS packet header ID: hexadecimal character in the format 0x ****, if left blank, the thread ID of the thread is used as the request id
   * Domain Test Data - DNS Server Resolution Function Variable Name Test: Please enter the correct, confirm the name of the function variable that will not be poisoned and do not exceed 253 bytes of ASCII data, leaving a function variable name randomly test
@@ -639,7 +638,7 @@ Base - the basic parameter area
   * DNSCurve Encryption Only - only use encryption mode, all requests will only be through DNCurve encryption mode: 1 to enable/0 to disable.
     * Note: Use "Only use encryption mode" must provide the server's magic number and fingerprints for request and reception
   * DNSCurve Client Ephemeral Key - One-off client key group mode, each request resolution using a randomly generated one-time client key group, providing forward security: 1 to enable/0 to disable.
-  * DNSCurve Key Recheck Time - DNSCurve Agreement DNS Server Connection Information Check Interval: In seconds, Min 10
+  * DNSCurve Key Recheck Time - DNSCurve Agreement DNS Server Connection Information Check Interval: In seconds, minimum is 10, set to 1800 if empty or 0.
 
 * DNSCurve Database - DNSCurve Agreement Database area
   * DNSCurve Database Name - The file name of the DNSCurve agreement database
@@ -914,7 +913,8 @@ The valid parameter format is "Start Address - End Address, Filter Level, Entry 
 When Local Routing is on, it will check whether the routing table of this list is hit. Check whether it is related to whether the function name request is using the local server. If the routing table is hit, the result will be returned directly. The hit will discard the resolution result and The server initiates the request again
 Valid parameter format is "Address block/network prefix length" (without quotation marks)
   * This routing table supports IPv4 and IPv6 protocols
-  * The IPv4 prefix is ​​in the range of 1-32, and the network prefix is ​​in the range of 1-128
+  * IPv4 network prefix must between 1 and 32.
+  * IPv6 network prefix must between 1 and 128.
 
 
 * Stop - temporarily stop reading the label
@@ -946,7 +946,7 @@ Auto-refresh support profile list:
 * IPv6 Packet Hop Limits
 * IPv6 Main DNS Hop Limits
 * IPv6 Alternate DNS Hop Limits
-* HopLimits Fluctuation
+* Hop Limits Fluctuation
 * Reliable Once Socket Timeout
 * Reliable Serial Socket Timeout
 * Unreliable Once Socket Timeout

@@ -291,46 +291,46 @@ size_t Base64_Encode(
 		return 0;
 
 //Convert from binary to Base64.
-	size_t Index[]{0, 0, 0};
+	std::array<size_t, 3U> Index{};
 	memset(Output, 0, OutputSize);
-	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
+	for (Index.at(0) = Index.at(1U) = 0;Index.at(0) < Length;++Index.at(0))
 	{
 	//From 6/gcd(6, 8)
-		Index[2U] = Index[0] % 3U;
-		switch (Index[2U])
+		Index.at(2U) = Index.at(0) % 3U;
+		switch (Index.at(2U))
 		{
 			case 0:
 			{
-				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] >> 2U) & 0x3F];
+				Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index.at(0)] >> 2U) & 0x3F];
 				continue;
 			}
 			case 1U:
 			{
-				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index[0] - 1U] & 0x3) << 4U) + ((Input[Index[0]] >> 4U) & 0xF)];
+				Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index.at(0) - 1U] & 0x3) << 4U) + ((Input[Index.at(0)] >> 4U) & 0xF)];
 				continue;
 			}
 			case 2U:
 			{
-				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index[0] - 1U] & 0xF) << 2U) + ((Input[Index[0]] >> 6U) & 0x3)];
-				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[Input[Index[0]] & 0x3F];
+				Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index.at(0) - 1U] & 0xF) << 2U) + ((Input[Index.at(0)] >> 6U) & 0x3)];
+				Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[Input[Index.at(0)] & 0x3F];
 			}
 		}
 	}
 
 //Move back.
-	Index[0] -= 1U;
+	Index.at(0) -= 1U;
 
 //Check the last and add padding.
-	if ((Index[0] % 3U) == 0)
+	if ((Index.at(0) % 3U) == 0)
 	{
-		Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] & 0x3) << 4U];
-		Output[Index[1U]++] = BASE64_PAD;
-		Output[Index[1U]++] = BASE64_PAD;
+		Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index.at(0)] & 0x3) << 4U];
+		Output[Index.at(1U)++] = BASE64_PAD;
+		Output[Index.at(1U)++] = BASE64_PAD;
 	}
-	else if ((Index[0] % 3U) == 1U)
+	else if ((Index.at(0) % 3U) == 1U)
 	{
-		Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] & 0xF) << 2U];
-		Output[Index[1U]++] = BASE64_PAD;
+		Output[Index.at(1U)++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index.at(0)] & 0xF) << 2U];
+		Output[Index.at(1U)++] = BASE64_PAD;
 	}
 
 	return strnlen_s(reinterpret_cast<const char *>(Output), OutputSize);
@@ -347,49 +347,49 @@ size_t Base64_Decode(
 //Initialization
 	if (Length == 0)
 		return 0;
-	size_t Index[]{0, 0, 0};
+	std::array<size_t, 3U> Index{};
 	memset(Output, 0, OutputSize);
 
 //Convert from Base64 to binary.
-	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
+	for (Index.at(0) = 0, Index.at(1U) = 0;Index.at(0) < Length;++Index.at(0))
 	{
 		int StringIter = 0;
-		Index[2U] = Index[0] % 4U;
-		if (Input[Index[0]] == static_cast<uint8_t>(BASE64_PAD))
+		Index.at(2U) = Index.at(0) % 4U;
+		if (Input[Index.at(0)] == static_cast<uint8_t>(BASE64_PAD))
 			return strnlen_s(reinterpret_cast<const char *>(Output), OutputSize);
-		if (Input[Index[0]] < BASE64_DECODE_FIRST || Input[Index[0]] > BASE64_DECODE_LAST || 
-			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DECODE_FIRST]) == (-1))
+		if (Input[Index.at(0)] < BASE64_DECODE_FIRST || Input[Index.at(0)] > BASE64_DECODE_LAST || 
+			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index.at(0)] - BASE64_DECODE_FIRST]) == (-1))
 				return 0;
-		switch (Index[2U])
+		switch (Index.at(2U))
 		{
 			case 0:
 			{
-				Output[Index[1U]] = static_cast<uint8_t>(StringIter << 2U);
+				Output[Index.at(1U)] = static_cast<uint8_t>(StringIter << 2U);
 				continue;
 			}
 			case 1U:
 			{
-				Output[Index[1U]++] += (StringIter >> 4U) & 0x3;
+				Output[Index.at(1U)++] += (StringIter >> 4U) & 0x3;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 3U) || Input[Length - 2U] != static_cast<uint8_t>(BASE64_PAD))
-					Output[Index[1U]] = (StringIter & 0xF) << 4U;
+				if (Index.at(0) < (Length - 3U) || Input[Length - 2U] != static_cast<uint8_t>(BASE64_PAD))
+					Output[Index.at(1U)] = (StringIter & 0xF) << 4U;
 
 				continue;
 			}
 			case 2U:
 			{
-				Output[Index[1U]++] += (StringIter >> 2U) & 0xF;
+				Output[Index.at(1U)++] += (StringIter >> 2U) & 0xF;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 2U) || Input[Length - 1U] != static_cast<uint8_t>(BASE64_PAD))
-					Output[Index[1U]] = (StringIter & 0x3) << 6U;
+				if (Index.at(0) < (Length - 2U) || Input[Length - 1U] != static_cast<uint8_t>(BASE64_PAD))
+					Output[Index.at(1U)] = (StringIter & 0x3) << 6U;
 
 				continue;
 			}
 			case 3U:
 			{
-				Output[Index[1U]++] += static_cast<uint8_t>(StringIter);
+				Output[Index.at(1U)++] += static_cast<uint8_t>(StringIter);
 			}
 		}
 	}
@@ -454,7 +454,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 		if (Buffer)
 		{
 			Shift = BYTES_TO_BITS - BitLength;
-			Mask = (1U << Shift) - 1U;
+			Mask = (static_cast<uint64_t>(1U) << Shift) - 1U;
 			*Buffer = static_cast<uint8_t>((BitQueue << Shift) | Mask);
 			++Buffer;
 			--Length;
@@ -560,6 +560,111 @@ Completed:
 		return HUFFMAN_RETURN_TYPE::ERROR_TRUNCATED;
 
 	return HUFFMAN_RETURN_TYPE::NONE;
+}
+
+//Generate random bytes to buffer
+void GenerateRandomBuffer(
+	void * const BufferPointer, 
+	const size_t BufferSize, 
+	const void *Distribution, 
+	const uint64_t Lower, 
+	const uint64_t Upper)
+{
+//Buffer check
+	if (BufferPointer == nullptr || BufferSize == 0)
+		return;
+//Clean buffer before generating.
+	else 
+		memset(BufferPointer, 0, BufferSize);
+
+//Fill size_t value.
+	if (BufferSize == sizeof(size_t) && (Distribution != nullptr || Lower + Upper > 0))
+	{
+		if (Distribution != nullptr)
+		{
+			*reinterpret_cast<size_t *>(BufferPointer) = (*const_cast<std::uniform_int_distribution<size_t> *>(reinterpret_cast<const std::uniform_int_distribution<size_t> *>(Distribution)))(*GlobalRunningStatus.RandomEngine);
+		}
+		else {
+			std::uniform_int_distribution<size_t> RandomDistribution(static_cast<size_t>(Lower), static_cast<size_t>(Upper));
+			*reinterpret_cast<size_t *>(BufferPointer) = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+		}
+	}
+//Fill a 64 bits value.
+	else if (BufferSize == sizeof(uint64_t) && (Distribution != nullptr || Lower + Upper > 0))
+	{
+		if (Distribution != nullptr)
+		{
+			*reinterpret_cast<uint64_t *>(BufferPointer) = (*const_cast<std::uniform_int_distribution<uint64_t> *>(reinterpret_cast<const std::uniform_int_distribution<uint64_t> *>(Distribution)))(*GlobalRunningStatus.RandomEngine);
+		}
+		else {
+			std::uniform_int_distribution<uint64_t> RandomDistribution(Lower, Upper);
+			*reinterpret_cast<uint64_t *>(BufferPointer) = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+		}
+	}
+//Fill a 32 bits value.
+	else if (BufferSize == sizeof(uint32_t) && (Distribution != nullptr || Lower + Upper > 0))
+	{
+		if (Distribution != nullptr)
+		{
+			*reinterpret_cast<uint32_t *>(BufferPointer) = (*const_cast<std::uniform_int_distribution<uint32_t> *>(reinterpret_cast<const std::uniform_int_distribution<uint32_t> *>(Distribution)))(*GlobalRunningStatus.RandomEngine);
+		}
+		else {
+			std::uniform_int_distribution<uint32_t> RandomDistribution(static_cast<uint32_t>(Lower), static_cast<uint32_t>(Upper));
+			*reinterpret_cast<uint32_t *>(BufferPointer) = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+		}
+	}
+//Fill a 16 bits value.
+	else if (BufferSize == sizeof(uint16_t) && (Distribution != nullptr || Lower + Upper > 0))
+	{
+		if (Distribution != nullptr)
+		{
+			*reinterpret_cast<uint16_t *>(BufferPointer) = (*const_cast<std::uniform_int_distribution<uint16_t> *>(reinterpret_cast<const std::uniform_int_distribution<uint16_t> *>(Distribution)))(*GlobalRunningStatus.RandomEngine);
+		}
+		else {
+			std::uniform_int_distribution<uint16_t> RandomDistribution(static_cast<uint16_t>(Lower), static_cast<uint16_t>(Upper));
+			*reinterpret_cast<uint16_t *>(BufferPointer) = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+		}
+	}
+//Fill a 8 bits value.
+	else if (BufferSize == sizeof(uint8_t) && (Distribution != nullptr || Lower + Upper > 0))
+	{
+		if (Distribution != nullptr)
+		{
+			*reinterpret_cast<uint8_t *>(BufferPointer) = static_cast<uint8_t>((*const_cast<std::uniform_int_distribution<uint16_t> *>(reinterpret_cast<const std::uniform_int_distribution<uint16_t> *>(Distribution)))(*GlobalRunningStatus.RandomEngine));
+		}
+		else {
+			std::uniform_int_distribution<uint16_t> RandomDistribution(static_cast<uint8_t>(Lower), static_cast<uint8_t>(Upper));
+			*reinterpret_cast<uint8_t *>(BufferPointer) = static_cast<uint8_t>(RandomDistribution(*GlobalRunningStatus.RandomEngine));
+		}
+	}
+//Fill a random sequence.
+	else {
+	#if defined(ENABLE_LIBSODIUM)
+	//Generate a random sequence by LibSodium.
+		for (size_t Index = 0;Index < LOOP_MAX_LARGE_TIMES;++Index)
+		{
+		//Generate a random 32 bits or sequence.
+			if (BufferSize == sizeof(uint32_t))
+				*reinterpret_cast<uint32_t *>(BufferPointer) = randombytes_random();
+			else 
+				randombytes_buf(BufferPointer, BufferSize);
+
+		//Must not a empty buffer after generating.
+			if (!CheckEmptyBuffer(BufferPointer, BufferSize))
+				return;
+		}
+	#endif
+
+	//Generate a random sequence by C++ STL.
+		if (CheckEmptyBuffer(BufferPointer, BufferSize))
+		{
+			std::uniform_int_distribution<uint16_t> RandomDistribution(1U, UINT8_MAX); //Not including empty bytes.
+			for (size_t Index = 0;Index < BufferSize;Index += sizeof(uint8_t))
+				*(reinterpret_cast<uint8_t *>(BufferPointer) + Index * sizeof(uint8_t)) = static_cast<uint8_t>(RandomDistribution(*GlobalRunningStatus.RandomEngine));
+		}
+	}
+
+	return;
 }
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))

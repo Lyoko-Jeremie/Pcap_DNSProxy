@@ -76,7 +76,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 直接从网络适配器设置内读取 DNS 服务器地址进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 请求远程 DNS 服务器的优先级：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
 * 本工具的 DNSCurve(DNSCrypt) 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
-  * DNSCurve 协议为 Streamlined/精简类型
   * 自动获取连接信息时必须保证系统时间的正确，否则证书验证时会出错导致连接信息获取失败！
   * DNSCrypt 官方工具会占用本地 DNS 端口导致 Pcap_DNSProxy 部署失败！
 
@@ -122,7 +121,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最小为 5
     * 本参数同时决定监视器的时间休眠时间片的粒度，其指休眠一段长时间时会根据此粒度激活并检查是否需要重新运行特定监视项目，而不需要等到长时间完全过去休眠完全结束后才能重新对此进行监视，此功能的适当配置对程序的网络状况适应能力会有提高
-  * Large Buffer Size - 大型数据缓冲区的固定长度：单位为字节，最小为 1500
+  * Large Buffer Size - 大型数据缓冲区的固定长度：单位为字节，最小为 2048
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：请填入目录的绝对路径
     * 本参数支持同时读取多个路径，各路径之间请使用 | 隔开
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取
@@ -156,7 +155,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
   * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
     * 端口可填入服务名称，服务名称列表参见下文
-    * 也可填入 1-65535 之间的端口，如果留空则为 53
+    * 也可填入 1 - 65535 之间的端口，如果留空则为 53
     * 填入多个端口时，将会同时监听请求
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式
@@ -278,7 +277,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 位于私有地址的所有请求不受此参数控制，其拥有一个默认的缓存队列
   * Cache Single IPv6 Address Prefix - IPv6 协议单独 DNS 缓存队列地址所使用的前缀长度：单位为位，最大为 128 填入 0 为关闭此功能
     * 位于私有地址的所有请求不受此参数控制，其拥有一个默认的缓存队列
-  * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900秒/15分钟
+  * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900 秒/15 分钟
     * DNS 缓存的类型为混合类型时，本参数将同时决定最终的缓存时间
       * 如果解析结果的平均 TTL 值大于此值，则使用 [TTL + 此值] 为最终的缓存时间
       * 如果解析结果的平均 TTL 值小于等于此值，则使用 [此值] 为最终的缓存时间
@@ -355,7 +354,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 多个 IPv6 为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
       * 启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multiple Request 参数（参见下文）
       * 可填入的服务器数量为：填入主要/备用服务器的数量
-      * Multiple Request Times = 总请求的数值，此数值不能超过 64
+      * Multiple Request Times = 总请求的数值，此数值不能超过 32
     * 带前缀长度地址的格式：
       * IPv4 为 "IPv4 地址/掩码长度"（不含引号）
       * IPv6 为 "IPv6 地址/前缀长度"（不含引号）
@@ -449,25 +448,25 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Values - 扩展参数值区域
   * Thread Pool Base Number - 线程池基础最低保持线程数量：最小为 8 设置为 0 则关闭线程池的功能
-  * Thread Pool Maximum Number - 线程池最大线程数量以及缓冲区队列数量限制：最小为 8
+  * Thread Pool Maximum Number - 线程池最大线程数量以及缓冲区队列数量限制：最小为 8 可留空，留空时为 8
     * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
     * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量
-  * Thread Pool Reset Time - 线程池中线程数量超出 Thread Pool Base Number 所指定数量后线程将会自动退出前所驻留的时间：单位为秒
+  * Thread Pool Reset Time - 线程池中线程数量超出 Thread Pool Base Number 所指定数量后线程将会自动退出前所驻留的时间：单位为秒，最小为 5 设置为 0 时关闭此功能
   * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，最小为 5 设置为 0 时关闭此功能
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)
-  * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1-255 之间
+  * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1 - 255 之间
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
-  * IPv4 Main DNS TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
+  * IPv4 Main DNS TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1 - 255 之间
     * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
-  * IPv4 Alternate DNS TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
+  * IPv4 Alternate DNS TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1 - 255 之间
     * 支持多个 TTL 值，与 IPv4 Alternate DNS Address 相对应
-  * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：0 为由操作系统自动决定，取值为 1-255 之间
+  * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：0 为由操作系统自动决定，取值为 1 - 255 之间
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
-  * IPv6 Main DNS Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
+  * IPv6 Main DNS Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1 - 255 之间
     * 支持多个 Hop Limits 值，与 IPv6 DNS Address 相对应
-  * IPv6 Alternate DNS Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
+  * IPv6 Alternate DNS Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1 - 255 之间
     * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
-  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
+  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 0 - 255 之间
   * Reliable Once Socket Timeout - 一次性可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 3000
     * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve(DNSCrypt) 协议
     * 可靠端口指 TCP 协议
@@ -501,14 +500,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
   * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最小为 5 设置为 0 表示关闭此功能
   * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最小为 5 设置为 0 表示关闭此功能
-  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：单位为次
-  * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，最小为 5
-  * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，最小为 5
+  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：单位为次 可留空，留空时为 5
+  * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，最小为 5 可留空，留空时为 10
+  * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，最小为 5 可留空，留空时为 300
   * Multiple Request Times - 一次向同一个远程服务器发送并行域名解析请求：0 和 1 时为收到一个请求时请求 1 次，2 时为收到一个请求时请求 2 次，3 时为收到一个请求时请求 3 次……以此类推
     * 此值将应用到 Local Hosts 外所有远程服务器对所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
     * 可填入的最大数值为：填入主要/备用服务器的数量
-  * Multiple Request Times = 总请求的数值，此数值不能超过 64
-    * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
+  * Multiple Request Times = 总请求的数值，此数值不能超过 32
+    * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次 +1 后重启服务测试效果，找到最合适的值
   * 注意：
     * IPv4 协议使用多 TTL 值的格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
     * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
@@ -546,7 +545,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Data - 数据区域
   * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为从 0x0001 开始每个请求回环式递增
-  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1500字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据
+  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18 字节 - 2048 字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据
   * Domain Test Protocol - 使用 Domain Test 发送请求时所使用的协议：可填入 TCP 和 UDP
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试
@@ -635,7 +634,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Encryption Only - 只使用加密模式，所有请求将只通过 DNCurve 加密模式进行：开启为 1 /关闭为 0
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
   * DNSCurve Client Ephemeral Key - 一次性客户端密钥对模式，每次请求解析均使用随机生成的一次性客户端密钥对，提供前向安全性：开启为 1 /关闭为 0
-  * DNSCurve Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最小为 10
+  * DNSCurve Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最小为 10 可留空，留空时为 1800
 
 * DNSCurve Database - DNSCurve 协议数据库区域
   * DNSCurve Database Name - DNSCurve 协议数据库的文件名
@@ -913,7 +912,8 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 当 Local Routing 为开启时，将检查本列表的路由表是否命中，检查与否与域名请求是否使用 Local 服务器有关，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
 有效参数格式为 "地址块/网络前缀长度"（不含引号）
   * 本路由表支持 IPv4 和 IPv6 协议
-  * IPv4 时网络前缀长度范围为 1-32，IPv6 时网络前缀长度范围为 1-128
+  * IPv4 时网络前缀长度范围为 1 - 32
+  * IPv6 时网络前缀长度范围为 1 - 128
 
 
 * Stop - 临时停止读取标签
@@ -945,7 +945,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * IPv6 Packet Hop Limits
 * IPv6 Main DNS Hop Limits
 * IPv6 Alternate DNS Hop Limits
-* HopLimits Fluctuation
+* Hop Limits Fluctuation
 * Reliable Once Socket Timeout
 * Reliable Serial Socket Timeout
 * Unreliable Once Socket Timeout

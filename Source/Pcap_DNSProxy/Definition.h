@@ -167,7 +167,7 @@
 #define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file
 #define MEMORY_BUFFER_EXPAND_BYTES                    1U                                //Memory buffer expanded bytes(1 bytes)
 #define MEMORY_RESERVED_BYTES                         2U                                //Memory buffer reserved bytes(2 bytes)
-#define MULTIPLE_REQUEST_MAXNUM                       64U                               //Maximum number of multiple request.
+#define MULTIPLE_REQUEST_MAXNUM                       32U                               //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
 //#define PACKET_ORIGINAL_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes Frame Check Sequence
@@ -179,6 +179,9 @@
 #endif
 #if defined(PLATFORM_WIN)
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                       //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
+#endif
+#if defined(PLATFORM_WIN)
+	#define SERVICE_TABLE_ENTRY_NUM                       2U                          //Service table entry number
 #endif
 #define THREAD_POOL_MAXNUM                            148809524U                  //Number of maximum packet buffer queues, 148809523pps or 148.809Mpps in 100 Gigabit Ethernet
 #define THREAD_POOL_MINNUM                            8U                          //Number of minimum packet buffer queues
@@ -213,7 +216,7 @@
 
 //Time definitions
 #define DEFAULT_ALTERNATE_RANGE_TIME                  10U                         //Default time of checking timeout(10 seconds)
-#define DEFAULT_ALTERNATE_RESET_TIME                  180U                        //Default time to reset switching of alternate servers(180 seconds/2 minutes)
+#define DEFAULT_ALTERNATE_RESET_TIME                  300U                        //Default time to reset switching of alternate servers(300 seconds/5 minutes)
 #define DEFAULT_ALTERNATE_TIMES                       5U                          //Default times of request timeout(5 times)
 #define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending(900 seconds/15 minutes)
 #define DEFAULT_FILE_REFRESH_TIME                     15000U                      //Default time between files auto-refreshing(15000 ms/15 seconds)
@@ -251,6 +254,7 @@
 #define SHORTEST_DOMAIN_TEST_INTERVAL_TIME            5U                          //The shortest Domain Test time between every sending(5 seconds)
 #define SHORTEST_FILE_REFRESH_TIME                    5U                          //The shortest time between files auto-refreshing(5 seconds)
 #define SHORTEST_ICMP_TEST_TIME                       5U                          //The shortest time between ICMP Test(5 seconds)
+#define SHORTEST_QUEUE_RESET_TIME                     5U                          //The shortest time to reset queue limit(5 seconds)
 #define SHORTEST_THREAD_POOL_RESET_TIME               5U                          //The shortest time to reset thread pool number(5 seconds)
 #define SOCKET_TIMEOUT_MIN                            500U                        //The shortest socket timeout(500 ms)
 #define STANDARD_TIMEOUT                              1000U                       //Standard timeout(1000 ms/1 second)

@@ -99,7 +99,7 @@ void MonitorRequestConsumer(
 	//Thread pool check
 		if (Parameter.ThreadPoolBaseNum > 0)
 		{
-			if (LastActiveTime + Parameter.ThreadPoolResetTime <= GetCurrentSystemTime() && 
+			if (static_cast<uint64_t>(LastActiveTime) + static_cast<uint64_t>(Parameter.ThreadPoolResetTime) <= GetCurrentSystemTime() && 
 				GlobalRunningStatus.ThreadRunningNum->load() > Parameter.ThreadPoolBaseNum && 
 				GlobalRunningStatus.ThreadRunningFreeNum->load() > 0)
 			{
@@ -335,62 +335,62 @@ SkipProcess_DNSCurve:
 //Check white and banned hosts list
 size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
-	const HostsTable &HostsTableIter, 
+	const HostsTable &HostsTableItem, 
 	dns_hdr * const DNS_Header, 
 	const uint16_t QueryType)
 {
 //Whitelist Hosts
-	if (HostsTableIter.PermissionType == HOSTS_TYPE::WHITE)
+	if (HostsTableItem.PermissionType == HOSTS_TYPE::WHITE)
 	{
 	//Ignore all types.
-		if (HostsTableIter.RecordTypeList.empty())
+		if (HostsTableItem.RecordTypeList.empty())
 		{
 			return EXIT_FAILURE;
 		}
 		else {
 		//Permit or Deny mode check
-			if (HostsTableIter.PermissionOperation)
+			if (HostsTableItem.PermissionOperation)
 			{
 			//Only ignore some types.
-				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
+				for (auto RecordTypeItem = HostsTableItem.RecordTypeList.begin();RecordTypeItem != HostsTableItem.RecordTypeList.end();++RecordTypeItem)
 				{
-					if (*RecordTypeIter == QueryType)
+					if (*RecordTypeItem == QueryType)
 						break;
-					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
+					else if (RecordTypeItem + 1U == HostsTableItem.RecordTypeList.end())
 						return EXIT_FAILURE;
 				}
 			}
 		//Ignore some types.
 			else {
-				for (const auto &RecordTypeIter:HostsTableIter.RecordTypeList)
+				for (const auto &RecordTypeItem:HostsTableItem.RecordTypeList)
 				{
-					if (RecordTypeIter == QueryType)
+					if (RecordTypeItem == QueryType)
 						return EXIT_FAILURE;
 				}
 			}
 		}
 	}
 //Banned Hosts
-	else if (HostsTableIter.PermissionType == HOSTS_TYPE::BANNED)
+	else if (HostsTableItem.PermissionType == HOSTS_TYPE::BANNED)
 	{
 	//Block all types.
-		if (HostsTableIter.RecordTypeList.empty())
+		if (HostsTableItem.RecordTypeList.empty())
 		{
 			DNS_Header->Flags = htons(DNS_FLAG_SET_R_SNH);
 			return Length;
 		}
 		else {
 		//Permit or Deny mode check
-			if (HostsTableIter.PermissionOperation)
+			if (HostsTableItem.PermissionOperation)
 			{
 			//Only some types are allowed.
-				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
+				for (auto RecordTypeItem = HostsTableItem.RecordTypeList.begin();RecordTypeItem != HostsTableItem.RecordTypeList.end();++RecordTypeItem)
 				{
-					if (*RecordTypeIter == QueryType)
+					if (*RecordTypeItem == QueryType)
 					{
 						break;
 					}
-					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
+					else if (RecordTypeItem + 1U == HostsTableItem.RecordTypeList.end())
 					{
 						DNS_Header->Flags = htons(DNS_FLAG_SQR_NE);
 						return Length;
@@ -399,9 +399,9 @@ size_t CheckWhiteBannedHostsProcess(
 			}
 		//Block some types.
 			else {
-				for (const auto &RecordTypeIter:HostsTableIter.RecordTypeList)
+				for (const auto &RecordTypeItem:HostsTableItem.RecordTypeList)
 				{
-					if (RecordTypeIter == QueryType)
+					if (RecordTypeItem == QueryType)
 					{
 						DNS_Header->Flags = htons(DNS_FLAG_SQR_NE);
 						return Length;
@@ -456,17 +456,17 @@ size_t CheckHostsProcess(
 	//Permit mode
 		if (Parameter.IsAcceptTypePermit)
 		{
-			for (auto TypeTableIter = Parameter.AcceptTypeList->begin();TypeTableIter != Parameter.AcceptTypeList->end();++TypeTableIter)
+			for (auto TypeItem = Parameter.AcceptTypeList->begin();TypeItem != Parameter.AcceptTypeList->end();++TypeItem)
 			{
-				if (TypeTableIter + 1U == Parameter.AcceptTypeList->end())
+				if (TypeItem + 1U == Parameter.AcceptTypeList->end())
 				{
-					if (*TypeTableIter != PacketStructure->QueryType)
+					if (*TypeItem != PacketStructure->QueryType)
 					{
 						DNS_Header->Flags = htons(DNS_FLAG_SET_R_SNH);
 						return PacketStructure->Length;
 					}
 				}
-				else if (*TypeTableIter == PacketStructure->QueryType)
+				else if (*TypeItem == PacketStructure->QueryType)
 				{
 					break;
 				}
@@ -474,9 +474,9 @@ size_t CheckHostsProcess(
 		}
 	//Deny mode
 		else {
-			for (const auto &TypeTableIter:*Parameter.AcceptTypeList)
+			for (const auto &TypeItem:*Parameter.AcceptTypeList)
 			{
-				if (TypeTableIter == PacketStructure->QueryType)
+				if (TypeItem == PacketStructure->QueryType)
 				{
 					DNS_Header->Flags = htons(DNS_FLAG_SET_R_SNH);
 					return PacketStructure->Length;
@@ -638,7 +638,7 @@ size_t CheckHostsProcess(
 		}
 		else {
 		//IPv6 check
-			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[NETWORK_LAYER_TYPE_IPV6]);
+			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV6));
 			for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6])
 			{
 				if (StringIter == Domain)
@@ -653,7 +653,7 @@ size_t CheckHostsProcess(
 		//IPv4 check
 			if (!Is_PTR_ResponseSend)
 			{
-				std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[NETWORK_LAYER_TYPE_IPV4]);
+				std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV4));
 				for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4])
 				{
 					if (StringIter == Domain)
@@ -734,7 +734,7 @@ size_t CheckHostsProcess(
 			}
 
 		//Copy response to buffer.
-			std::lock_guard<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[NETWORK_LAYER_TYPE_IPV6]);
+			std::lock_guard<std::mutex> LocalAddressMutexIPv6(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV6));
 			if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
@@ -768,7 +768,7 @@ size_t CheckHostsProcess(
 			}
 
 		//Copy response to buffer.
-			std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[NETWORK_LAYER_TYPE_IPV4]);
+			std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV4));
 			if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
@@ -798,22 +798,22 @@ size_t CheckHostsProcess(
 //Normal Hosts check
 	auto IsMatchItem = false;
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
-	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
+	for (const auto &HostsFileSetItem:*HostsFileSetUsing)
 	{
-		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Normal)
+		for (const auto &HostsTableItem:HostsFileSetItem.HostsList_Normal)
 		{
 			IsMatchItem = false;
 
 		//Dnsmasq normal mode, please visit http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html.
-			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
+			if (HostsTableItem.IsStringMatching && !HostsTableItem.PatternOrDomainString.empty())
 			{
-				if (HostsTableIter.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
-					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
-					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
+				if (HostsTableItem.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
+					(HostsTableItem.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
+					CompareStringReversed(HostsTableItem.PatternOrDomainString, ReverseDomain)))
 						IsMatchItem = true;
 			}
 		//Regex mode
-			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
+			else if (std::regex_match(Domain, HostsTableItem.PatternRegex))
 			{
 				IsMatchItem = true;
 			}
@@ -822,30 +822,30 @@ size_t CheckHostsProcess(
 			if (IsMatchItem)
 			{
 			//Source Hosts check
-				if (!HostsTableIter.SourceList.empty())
+				if (!HostsTableItem.SourceList.empty())
 				{
-					for (const auto &SourceListIter:HostsTableIter.SourceList)
+					for (const auto &SourceListItem:HostsTableItem.SourceList)
 					{
 					//IPv6
-						if (SourceListIter.first.ss_family == AF_INET6 && LocalSocketData.SockAddr.ss_family == AF_INET6)
+						if (SourceListItem.first.ss_family == AF_INET6 && LocalSocketData.SockAddr.ss_family == AF_INET6)
 						{
-							if (SourceListIter.second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+							if (SourceListItem.second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
-								const auto AddressPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
-								if (memcmp(&AddressPart, &reinterpret_cast<const sockaddr_in6 *>(&SourceListIter.first)->sin6_addr, sizeof(AddressPart)) == 0)
+								const auto AddressPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListItem.second)));
+								if (memcmp(&AddressPart, &reinterpret_cast<const sockaddr_in6 *>(&SourceListItem.first)->sin6_addr, sizeof(AddressPart)) == 0)
 									goto JumpTo_Continue;
 							}
-							else if (memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &reinterpret_cast<const sockaddr_in6 *>(&SourceListIter.first)->sin6_addr, sizeof(uint64_t)) == 0) //Mark high 64 bits.
+							else if (memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &reinterpret_cast<const sockaddr_in6 *>(&SourceListItem.first)->sin6_addr, sizeof(uint64_t)) == 0) //Mark high 64 bits.
 							{
-								const auto AddressPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - SourceListIter.second)));
-								if (memcmp(&AddressPart, reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in6 *>(&SourceListIter.first)->sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddressPart)) == 0) //Mark low 64 bits.
+								const auto AddressPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - SourceListItem.second)));
+								if (memcmp(&AddressPart, reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in6 *>(&SourceListItem.first)->sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddressPart)) == 0) //Mark low 64 bits.
 									goto JumpTo_Continue;
 							}
 						}
 					//IPv4
-						else if (SourceListIter.first.ss_family == AF_INET && LocalSocketData.SockAddr.ss_family == AF_INET && 
-							htonl(ntohl(reinterpret_cast<const sockaddr_in *>(&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - SourceListIter.second))) == 
-							reinterpret_cast<const sockaddr_in *>(&SourceListIter.first)->sin_addr.s_addr)
+						else if (SourceListItem.first.ss_family == AF_INET && LocalSocketData.SockAddr.ss_family == AF_INET && 
+							htonl(ntohl(reinterpret_cast<const sockaddr_in *>(&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - SourceListItem.second))) == 
+							reinterpret_cast<const sockaddr_in *>(&SourceListItem.first)->sin_addr.s_addr)
 						{
 							goto JumpTo_Continue;
 						}
@@ -858,17 +858,17 @@ size_t CheckHostsProcess(
 			JumpTo_Continue:
 
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType);
+				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableItem, DNS_Header, PacketStructure->QueryType);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
 					goto StopLoop_NormalHosts;
 
 			//Initialization
-				size_t RandomIndex = 0, Index = 0;
+				size_t RandomValue = 0, Index = 0;
 
 			//AAAA record(IPv6)
-				if (ntohs(PacketStructure->QueryType) == DNS_TYPE_AAAA && HostsTableIter.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
+				if (ntohs(PacketStructure->QueryType) == DNS_TYPE_AAAA && HostsTableItem.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 				{
 				//Store EDNS Label temporary.
 					if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
@@ -885,14 +885,11 @@ size_t CheckHostsProcess(
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
-					if (HostsTableIter.AddrOrTargetList.size() > 1U)
-					{
-						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-					}
+					if (HostsTableItem.AddrOrTargetList.size() > 1U)
+						GenerateRandomBuffer(&RandomValue, sizeof(RandomValue), nullptr, 0, HostsTableItem.AddrOrTargetList.size() - 1U);
 
 				//Make response.
-					for (Index = 0;Index < HostsTableIter.AddrOrTargetList.size();++Index)
+					for (Index = 0;Index < HostsTableItem.AddrOrTargetList.size();++Index)
 					{
 					//Make resource records.
 						DNS_Record = reinterpret_cast<dns_record_aaaa *>(Result + DataLength);
@@ -906,11 +903,11 @@ size_t CheckHostsProcess(
 						reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Type = htons(DNS_TYPE_AAAA);
 						reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address));
 						if (Index == 0)
-							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv6.sin6_addr;
-						else if (Index == RandomIndex)
-							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.front().IPv6.sin6_addr;
+							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.at(RandomValue).IPv6.sin6_addr;
+						else if (Index == RandomValue)
+							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.front().IPv6.sin6_addr;
 						else 
-							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
+							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.at(Index).IPv6.sin6_addr;
 
 					//Hosts items length check
 						if ((PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0 && DataLength + sizeof(dns_record_aaaa) + PacketStructure->EDNS_Length >= ResultSize) || //EDNS Label query
@@ -938,7 +935,7 @@ size_t CheckHostsProcess(
 					return DataLength;
 				}
 			//A record(IPv4)
-				else if (ntohs(PacketStructure->QueryType) == DNS_TYPE_A && HostsTableIter.RecordTypeList.front() == htons(DNS_TYPE_A))
+				else if (ntohs(PacketStructure->QueryType) == DNS_TYPE_A && HostsTableItem.RecordTypeList.front() == htons(DNS_TYPE_A))
 				{
 				//Store EDNS Label temporary.
 					if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
@@ -955,14 +952,11 @@ size_t CheckHostsProcess(
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
-					if (HostsTableIter.AddrOrTargetList.size() > 1U)
-					{
-						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-					}
+					if (HostsTableItem.AddrOrTargetList.size() > 1U)
+						GenerateRandomBuffer(&RandomValue, sizeof(RandomValue), nullptr, 0, HostsTableItem.AddrOrTargetList.size() - 1U);
 
 				//Make response.
-					for (Index = 0;Index < HostsTableIter.AddrOrTargetList.size();++Index)
+					for (Index = 0;Index < HostsTableItem.AddrOrTargetList.size();++Index)
 					{
 					//Make resource records.
 						DNS_Record = reinterpret_cast<dns_record_a *>(Result + DataLength);
@@ -976,11 +970,11 @@ size_t CheckHostsProcess(
 						reinterpret_cast<dns_record_a *>(DNS_Record)->Type = htons(DNS_TYPE_A);
 						reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_a *>(DNS_Record)->Address));
 						if (Index == 0)
-							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv4.sin_addr;
-						else if (Index == RandomIndex)
-							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.front().IPv4.sin_addr;
+							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.at(RandomValue).IPv4.sin_addr;
+						else if (Index == RandomValue)
+							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.front().IPv4.sin_addr;
 						else 
-							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
+							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableItem.AddrOrTargetList.at(Index).IPv4.sin_addr;
 
 					//Hosts items length check
 						if ((PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0 && DataLength + sizeof(dns_record_a) + PacketStructure->EDNS_Length >= ResultSize) || //EDNS Label query
@@ -1028,22 +1022,22 @@ StopLoop_NormalHosts:
 
 //Local Hosts check
 	HostsFileMutex.lock();
-	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
+	for (const auto &HostsFileSetItem:*HostsFileSetUsing)
 	{
-		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Local)
+		for (const auto &HostsTableItem:HostsFileSetItem.HostsList_Local)
 		{
 			IsMatchItem = false;
 
 		//Dnsmasq normal mode
-			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
+			if (HostsTableItem.IsStringMatching && !HostsTableItem.PatternOrDomainString.empty())
 			{
-				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
-					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
-					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
+				if ((HostsTableItem.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
+					(HostsTableItem.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
+					CompareStringReversed(HostsTableItem.PatternOrDomainString, ReverseDomain)))
 						IsMatchItem = true;
 			}
 		//Regex mode
-			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
+			else if (std::regex_match(Domain, HostsTableItem.PatternRegex))
 			{
 				IsMatchItem = true;
 			}
@@ -1054,7 +1048,7 @@ StopLoop_NormalHosts:
 				PacketStructure->IsLocalInWhite = true;
 
 			//Check white and banned hosts list.
-				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType);
+				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableItem, DNS_Header, PacketStructure->QueryType);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
@@ -1063,8 +1057,8 @@ StopLoop_NormalHosts:
 					PacketStructure->IsLocalRequest = true;
 
 			//Mark Local server target.
-				if (PacketStructure->IsLocalRequest && !HostsTableIter.AddrOrTargetList.empty())
-					PacketStructure->LocalTarget = HostsTableIter.AddrOrTargetList.front();
+				if (PacketStructure->IsLocalRequest && !HostsTableItem.AddrOrTargetList.empty())
+					PacketStructure->LocalTarget = HostsTableItem.AddrOrTargetList.front();
 
 			//Stop loop
 				goto StopLoop_LocalHosts;

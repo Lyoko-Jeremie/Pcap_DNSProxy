@@ -78,8 +78,12 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	const SERVICE_TABLE_ENTRYW ServiceTable[]{{const_cast<LPWSTR>(SYSTEM_SERVICE_NAME), reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}};
-	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
+	std::array<SERVICE_TABLE_ENTRYW, SERVICE_TABLE_ENTRY_NUM> ServiceTable{};
+	ServiceTable.at(0).lpServiceName = const_cast<LPWSTR>(SYSTEM_SERVICE_NAME);
+	ServiceTable.at(0).lpServiceProc = reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain);
+	ServiceTable.at(1U).lpServiceName = nullptr;
+	ServiceTable.at(1U).lpServiceProc = nullptr;
+	if (StartServiceCtrlDispatcherW(ServiceTable.data()) == 0)
 	{
 	//Print to screen.
 		if (GetLastError() == 0)

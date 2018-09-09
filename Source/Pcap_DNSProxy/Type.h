@@ -246,9 +246,10 @@ typedef enum class _tls_version_selection
 	#define OPENSSL_VERSION_1_0_1                     0x10001000L
 	#define OPENSSL_VERSION_1_0_2                     0x10002000L
 	#define OPENSSL_VERSION_1_1_0                     0x10100000L
+	#define OPENSSL_VERSION_1_1_1                     0x10101000L
 	#define OPENSSL_STATIC_BUFFER_SIZE                256U
-	#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!SSLv2:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
-	#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+	#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!aNULL:!kRSA:!PSK:!SRP:!SM2:!SM3:!SM4:!SSLv2:!SSLv3:!MD5:!RC4")
+	#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!aNULL:!kRSA:!PSK:!SRP:!SM2:!SM3:!SM4:!SSLv2:!SSLv3:!MD5:!RC4:!SHA1")
 #endif
 #endif
 
@@ -800,8 +801,8 @@ public:
 typedef class AlternateSwapTable
 {
 public:
-	size_t                               TimeoutTimes[ALTERNATE_SERVER_NUM];
-	bool                                 IsSwap[ALTERNATE_SERVER_NUM];
+	std::array<size_t, ALTERNATE_SERVER_NUM>   TimeoutTimes;
+	std::array<bool, ALTERNATE_SERVER_NUM>     IsSwapped;
 
 //Redefine operator functions
 //	AlternateSwapTable() = default;
@@ -870,7 +871,63 @@ public:
 		void);
 }SOCKET_SELECTING_ONCE_TABLE;
 
+//Socket value table class
+typedef class SocketValueTable
+{
+public:
+	std::vector<SOCKET_DATA>                  ValueSet;
+
+//Redefine operator functions
+	SocketValueTable() = default;
+	SocketValueTable(const SocketValueTable &) = delete;
+	SocketValueTable & operator=(const SocketValueTable &) = delete;
+
+//Member functions
+//	SocketValueTable(
+//		void);
+	bool SocketValueInit(
+		const uint16_t SocketNetwork, 
+		const uint16_t SocketType, 
+		const uint16_t SocketTransport, 
+		const uint16_t SocketPort, 
+		const void * const SocketAddress, 
+		ssize_t * const ErrorCode);
+	~SocketValueTable(
+		void);
+}SOCKET_VALUE_TABLE;
+
 #if defined(ENABLE_PCAP)
+//Internet Control Message Protocol/ICMP echo request(Ping) event table class
+typedef class EventTable_ICMP
+{
+public:
+	uint16_t                                  Protocol;
+	timeval                                   SocketTimeout;
+	timeval                                   IntervalTimeout;
+	event_base                                *EventBase;
+	std::vector<event *>                      *EventList;
+	SOCKET_VALUE_TABLE                        *SocketValue;
+	uint8_t                                   *SendBuffer;
+	uint8_t                                   *RecvBuffer;
+	size_t                                    SendSize;
+	size_t                                    RecvSize;
+	size_t                                    TotalSleepTime;
+	size_t                                    OnceTimes;
+	size_t                                    RetestTimes;
+	uint64_t                                  FileModifiedTime;
+
+//Redefine operator functions
+//	EventTable_ICMP() = default;
+	EventTable_ICMP(const EventTable_ICMP &) = delete;
+	EventTable_ICMP & operator=(const EventTable_ICMP &) = delete;
+
+//Member functions
+	EventTable_ICMP(
+		void);
+	~EventTable_ICMP(
+		void);
+}EVENT_TABLE_ICMP;
+
 //Capture device class
 typedef class CaptureDeviceTable
 {
@@ -1000,10 +1057,8 @@ public:
 
 //Redefine operator functions
 //	DNSCurveSocketSelectingTable() = default;
-/* std::move is used to indicate that an object t may be "moved from", i.e. allowing the efficient transfer of resources from t to another object.
-	DNSCurveSocketSelectingTable(const DNSCurveSocketSelectingTable &) = delete;
-	DNSCurveSocketSelectingTable & operator=(const DNSCurveSocketSelectingTable &) = delete;
-*/
+//	DNSCurveSocketSelectingTable(const DNSCurveSocketSelectingTable &) = delete;
+//	DNSCurveSocketSelectingTable & operator=(const DNSCurveSocketSelectingTable &) = delete;
 
 //Member functions
 	DNSCurveSocketSelectingTable(

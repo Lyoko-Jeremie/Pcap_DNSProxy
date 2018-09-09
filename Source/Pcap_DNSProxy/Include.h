@@ -82,6 +82,12 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 	uint8_t *TargetBuffer, 
 	size_t Length, 
 	size_t *Produced);
+void GenerateRandomBuffer(
+	void * const BufferPointer, 
+	const size_t BufferSize, 
+	const void *Distribution, 
+	const uint64_t Lower, 
+	const uint64_t Upper);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 
@@ -200,16 +206,16 @@ bool TCP_AcceptProcess(
 	size_t RecvSize);
 
 //Network.h
-#if defined(PLATFORM_WIN)
-bool FirewallTest(
-	const uint16_t Protocol, 
-	ssize_t &ErrorCode);
-#endif
 bool SocketSetting(
 	SYSTEM_SOCKET &Socket, 
 	const SOCKET_SETTING_TYPE SettingType, 
 	const bool IsPrintError, 
 	void * const DataPointer);
+#if defined(PLATFORM_WIN)
+bool FirewallTest(
+	const uint16_t Protocol, 
+	ssize_t &ErrorCode);
+#endif
 uint16_t SelectProtocol_Network(
 	const REQUEST_MODE_NETWORK GlobalSpecific, 
 	const uint16_t TargetSpecific_IPv6, 
@@ -294,7 +300,7 @@ size_t MarkWholePacketQuery(
 	const uint8_t * const TName, 
 	const size_t TNameIndex, 
 	std::string &FName);
-void MakeRandomDomain(
+void GenerateRandomDomain(
 	uint8_t * const Buffer);
 void MakeDomainCaseConversion(
 	uint8_t * const Buffer);
@@ -367,7 +373,7 @@ bool EnterRequestProcess(
 	size_t RecvSize);
 size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
-	const HostsTable &HostsTableIter, 
+	const HostsTable &HostsTableItem, 
 	dns_hdr * const DNS_Header, 
 	const uint16_t QueryType);
 size_t CheckHostsProcess(

@@ -351,6 +351,7 @@
 
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <algorithm>               //Collection of functions especially designed to be used on ranges of elements algorithm support
+#include <array>                   //Container that encapsulates fixed size arrays support
 #include <atomic>                  //Atomic type support
 #include <condition_variable>      //Condition variable support
 #include <deque>                   //Double-ended queue support
@@ -591,7 +592,7 @@
 #endif
 
 //TCP Fast Open additional support
-//Using when no native support in system.
+//Active when no native support in system.
 #if defined(PLATFORM_LINUX)
 #ifndef _KERNEL_FASTOPEN
 	#define _KERNEL_FASTOPEN

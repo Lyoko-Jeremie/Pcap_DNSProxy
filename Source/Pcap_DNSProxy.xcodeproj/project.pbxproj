@@ -289,6 +289,9 @@
 		D9C8DD28205E4F6700C3D259 /* Include.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Include.h; sourceTree = "<group>"; };
 		D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurveControl.cpp; sourceTree = "<group>"; };
 		D9C8DD2B205E4F7200C3D259 /* Type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Type.h; sourceTree = "<group>"; };
+		D9D89CC42145593D00373BE8 /* sslconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sslconf.h; path = Dependency/OpenSSL/internal/sslconf.h; sourceTree = "<group>"; };
+		D9D89CC52145593D00373BE8 /* __DECC_INCLUDE_EPILOGUE.H */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = __DECC_INCLUDE_EPILOGUE.H; path = Dependency/OpenSSL/internal/__DECC_INCLUDE_EPILOGUE.H; sourceTree = "<group>"; };
+		D9D89CC62145593D00373BE8 /* __DECC_INCLUDE_PROLOGUE.H */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = __DECC_INCLUDE_PROLOGUE.H; path = Dependency/OpenSSL/internal/__DECC_INCLUDE_PROLOGUE.H; sourceTree = "<group>"; };
 		D9EF117C1DDB53C7004E4B90 /* LibSodium_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_macOS.a; path = Dependency/LibSodium/LibSodium_macOS.a; sourceTree = "<group>"; };
 		D9EF117E1DDB53D7004E4B90 /* LibCrypto_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibCrypto_macOS.a; path = Dependency/OpenSSL/LibCrypto_macOS.a; sourceTree = "<group>"; };
 		D9EF117F1DDB53D7004E4B90 /* LibSSL_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSSL_macOS.a; path = Dependency/OpenSSL/LibSSL_macOS.a; sourceTree = "<group>"; };
@@ -662,7 +665,10 @@
 				D99203331F1B49A500B0698E /* numbers.h */,
 				D99203341F1B49A500B0698E /* o_dir.h */,
 				D99203351F1B49A500B0698E /* o_str.h */,
+				D9D89CC42145593D00373BE8 /* sslconf.h */,
 				D99203361F1B49A500B0698E /* thread_once.h */,
+				D9D89CC52145593D00373BE8 /* __DECC_INCLUDE_EPILOGUE.H */,
+				D9D89CC62145593D00373BE8 /* __DECC_INCLUDE_PROLOGUE.H */,
 			);
 			name = internal;
 			sourceTree = "<group>";

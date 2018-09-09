@@ -31,7 +31,7 @@ echo -e "\n" >> Routing.txt
 # IPv4
 echo "## IPv4" >> Routing.txt
 cat delegated-apnic-latest | grep ipv4 | grep CN | awk -F\| '{printf("%s/%d\n", $4, 32-log($5)/log(2))}' >> Routing.txt
-echo "\n" >> Routing.txt
+echo -e "\n" >> Routing.txt
 
 # IPv6
 echo "## IPv6" >> Routing.txt

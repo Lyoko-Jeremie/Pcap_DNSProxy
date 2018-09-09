@@ -24,52 +24,53 @@ uint32_t GetFCS(
 	const uint8_t *Buffer, 
 	const size_t Length)
 {
-	uint32_t Table[FCS_TABLE_SIZE]{0}, Gx = 0x04C11DB7, Temp = 0, CRC_Table = 0, Value = 0, UI = 0;
-	uint8_t ReflectNum[]{8, 32};
-	int Index[]{0, 0, 0};
-	for (Index[0] = 0;Index[0] <= UINT8_MAX;++Index[0])
+	std::array<uint32_t, FCS_TABLE_SIZE> Table_FCS{};
+	std::array<uint8_t, 2U> ReflectNum{8U, 32U};
+	std::array<int, 3U> Index{};
+	uint32_t Gx = 0x04C11DB7, Temp = 0, Table_CRC = 0, Value = 0, UI = 0;
+	for (Index.at(0) = 0;Index.at(0) <= UINT8_MAX;++Index.at(0))
 	{
 		Value = 0;
-		UI = Index[0];
+		UI = Index.at(0);
 
-		for (Index[1U] = 1;Index[1U] < 9;++Index[1U])
+		for (Index.at(1U) = 1;Index.at(1U) < 9;++Index.at(1U))
 		{
 			if (UI & 1)
-				Value |= 1 << (ReflectNum[0] - Index[1U]);
+				Value |= 1 << (ReflectNum.at(0) - Index.at(1U));
 			UI >>= 1;
 		}
 
 		Temp = Value;
-		Table[Index[0]] = Temp << 24U;
+		Table_FCS.at(Index.at(0)) = Temp << 24U;
 
-		for (Index[2U] = 0;Index[2U] < 8;++Index[2U])
+		for (Index.at(2U) = 0;Index.at(2U) < 8;++Index.at(2U))
 		{
-			unsigned long int t1 = 0, t2 = 0, Flag = Table[Index[0]] & 0x80000000;
-			t1 = (Table[Index[0]] << 1);
+			unsigned long int t1 = 0, t2 = 0, Flag = Table_FCS.at(Index.at(0)) & 0x80000000;
+			t1 = (Table_FCS.at(Index.at(0)) << 1);
 			if (Flag == 0)
 				t2 = 0;
 			else 
 				t2 = Gx;
-			Table[Index[0]] = t1 ^ t2;
+			Table_FCS.at(Index.at(0)) = t1 ^ t2;
 		}
 
-		CRC_Table = Table[Index[0]];
-		UI = Table[Index[0]];
+		Table_CRC = Table_FCS.at(Index.at(0));
+		UI = Table_FCS.at(Index.at(0));
 		Value = 0;
 
-		for (Index[1U] = 1;Index[1U] < 33;++Index[1U])
+		for (Index.at(1U) = 1;Index.at(1U) < 33;++Index.at(1U))
 		{
 			if (UI & 1)
-				Value |= 1 << (ReflectNum[1U] - Index[1U]);
+				Value |= 1 << (ReflectNum.at(1U) - Index.at(1U));
 			UI >>= 1;
 		}
 
-		Table[Index[0]] = Value;
+		Table_FCS.at(Index.at(0)) = Value;
 	}
 
 	uint32_t CRC = UINT32_MAX;
-	for (Index[0] = 0;Index[0] < static_cast<int>(Length);+Index[0])
-		CRC = Table[(CRC ^ (*(Buffer + Index[0]))) & UINT8_MAX] ^ (CRC >> (sizeof(uint8_t) * BYTES_TO_BITS));
+	for (Index.at(0) = 0;Index.at(0) < static_cast<int>(Length);+Index.at(0))
+		CRC = Table_FCS.at((CRC ^ (*(Buffer + Index.at(0)))) & UINT8_MAX) ^ (CRC >> (sizeof(uint8_t) * BYTES_TO_BITS));
 
 	return ~CRC;
 }
@@ -146,7 +147,7 @@ uint16_t GetChecksum_TCP_UDP(
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv4_hdr *>(Buffer)->Source;
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Length = htons(static_cast<uint16_t>(Length));
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Protocol = static_cast<uint8_t>(Protocol_Transport);
-		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL * IPV4_IHL_BYTES_SET, Length);
+		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + static_cast<size_t>(reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL) * IPV4_IHL_BYTES_SET, Length);
 
 		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv4_psd_hdr) + Length);
 	}
@@ -176,29 +177,30 @@ size_t StringToPacketQuery(
 	uint8_t * const TName)
 {
 //Initialization
-	int Index[]{static_cast<int>(strnlen_s(reinterpret_cast<const char *>(FName), DOMAIN_MAXSIZE)), 0, 0};
-	if (Index[0] > 0)
-		--Index[0];
+	std::array<int, 3U> Index{};
+	Index.at(0) = static_cast<int>(strnlen_s(reinterpret_cast<const char *>(FName), DOMAIN_MAXSIZE));
+	if (Index.at(0) > 0)
+		--Index.at(0);
 	else 
 		return 0;
-	Index[2U] = Index[0] + 1;
-	*(TName + Index[0] + 2) = 0;
+	Index.at(2U) = Index.at(0) + 1;
+	*(TName + Index.at(0) + 2) = 0;
 
 //Convert domain.
-	for (;Index[0] >= 0;--Index[0], --Index[2U])
+	for (;Index.at(0) >= 0;--Index.at(0), --Index.at(2U))
 	{
-		if (FName[Index[0]] == ASCII_PERIOD)
+		if (FName[Index.at(0)] == ASCII_PERIOD)
 		{
-			*(TName + Index[2U]) = static_cast<uint8_t>(Index[1U]);
-			Index[1U] = 0;
+			*(TName + Index.at(2U)) = static_cast<uint8_t>(Index.at(1U));
+			Index.at(1U) = 0;
 		}
 		else {
-			*(TName + Index[2U]) = FName[Index[0]];
-			++Index[1U];
+			*(TName + Index.at(2U)) = FName[Index.at(0)];
+			++Index.at(1U);
 		}
 	}
 
-	*(TName + Index[2U]) = static_cast<uint8_t>(Index[1U]);
+	*(TName + Index.at(2U)) = static_cast<uint8_t>(Index.at(1U));
 	return strnlen_s(reinterpret_cast<const char *>(TName), DOMAIN_MAXSIZE - 1U) + NULL_TERMINATE_LENGTH;
 }
 
@@ -208,9 +210,9 @@ size_t PacketQueryToString(
 	std::string &FName)
 {
 //Initialization
+	std::array<uint8_t, 2U> StringIter{};
+	std::array<int, 2U> MarkIndex{};
 	size_t LocateIndex = 0;
-	uint8_t StringIter[]{0, 0};
-	int MarkIndex[]{0, 0};
 	FName.clear();
 
 //Convert domain.
@@ -223,20 +225,20 @@ size_t PacketQueryToString(
 		}
 		else if (LocateIndex == 0)
 		{
-			MarkIndex[0] = TName[LocateIndex];
+			MarkIndex.at(0) = TName[LocateIndex];
 		}
-		else if (LocateIndex == MarkIndex[0] + MarkIndex[1U] + 1U)
+		else if (LocateIndex == static_cast<size_t>(MarkIndex.at(0)) + static_cast<size_t>(MarkIndex.at(1U)) + 1U)
 		{
-			MarkIndex[0] = TName[LocateIndex];
-			if (MarkIndex[0] == 0)
+			MarkIndex.at(0) = TName[LocateIndex];
+			if (MarkIndex.at(0) == 0)
 				break;
 
-			MarkIndex[1U] = static_cast<int>(LocateIndex);
+			MarkIndex.at(1U) = static_cast<int>(LocateIndex);
 			FName.append(".");
 		}
 		else {
-			StringIter[0] = TName[LocateIndex];
-			FName.append(reinterpret_cast<const char *>(StringIter));
+			StringIter.at(0) = TName[LocateIndex];
+			FName.append(reinterpret_cast<const char *>(StringIter.data()));
 		}
 	}
 
@@ -256,9 +258,9 @@ size_t MarkWholePacketQuery(
 		return 0;
 
 //Initialization
+	std::array<uint8_t, 2U> StringIter{};
+	std::array<int, 2U> MarkIndex{};
 	size_t LocateIndex = 0;
-	uint8_t StringIter[]{0, 0};
-	int Index[]{0, 0};
 
 //Convert domain.
 	for (LocateIndex = 0;LocateIndex < Length - TNameIndex;++LocateIndex)
@@ -280,90 +282,63 @@ size_t MarkWholePacketQuery(
 		}
 		else if (LocateIndex == 0)
 		{
-			Index[0] = TName[LocateIndex];
+			MarkIndex.at(0) = TName[LocateIndex];
 		}
-		else if (LocateIndex == Index[0] + Index[1U] + 1U)
+		else if (LocateIndex == static_cast<size_t>(MarkIndex.at(0)) + static_cast<size_t>(MarkIndex.at(1U)) + 1U)
 		{
-			Index[0] = TName[LocateIndex];
-			if (Index[0] == 0)
+			MarkIndex.at(0) = TName[LocateIndex];
+			if (MarkIndex.at(0) == 0)
 				break;
 			else 
-				Index[1U] = static_cast<int>(LocateIndex);
+				MarkIndex.at(1U) = static_cast<int>(LocateIndex);
 
 			FName.append(".");
 		}
 		else {
-			StringIter[0] = TName[LocateIndex];
-			FName.append(reinterpret_cast<const char *>(StringIter));
+			StringIter.at(0) = TName[LocateIndex];
+			FName.append(reinterpret_cast<const char *>(StringIter.data()));
 		}
 	}
 
 	return LocateIndex;
 }
 
-//Make random domains
-void MakeRandomDomain(
+//Generate random domains
+void GenerateRandomDomain(
 	uint8_t * const Buffer)
 {
-//Random number distribution initialization and make random domain length.
-	std::uniform_int_distribution<size_t> RandomDistribution(DOMAIN_RANDOM_MINSIZE, DOMAIN_SINGLE_DATA_MAXSIZE);
-	auto RandomLength = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+//Generate random domain length.
+	std::uniform_int_distribution<uint16_t> RandomDistributionMinus(0, static_cast<uint16_t>(strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_SINGLE_DATA_MAXSIZE) - 2U));
+	std::uniform_int_distribution<uint16_t> RandomDistributionPeriod(10U, static_cast<uint16_t>(strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_SINGLE_DATA_MAXSIZE) - 3U));
+	size_t RandomLength = 0, Index = 0;
+	GenerateRandomBuffer(&RandomLength, sizeof(RandomLength), nullptr, DOMAIN_RANDOM_MINSIZE, DOMAIN_SINGLE_DATA_MAXSIZE);
 	if (RandomLength < DOMAIN_RANDOM_MINSIZE)
 		RandomLength = DOMAIN_RANDOM_MINSIZE;
-	size_t Index = 0;
 
-//Make random domain.
-	if (RandomLength % 2U == 0)
+//Generate random domain.
+	for (Index = 0;Index < RandomLength;++Index)
 	{
-		for (Index = 0;Index < RandomLength - 3U;++Index)
-		{
-			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RandomDistribution(*GlobalRunningStatus.RandomEngine));
-			*(Buffer + Index) = static_cast<uint8_t>(tolower(*(Buffer + Index)));
-		}
+	//Generate not including "-".
+		if (Index + DOMAIN_RANDOM_MINSIZE < RandomLength)
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionMinus, 0, 0);
+	//Generate not including number, "-", and ".".
+		else 
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionPeriod, 0, 0);
 
-	//Make random domain like a normal Top-Level Domain/TLD.
-		*(Buffer + (RandomLength - 3U)) = ASCII_PERIOD;
-		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		if (Index < ASCII_FF)
-			Index += 52U;
-		else if (Index < ASCII_AMPERSAND)
-			Index += 26U;
-		*(Buffer + (RandomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		if (Index < ASCII_FF)
-			Index += 52U;
-		else if (Index < ASCII_AMPERSAND)
-			Index += 26U;
-		*(Buffer + (RandomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
+	//Point location of domain table.
+		Buffer[Index] = GlobalRunningStatus.DomainTable[Buffer[Index]];
 	}
-	else {
-		for (Index = 0;Index < RandomLength - 4U;++Index)
-		{
-			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RandomDistribution(*GlobalRunningStatus.RandomEngine));
-			*(Buffer + Index) = static_cast<uint8_t>(tolower(*(Buffer + Index)));
-		}
 
-	//Make random domain like a normal Top-level domain/TLD.
-		*(Buffer + (RandomLength - 4U)) = ASCII_PERIOD;
-		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		if (Index < ASCII_FF)
-			Index += 52U;
-		else if (Index < ASCII_AMPERSAND)
-			Index += 26U;
-		*(Buffer + (RandomLength - 3U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		if (Index < ASCII_FF)
-			Index += 52U;
-		else if (Index < ASCII_AMPERSAND)
-			Index += 26U;
-		*(Buffer + (RandomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		if (Index < ASCII_FF)
-			Index += 52U;
-		else if (Index < ASCII_AMPERSAND)
-			Index += 26U;
-		*(Buffer + (RandomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
+//Fix domain to follow preferred name syntax.
+	for (Index = 0;Index < RandomLength - DOMAIN_RANDOM_MINSIZE;++Index)
+	{
+		if (Index + 1U + DOMAIN_RANDOM_MINSIZE < RandomLength && Buffer[Index] == ASCII_PERIOD && Buffer[Index + 1U] == ASCII_PERIOD)
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionPeriod, 0, 0);
 	}
+
+//Generate like a normal Top-Level Domain/TLD.
+	GenerateRandomBuffer(&Index, sizeof(Index), nullptr, 1U, 4U);
+	Buffer[RandomLength - DOMAIN_RANDOM_MINSIZE + Index] = ASCII_PERIOD;
 
 	return;
 }
@@ -376,36 +351,51 @@ void MakeDomainCaseConversion(
 	auto DataLength = strnlen_s(reinterpret_cast<const char *>(Buffer), DOMAIN_MAXSIZE);
 	if (DataLength <= DOMAIN_MINSIZE)
 		return;
-	std::vector<size_t> RandomIndex;
+
+//Exclude if no any lower characters in domain name.
+	auto IsNeedConvert = false;
 	for (size_t Index = 0;Index < DataLength;++Index)
 	{
-		if (*(Buffer + Index) >= ASCII_LOWERCASE_A && *(Buffer + Index) <= ASCII_LOWERCASE_Z)
-			RandomIndex.push_back(Index);
+		if (Buffer[Index] >= ASCII_LOWERCASE_A && Buffer[Index] <= ASCII_LOWERCASE_Z)
+		{
+			IsNeedConvert = true;
+			break;
+		}
 	}
 
-//Random number distribution initialization
-	if (RandomIndex.empty())
+//Stop convert process.
+	if (!IsNeedConvert)
 		return;
-	std::uniform_int_distribution<size_t> RandomDistribution(0, RandomIndex.size() - 1U);
-	auto RandomCounts = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-	if (RandomCounts == 0)
-		++RandomCounts;
 
-//Make Domain Case Conversion.
-	for (size_t Index = 0;Index < RandomCounts;++Index)
+//Convert domain case.
+	size_t RandomValue = 0;
+	for (size_t Index = 0;Index < DataLength;++Index)
 	{
-		size_t BufferIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
-		*(Buffer + RandomIndex.at(BufferIndex)) = static_cast<uint8_t>(toupper(*(Buffer + RandomIndex.at(BufferIndex))));
+		GenerateRandomBuffer(&RandomValue, sizeof(RandomValue), nullptr, 0, 0);
+		if (RandomValue % 2U == 0 && Buffer[Index] >= ASCII_LOWERCASE_A && Buffer[Index] <= ASCII_LOWERCASE_Z)
+			Buffer[Index] = static_cast<uint8_t>(toupper(Buffer[Index]));
 	}
 
-//Make sure that domain must have more than one char which in the last or the second last to convert.
-	if (*(Buffer + (DataLength - 1U)) >= ASCII_LOWERCASE_A && *(Buffer + (DataLength - 1U)) <= ASCII_LOWERCASE_Z && 
-		*(Buffer + (DataLength - 2U)) >= ASCII_LOWERCASE_A && *(Buffer + (DataLength - 2U)) <= ASCII_LOWERCASE_Z)
+//Make sure domain name must have more than one upper character.
+	for (size_t Index = 0;Index < DataLength;++Index)
 	{
-		if (RandomCounts % 2U == 0)
-			*(Buffer + (DataLength - 1U)) = static_cast<uint8_t>(toupper(*(Buffer + (DataLength - 1U))));
-		else 
-			*(Buffer + (DataLength - 2U)) = static_cast<uint8_t>(toupper(*(Buffer + (DataLength - 2U))));
+	//Stop if any upper characters.
+		if (Buffer[Index] >= ASCII_UPPERCASE_A && Buffer[Index] <= ASCII_UPPERCASE_Z)
+		{
+			break;
+		}
+	//Convert the first lower character to upper character.
+		else if (Index + 1U == DataLength)
+		{
+			for (size_t InnerIndex = 0;InnerIndex < DataLength;++InnerIndex)
+			{
+				if (Buffer[InnerIndex] >= ASCII_LOWERCASE_A && Buffer[InnerIndex] <= ASCII_LOWERCASE_Z)
+				{
+					Buffer[InnerIndex] = static_cast<uint8_t>(toupper(Buffer[InnerIndex]));
+					break;
+				}
+			}
+		}
 	}
 
 	return;
@@ -656,7 +646,7 @@ bool Add_EDNS_LabelToPacket(
 		EDNS_LabelPrediction += sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr);
 	}
 
-/* Under construction(2018-04-27)
+/* Under construction(2018-08-11)
 	auto IsEDNS_Cookies = false;
 	if (!IsAlreadyCookies) //DNS Cookies
 	{
@@ -708,23 +698,14 @@ bool Add_EDNS_LabelToPacket(
 		EDNS_Header->Z_Field = htons(ntohs(EDNS_Header->Z_Field) | EDNS_FLAG_GET_BIT_DO); //Set Accepts DNSSEC security resource records bit.
 	}
 
-/* Under construction(2018-02-27)
+/* Under construction(2018-08-11)
 //DNS Cookies
 	if (IsEDNS_Cookies)
 	{
-	//Random number distribution initialization
-	#if !defined(ENABLE_LIBSODIUM)
-		std::uniform_int_distribution<uint64_t> RandomDistribution(0, UINT64_MAX);
-	#endif
-
 	//Make Cookies header.
 		const auto EDNS_CookiesHeader = reinterpret_cast<edns_cookies *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length);
 		EDNS_CookiesHeader->Code = htons(EDNS_CODE_COOKIES);
-	#if defined(ENABLE_LIBSODIUM)
-		randombytes_buf(&EDNS_CookiesHeader->ClientCookie, sizeof(EDNS_CookiesHeader->ClientCookie));
-	#else
-		EDNS_CookiesHeader->ClientCookie = hton64(RandomDistribution(*GlobalRunningStatus.RandomEngine));
-	#endif
+		GenerateRandomBuffer(&EDNS_CookiesHeader->ClientCookie, sizeof(EDNS_CookiesHeader->ClientCookie), nullptr, 0, 0);
 
 	//Update DNS Cookies information.
 		EDNS_CookiesHeader->Length = htons(static_cast<uint16_t>(ntohs(EDNS_CookiesHeader->Length) + sizeof(EDNS_CookiesHeader->ClientCookie)));
@@ -862,9 +843,9 @@ size_t MakeCompressionPointerMutation(
 	const size_t Length, 
 	const size_t BufferSize)
 {
-//Random number distribution initialization
-	std::uniform_int_distribution<uint64_t> RandomDistribution(0, 2U);
-	auto Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+//Initialization
+	size_t Index = 0;
+	GenerateRandomBuffer(&Index, sizeof(Index), nullptr, 0, 2U);
 
 //Check Compression Pointer Mutation options.
 	switch (Index)
@@ -955,9 +936,6 @@ size_t MakeCompressionPointerMutation(
 		}
 	//Pointer to Additional, like "<DNS Header><Pointer><Query><Additional>" and point domain to <Additional>.
 		else {
-		//Random number distribution initialization
-			std::uniform_int_distribution<uint32_t> RandomDistribution_Additional(0, UINT32_MAX);
-
 		//Make records.
 			reinterpret_cast<dns_hdr *>(Buffer)->Additional = htons(UINT16_NUM_ONE);
 			if (ntohs(DNS_Query.Type) == DNS_TYPE_AAAA)
@@ -965,10 +943,9 @@ size_t MakeCompressionPointerMutation(
 				const auto DNS_Record_AAAA = reinterpret_cast<dns_record_aaaa *>(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_TYPE_AAAA);
 				DNS_Record_AAAA->Classes = htons(DNS_CLASS_INTERNET);
-				DNS_Record_AAAA->TTL = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				GenerateRandomBuffer(&DNS_Record_AAAA->TTL, sizeof(DNS_Record_AAAA->TTL), nullptr, 0, 0);
 				DNS_Record_AAAA->Length = htons(sizeof(DNS_Record_AAAA->Address));
-				for (Index = 0;Index < sizeof(in6_addr) / sizeof(uint8_t);++Index)
-					DNS_Record_AAAA->Address.s6_addr[Index] = static_cast<uint8_t>(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				GenerateRandomBuffer(&DNS_Record_AAAA->Address, sizeof(DNS_Record_AAAA->Address), nullptr, 0, 0);
 
 				return Length + sizeof(dns_record_aaaa);
 			}
@@ -977,9 +954,9 @@ size_t MakeCompressionPointerMutation(
 				const auto DNS_Record_A = reinterpret_cast<dns_record_a *>(Buffer + Length);
 				DNS_Record_A->Type = htons(DNS_TYPE_A);
 				DNS_Record_A->Classes = htons(DNS_CLASS_INTERNET);
-				DNS_Record_A->TTL = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				GenerateRandomBuffer(&DNS_Record_A->TTL, sizeof(DNS_Record_A->TTL), nullptr, 0, 0);
 				DNS_Record_A->Length = htons(sizeof(DNS_Record_A->Address));
-				DNS_Record_A->Address.s_addr = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				GenerateRandomBuffer(&DNS_Record_A->Address, sizeof(DNS_Record_A->Address), nullptr, 0, 0);
 
 				return Length + sizeof(dns_record_a);
 			}
@@ -1123,7 +1100,7 @@ bool MarkDomainCache(
 	CaseConvert(DNSCacheDataTemp.Domain, false);
 	memcpy_s(DNSCacheDataTemp.Response.get(), Length - sizeof(uint16_t), Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 	DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
-	DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
+	DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + static_cast<uint64_t>(ResponseTTL) * SECOND_TO_MILLISECOND;
 
 //Single address single cache
 	if (LocalSocketData != nullptr) //Some network test thread do not need to mark request address, put them in default queue.
@@ -1191,11 +1168,11 @@ size_t CheckDomainCache(
 	AutoRemoveExpired_DNS_Cache();
 	if (DNSCacheIndexList.find(Domain) != DNSCacheIndexList.end())
 	{
-		const auto MapRange = DNSCacheIndexList.equal_range(Domain);
-		for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+		const auto CacheMapRange = DNSCacheIndexList.equal_range(Domain);
+		for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 		{
 		//Single address single cache(Part 2, IPv6)
-			if (MapIter->second->ForAddress.Storage.ss_family == AF_INET6)
+			if (CacheMapItem->second->ForAddress.Storage.ss_family == AF_INET6)
 			{
 			//Check if the request protocol is not matched.
 				if (LocalSocketData.SockAddr.ss_family != AF_INET6)
@@ -1203,21 +1180,21 @@ size_t CheckDomainCache(
 
 			//Check address prefix.
 				if (Parameter.DNS_CacheSinglePrefix_IPv6 > 0 && 
-					((Parameter.DNS_CacheSinglePrefix_IPv6 < sizeof(in6_addr) * BYTES_TO_BITS / 2U && memcmp(&AddrPart, &MapIter->second->ForAddress.IPv6.sin6_addr, sizeof(AddrPart)) != 0) || 
+					((Parameter.DNS_CacheSinglePrefix_IPv6 < sizeof(in6_addr) * BYTES_TO_BITS / 2U && memcmp(&AddrPart, &CacheMapItem->second->ForAddress.IPv6.sin6_addr, sizeof(AddrPart)) != 0) || 
 					(Parameter.DNS_CacheSinglePrefix_IPv6 >= sizeof(in6_addr) * BYTES_TO_BITS / 2U && 
-					(memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &MapIter->second->ForAddress.IPv6.sin6_addr, sizeof(uint64_t)) != 0 || 
-					memcmp(&AddrPart, reinterpret_cast<const uint8_t *>(&MapIter->second->ForAddress.IPv6.sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddrPart)) != 0))))
+					(memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &CacheMapItem->second->ForAddress.IPv6.sin6_addr, sizeof(uint64_t)) != 0 || 
+					memcmp(&AddrPart, reinterpret_cast<const uint8_t *>(&CacheMapItem->second->ForAddress.IPv6.sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddrPart)) != 0))))
 						continue;
 			}
 		//Single address single cache(Part 2, IPv4)
-			else if (MapIter->second->ForAddress.Storage.ss_family == AF_INET)
+			else if (CacheMapItem->second->ForAddress.Storage.ss_family == AF_INET)
 			{
 			//Check if the request protocol is not matched.
 				if (LocalSocketData.SockAddr.ss_family != AF_INET)
 					continue;
 
 			//Check address prefix.
-				if (Parameter.DNS_CacheSinglePrefix_IPv4 > 0 && static_cast<uint32_t>(AddrPart) != MapIter->second->ForAddress.IPv4.sin_addr.s_addr)
+				if (Parameter.DNS_CacheSinglePrefix_IPv4 > 0 && static_cast<uint32_t>(AddrPart) != CacheMapItem->second->ForAddress.IPv4.sin_addr.s_addr)
 					continue;
 			}
 		//Single address single cache(Part 2, default queue or single address single cache has been shutdown are always pass)
@@ -1226,12 +1203,12 @@ size_t CheckDomainCache(
 //			}
 
 		//Scan cache data.
-			if (MapIter->second->RecordType == QueryType)
+			if (CacheMapItem->second->RecordType == QueryType)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), MapIter->second->Response.get(), MapIter->second->Length);
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), CacheMapItem->second->Response.get(), CacheMapItem->second->Length);
 
-				return MapIter->second->Length + sizeof(uint16_t);
+				return CacheMapItem->second->Length + sizeof(uint16_t);
 			}
 		}
 	}
@@ -1247,29 +1224,29 @@ void AutoRemoveExpired_DNS_Cache(
 	if (Parameter.DNS_CacheType == DNS_CACHE_TYPE::TIMER)
 	{
 	//Expired check
-		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
+		for (auto DNS_CacheDataItem = DNSCacheList.begin();DNS_CacheDataItem != DNSCacheList.end();)
 		{
-			if (DNSCacheDataIter->ClearCacheTime <= GetCurrentSystemTime())
+			if (DNS_CacheDataItem->ClearCacheTime <= GetCurrentSystemTime())
 			{
 			//Remove from DNS cache index list.
-				if (DNSCacheIndexList.find(DNSCacheDataIter->Domain) != DNSCacheIndexList.end())
+				if (DNSCacheIndexList.find(DNS_CacheDataItem->Domain) != DNSCacheIndexList.end())
 				{
-					const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheDataIter->Domain);
-					for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+					const auto CacheMapRange = DNSCacheIndexList.equal_range(DNS_CacheDataItem->Domain);
+					for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 					{
-						if (MapIter->second == DNSCacheDataIter)
+						if (CacheMapItem->second == DNS_CacheDataItem)
 						{
-							DNSCacheIndexList.erase(MapIter);
+							DNSCacheIndexList.erase(CacheMapItem);
 							break;
 						}
 					}
 				}
 
 			//Remove from DNS cache data list.
-				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
+				DNS_CacheDataItem = DNSCacheList.erase(DNS_CacheDataItem);
 			}
 			else {
-				++DNSCacheDataIter;
+				++DNS_CacheDataItem;
 			}
 		}
 	}
@@ -1282,14 +1259,14 @@ void AutoRemoveExpired_DNS_Cache(
 		//Remove from DNS cache index list.
 			if (DNSCacheIndexList.find(DNSCacheList.back().Domain) != DNSCacheIndexList.end())
 			{
-				auto DNSCacheListIter = DNSCacheList.end();
-				--DNSCacheListIter;
-				const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
-				for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+				auto DNS_CacheListItem = DNSCacheList.end();
+				--DNS_CacheListItem;
+				const auto CacheMapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
+				for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 				{
-					if (MapIter->second == DNSCacheListIter)
+					if (CacheMapItem->second == DNS_CacheListItem)
 					{
-						DNSCacheIndexList.erase(MapIter);
+						DNSCacheIndexList.erase(CacheMapItem);
 						break;
 					}
 				}
@@ -1303,29 +1280,29 @@ void AutoRemoveExpired_DNS_Cache(
 	else if (Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH)
 	{
 	//Expired check
-		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
+		for (auto DNS_CacheDataItem = DNSCacheList.begin();DNS_CacheDataItem != DNSCacheList.end();)
 		{
-			if (DNSCacheDataIter->ClearCacheTime <= GetCurrentSystemTime())
+			if (DNS_CacheDataItem->ClearCacheTime <= GetCurrentSystemTime())
 			{
 			//Remove from DNS cache index list.
-				if (DNSCacheIndexList.find(DNSCacheDataIter->Domain) != DNSCacheIndexList.end())
+				if (DNSCacheIndexList.find(DNS_CacheDataItem->Domain) != DNSCacheIndexList.end())
 				{
-					const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheDataIter->Domain);
-					for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+					const auto CacheMapRange = DNSCacheIndexList.equal_range(DNS_CacheDataItem->Domain);
+					for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 					{
-						if (MapIter->second == DNSCacheDataIter)
+						if (CacheMapItem->second == DNS_CacheDataItem)
 						{
-							DNSCacheIndexList.erase(MapIter);
+							DNSCacheIndexList.erase(CacheMapItem);
 							break;
 						}
 					}
 				}
 
 			//Remove from DNS cache data list.
-				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
+				DNS_CacheDataItem = DNSCacheList.erase(DNS_CacheDataItem);
 			}
 			else {
-				++DNSCacheDataIter;
+				++DNS_CacheDataItem;
 			}
 		}
 
@@ -1335,14 +1312,14 @@ void AutoRemoveExpired_DNS_Cache(
 		//Remove from DNS cache index list.
 			if (DNSCacheIndexList.find(DNSCacheList.back().Domain) != DNSCacheIndexList.end())
 			{
-				auto DNSCacheListIter = DNSCacheList.end();
-				--DNSCacheListIter;
-				const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
-				for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+				auto DNS_CacheListItem = DNSCacheList.end();
+				--DNS_CacheListItem;
+				const auto CacheMapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
+				for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 				{
-					if (MapIter->second == DNSCacheListIter)
+					if (CacheMapItem->second == DNS_CacheListItem)
 					{
-						DNSCacheIndexList.erase(MapIter);
+						DNSCacheIndexList.erase(CacheMapItem);
 						break;
 					}
 				}

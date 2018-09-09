@@ -30,7 +30,8 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
-extern std::mutex LocalAddressLock[], SocketRegisterLock;
+extern std::mutex SocketRegisterLock;
+extern std::array<std::mutex, NETWORK_LAYER_PARTNUM> LocalAddressLock;
 
 //Functions
 bool MonitorSocketBinding(

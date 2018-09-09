@@ -753,9 +753,9 @@ void Flush_DNS_Cache(
 		if (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
 		{
 		//Remove from DNS cache data list.
-			const auto MapRange = DNSCacheIndexList.equal_range(DomainString);
-			for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
-				DNSCacheList.erase(MapIter->second);
+			const auto CacheMapRange = DNSCacheIndexList.equal_range(DomainString);
+			for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+				DNSCacheList.erase(CacheMapItem->second);
 
 		//Remove from DNS cache index list.
 			while (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
@@ -780,7 +780,7 @@ void Flush_DNS_Cache(
 	fwprintf_s(stderr, L"\n");
 #elif defined(PLATFORM_LINUX)
 #if defined(PLATFORM_OPENWRT)
-	system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
+	auto Result = system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
 #else
 	auto Result = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
 	Result = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service

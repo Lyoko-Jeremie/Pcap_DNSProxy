@@ -57,7 +57,7 @@
 #define OSI_L2_VLAN         0x8100   //Virtual Bridged LAN
 #define OSI_L2_PPPD         0x8863   //PPPoE(Discovery Stage)
 #define OSI_L2_PPPS         0x8864   //PPPoE(Session Stage)
-//#define FCS_TABLE_SIZE      256U     //FCS Table size
+#define FCS_TABLE_SIZE      256U     //FCS Table size
 typedef struct _eth_hdr_
 {
 	uint8_t                Destination[6U];

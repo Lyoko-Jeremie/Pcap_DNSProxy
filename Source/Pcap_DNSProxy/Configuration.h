@@ -80,7 +80,7 @@ bool ReadText(
 bool ReadFileAttributesLoop(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
-	FILE_DATA &FileListIter, 
+	FILE_DATA &FileListItem, 
 	bool &IsFileModified);
 void ClearModificatingListData(
 	const READ_TEXT_TYPE ClearType, 

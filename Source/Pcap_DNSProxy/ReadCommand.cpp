@@ -147,6 +147,7 @@ bool ReadCommand(
 	if (WSAStartup(
 			MAKEWORD(WINSOCK_VERSION_HIGH_BYTE, WINSOCK_VERSION_LOW_BYTE), 
 			&WSAInitialization) != 0 || 
+	//Winsock 2.2
 		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW_BYTE || 
 		HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH_BYTE)
 	{
@@ -359,17 +360,17 @@ bool ReadCommand(
 				const auto Buffer = std::make_unique<uint8_t[]>(DNSCRYPT_KEYPAIR_MESSAGE_LEN + MEMORY_RESERVED_BYTES);
 				memset(Buffer.get(), 0, DNSCRYPT_KEYPAIR_MESSAGE_LEN + MEMORY_RESERVED_BYTES);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
-				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
+				std::array<uint8_t, crypto_box_PUBLICKEYBYTES> PublicKey{};
 				size_t InnerIndex = 0;
 
-			//Generate a random keypair and write public key.
+			//Generate a random keypair.
 				if (crypto_box_keypair(
-						PublicKey, 
+						PublicKey.data(), 
 						SecretKey.Buffer) != 0 || 
 					sodium_bin2hex(
 						reinterpret_cast<char *>(Buffer.get()), 
 						DNSCRYPT_KEYPAIR_MESSAGE_LEN, 
-						PublicKey, 
+						PublicKey.data(), 
 						crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
@@ -381,6 +382,8 @@ bool ReadCommand(
 					CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 					fwprintf_s(FileHandle, L"Client Public Key = ");
 				}
+
+			//Write public key.
 				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
@@ -389,10 +392,12 @@ bool ReadCommand(
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
 				}
+
+			//Reset buffer.
 				memset(Buffer.get(), 0, DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				fwprintf_s(FileHandle, L"\n");
 
-			//Write secret key.
+			//Convert secret key.
 				if (sodium_bin2hex(
 						reinterpret_cast<char *>(Buffer.get()), 
 						DNSCRYPT_KEYPAIR_MESSAGE_LEN, 
@@ -408,6 +413,8 @@ bool ReadCommand(
 					CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 					fwprintf_s(FileHandle, L"Client Secret Key = ");
 				}
+
+			//Write secret key.
 				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 

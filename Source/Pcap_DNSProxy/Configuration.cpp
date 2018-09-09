@@ -19,8 +19,8 @@
 
 #include "Configuration.h"
 
-//Global variables
-size_t ParameterHopLimitsIndex[]{0, 0};
+//Local variables
+std::array<size_t, NETWORK_LAYER_PARTNUM> ParameterHopLimitsIndex{};
 
 //Read texts
 bool ReadText(
@@ -42,8 +42,8 @@ bool ReadText(
 //Reset global variables.
 	if (InputType == READ_TEXT_TYPE::PARAMETER_NORMAL || InputType == READ_TEXT_TYPE::PARAMETER_MONITOR)
 	{
-		ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] = 0;
-		ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] = 0;
+		ParameterHopLimitsIndex.at(NETWORK_LAYER_TYPE_IPV6) = 0;
+		ParameterHopLimitsIndex.at(NETWORK_LAYER_TYPE_IPV4) = 0;
 	}
 
 //Read data.
@@ -351,6 +351,7 @@ bool ReadText(
 			}
 		}
 
+	//Clean file buffer.
 		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 
 	//Line length check
@@ -818,13 +819,13 @@ void ReadIPFilter(
 				IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
 			}
 			else {
-				for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
+				for (auto IPFilterFileSetItem = IPFilterFileSetModificating->begin();IPFilterFileSetItem != IPFilterFileSetModificating->end();++IPFilterFileSetItem)
 				{
-					if (IPFilterFileSetIter->FileIndex == FileIndex)
+					if (IPFilterFileSetItem->FileIndex == FileIndex)
 					{
 						break;
 					}
-					else if (IPFilterFileSetIter + 1U == IPFilterFileSetModificating->end())
+					else if (IPFilterFileSetItem + 1U == IPFilterFileSetModificating->end())
 					{
 						IPFilterFileSetTemp.FileIndex = FileIndex;
 						IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
@@ -928,13 +929,13 @@ void ReadHosts(
 				HostsFileSetModificating->push_back(HostsFileSetTemp);
 			}
 			else {
-				for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
+				for (auto HostsFileSetItem = HostsFileSetModificating->begin();HostsFileSetItem != HostsFileSetModificating->end();++HostsFileSetItem)
 				{
-					if (HostsFileSetIter->FileIndex == FileIndex)
+					if (HostsFileSetItem->FileIndex == FileIndex)
 					{
 						break;
 					}
-					else if (HostsFileSetIter + 1U == HostsFileSetModificating->end())
+					else if (HostsFileSetItem + 1U == HostsFileSetModificating->end())
 					{
 						HostsFileSetTemp.FileIndex = FileIndex;
 						HostsFileSetModificating->push_back(HostsFileSetTemp);
@@ -979,7 +980,7 @@ void ReadHosts(
 bool ReadFileAttributesLoop(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
-	FILE_DATA &FileListIter, 
+	FILE_DATA &FileListItem, 
 	bool &IsFileModified)
 {
 //Initialization
@@ -996,11 +997,11 @@ bool ReadFileAttributesLoop(
 //Get attributes of file.
 #if defined(PLATFORM_WIN)
 	if (GetFileAttributesExW(
-			FileListIter.FileName.c_str(), 
+			FileListItem.FileName.c_str(), 
 			GetFileExInfoStandard, 
 			&FileAttributeData) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (stat(FileListIter.FileName_MBS.c_str(), &FileStatData) != 0)
+	if (stat(FileListItem.FileName_MBS.c_str(), &FileStatData) != 0)
 #endif
 	{
 	//Clear list data.
@@ -1010,10 +1011,10 @@ bool ReadFileAttributesLoop(
 			ClearModificatingListData(InputType, FileIndex);
 
 	//Reset patameters.
-		if (FileListIter.ModificationTime > 0)
+		if (FileListItem.ModificationTime > 0)
 		{
 			IsFileModified = true;
-			FileListIter.ModificationTime = 0;
+			FileListItem.ModificationTime = 0;
 		}
 
 		return false;
@@ -1034,23 +1035,23 @@ bool ReadFileAttributesLoop(
 
 	//Print error messages.
 		if (InputType == READ_TEXT_TYPE::PARAMETER_NORMAL || InputType == READ_TEXT_TYPE::PARAMETER_MONITOR)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"Configuration file size is too large", 0, FileListIter.FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"Configuration file size is too large", 0, FileListItem.FileName.c_str(), 0);
 	#if defined(ENABLE_LIBSODIUM)
 		else if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve database file size is too large", 0, FileListIter.FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve database file size is too large", 0, FileListItem.FileName.c_str(), 0);
 	#endif
 		else if (InputType == READ_TEXT_TYPE::HOSTS)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"Hosts file size is too large", 0, FileListIter.FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"Hosts file size is too large", 0, FileListItem.FileName.c_str(), 0);
 		else if (InputType == READ_TEXT_TYPE::IPFILTER)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"IPFilter file size is too large", 0, FileListIter.FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"IPFilter file size is too large", 0, FileListItem.FileName.c_str(), 0);
 		else 
 			return false;
 
 	//Reset parameters.
-		if (FileListIter.ModificationTime > 0)
+		if (FileListItem.ModificationTime > 0)
 		{
 			IsFileModified = true;
-			FileListIter.ModificationTime = 0;
+			FileListItem.ModificationTime = 0;
 		}
 
 		return false;
@@ -1061,9 +1062,9 @@ bool ReadFileAttributesLoop(
 	memset(&FileSizeData, 0, sizeof(FileSizeData));
 	FileSizeData.HighPart = FileAttributeData.ftLastWriteTime.dwHighDateTime;
 	FileSizeData.LowPart = FileAttributeData.ftLastWriteTime.dwLowDateTime;
-	if (FileListIter.ModificationTime > 0 && FileSizeData.QuadPart == FileListIter.ModificationTime)
+	if (FileListItem.ModificationTime > 0 && FileSizeData.QuadPart == FileListItem.ModificationTime)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (FileListIter.ModificationTime > 0 && FileStatData.st_mtime == FileListIter.ModificationTime)
+	if (FileListItem.ModificationTime > 0 && FileStatData.st_mtime == FileListItem.ModificationTime)
 #endif
 	{
 		if (InputType == READ_TEXT_TYPE::PARAMETER_NORMAL)
@@ -1074,9 +1075,9 @@ bool ReadFileAttributesLoop(
 //Mark modification time.
 	else {
 	#if defined(PLATFORM_WIN)
-		FileListIter.ModificationTime = FileSizeData.QuadPart;
+		FileListItem.ModificationTime = FileSizeData.QuadPart;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		FileListIter.ModificationTime = FileStatData.st_mtime;
+		FileListItem.ModificationTime = FileStatData.st_mtime;
 	#endif
 	}
 
@@ -1091,11 +1092,11 @@ void ClearModificatingListData(
 //Clear Hosts file set.
 	if (ClearType == READ_TEXT_TYPE::HOSTS)
 	{
-		for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
+		for (auto HostsFileSetItem = HostsFileSetModificating->begin();HostsFileSetItem != HostsFileSetModificating->end();++HostsFileSetItem)
 		{
-			if (HostsFileSetIter->FileIndex == FileIndex)
+			if (HostsFileSetItem->FileIndex == FileIndex)
 			{
-				HostsFileSetModificating->erase(HostsFileSetIter);
+				HostsFileSetModificating->erase(HostsFileSetItem);
 				break;
 			}
 		}
@@ -1103,11 +1104,11 @@ void ClearModificatingListData(
 //Clear IPFilter file set.
 	else if (ClearType == READ_TEXT_TYPE::IPFILTER)
 	{
-		for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
+		for (auto IPFilterFileSetItem = IPFilterFileSetModificating->begin();IPFilterFileSetItem != IPFilterFileSetModificating->end();++IPFilterFileSetItem)
 		{
-			if (IPFilterFileSetIter->FileIndex == FileIndex)
+			if (IPFilterFileSetItem->FileIndex == FileIndex)
 			{
-				IPFilterFileSetModificating->erase(IPFilterFileSetIter);
+				IPFilterFileSetModificating->erase(IPFilterFileSetItem);
 				break;
 			}
 		}
