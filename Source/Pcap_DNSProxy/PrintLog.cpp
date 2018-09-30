@@ -488,7 +488,7 @@ void ErrorCodeToMessage(
 }
 
 //Print error of reading text
-void ReadTextPrintLog(
+void PrintLog_ReadText(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -527,7 +527,7 @@ void ReadTextPrintLog(
 }
 
 //Print error of HTTP CONNECT
-void HTTP_CONNECT_2_PrintLog(
+void PrintLog_HTTP_CONNECT_2(
 	const uint32_t ErrorCode, 
 	std::wstring &Message)
 {
@@ -600,7 +600,7 @@ void HTTP_CONNECT_2_PrintLog(
 
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve print error of servers
-void DNSCurvePrintLog(
+void PrintLog_DNSCurve(
 	const DNSCURVE_SERVER_TYPE ServerType, 
 	std::wstring &Message)
 {

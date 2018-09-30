@@ -30,10 +30,10 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 
 //Functions
-bool DNSCurve_TCP_SignatureRequest(
+bool DNSCurve_SignatureRequest_TCP(
 	const uint16_t Protocol, 
 	const bool IsAlternate);
-bool DNSCurve_UDP_SignatureRequest(
+bool DNSCurve_SignatureRequest_UDP(
 	const uint16_t Protocol, 
 	const bool IsAlternate);
 #endif

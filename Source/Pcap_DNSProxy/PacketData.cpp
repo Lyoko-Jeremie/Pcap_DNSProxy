@@ -76,8 +76,8 @@ uint32_t GetFCS(
 }
 */
 
-//Get checksum
-uint16_t GetChecksum(
+//Get Internet checksum
+uint16_t GetChecksum_Internet(
 	const uint16_t *Buffer, 
 	const size_t Length)
 {
@@ -114,7 +114,7 @@ uint16_t GetChecksum_ICMPv6(
 	reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->NextHeader = IPPROTO_ICMPV6;
 	memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer, Length);
 
-	return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length);
+	return GetChecksum_Internet(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length);
 }
 
 //Get TCP or UDP checksum
@@ -136,7 +136,7 @@ uint16_t GetChecksum_TCP_UDP(
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->NextHeader = static_cast<uint8_t>(Protocol_Transport);
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length - DataOffset, Buffer + sizeof(ipv6_hdr) + DataOffset, Length - DataOffset);
 
-		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length - DataOffset);
+		return GetChecksum_Internet(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length - DataOffset);
 	}
 //IPv4
 	else if (Protocol_Network == AF_INET)
@@ -149,7 +149,7 @@ uint16_t GetChecksum_TCP_UDP(
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Protocol = static_cast<uint8_t>(Protocol_Transport);
 		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + static_cast<size_t>(reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL) * IPV4_IHL_BYTES_SET, Length);
 
-		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv4_psd_hdr) + Length);
+		return GetChecksum_Internet(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv4_psd_hdr) + Length);
 	}
 
 	return EXIT_FAILURE;
@@ -303,37 +303,52 @@ size_t MarkWholePacketQuery(
 	return LocateIndex;
 }
 
-//Generate random domains
+//Generate random domain
 void GenerateRandomDomain(
 	uint8_t * const Buffer)
 {
 //Generate random domain length.
-	std::uniform_int_distribution<uint16_t> RandomDistributionMinus(0, static_cast<uint16_t>(strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_SINGLE_DATA_MAXSIZE) - 2U));
-	std::uniform_int_distribution<uint16_t> RandomDistributionPeriod(10U, static_cast<uint16_t>(strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_SINGLE_DATA_MAXSIZE) - 3U));
 	size_t RandomLength = 0, Index = 0;
 	GenerateRandomBuffer(&RandomLength, sizeof(RandomLength), nullptr, DOMAIN_RANDOM_MINSIZE, DOMAIN_SINGLE_DATA_MAXSIZE);
 	if (RandomLength < DOMAIN_RANDOM_MINSIZE)
 		RandomLength = DOMAIN_RANDOM_MINSIZE;
 
+//Random distribution initialization
+	uint8_t *DomainTableTarget = nullptr;
+	if (Parameter.DomainCaseConversion)
+	{
+		DomainTableTarget = GlobalRunningStatus.DomainTable_Upper;
+		Index = strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable_Upper), DOMAIN_SINGLE_DATA_MAXSIZE);
+	}
+	else {
+		DomainTableTarget = GlobalRunningStatus.DomainTable_Normal;
+		Index = strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable_Normal), DOMAIN_SINGLE_DATA_MAXSIZE);
+	}
+	std::uniform_int_distribution<uint16_t> RandomDistribution_Normal(0, static_cast<uint16_t>(Index - 2U));
+	std::uniform_int_distribution<uint16_t> RandomDistribution_Top(10U, static_cast<uint16_t>(Index - 3U));
+
 //Generate random domain.
 	for (Index = 0;Index < RandomLength;++Index)
 	{
 	//Generate not including "-".
-		if (Index + DOMAIN_RANDOM_MINSIZE < RandomLength)
-			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionMinus, 0, 0);
+		if (Index > 0 && Index + DOMAIN_RANDOM_MINSIZE < RandomLength)
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistribution_Normal, 0, 0);
 	//Generate not including number, "-", and ".".
 		else 
-			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionPeriod, 0, 0);
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistribution_Top, 0, 0);
 
 	//Point location of domain table.
-		Buffer[Index] = GlobalRunningStatus.DomainTable[Buffer[Index]];
+		Buffer[Index] = DomainTableTarget[Buffer[Index]];
 	}
 
 //Fix domain to follow preferred name syntax.
 	for (Index = 0;Index < RandomLength - DOMAIN_RANDOM_MINSIZE;++Index)
 	{
-		if (Index + 1U + DOMAIN_RANDOM_MINSIZE < RandomLength && Buffer[Index] == ASCII_PERIOD && Buffer[Index + 1U] == ASCII_PERIOD)
-			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistributionPeriod, 0, 0);
+		if (Index + 1U < RandomLength - DOMAIN_RANDOM_MINSIZE && Buffer[Index] == ASCII_PERIOD && Buffer[Index + 1U] == ASCII_PERIOD)
+		{
+			GenerateRandomBuffer(Buffer + Index, sizeof(uint8_t), &RandomDistribution_Top, 0, 0);
+			Buffer[Index] = DomainTableTarget[Buffer[Index]];
+		}
 	}
 
 //Generate like a normal Top-Level Domain/TLD.

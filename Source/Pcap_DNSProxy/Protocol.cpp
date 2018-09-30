@@ -1157,7 +1157,7 @@ bool CheckConnectionStreamFin(
 	}
 #endif
 //TCP DNS response
-	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP_NORMAL || RequestType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER) && 
+	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP_NORMAL) && 
 		Length > sizeof(uint16_t) && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) >= DNS_PACKET_MINSIZE && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) + sizeof(uint16_t) >= Length)
@@ -1395,8 +1395,8 @@ size_t CheckResponseData(
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 	#endif
-		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER) && Parameter.EDNS_Switch_TCP) || //TCP
-		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER) && Parameter.EDNS_Switch_UDP))) //UDP
+		(ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL && Parameter.EDNS_Switch_TCP) || //TCP
+		(ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL && Parameter.EDNS_Switch_UDP))) //UDP
 			IsNeedCheck_EDNS = true;
 	if (Parameter.PacketCheck_DNS && 
 	//Ignore DNSCurve Signature packet.

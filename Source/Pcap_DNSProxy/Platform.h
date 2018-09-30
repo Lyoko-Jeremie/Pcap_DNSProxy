@@ -403,6 +403,7 @@
 	#include <winsock2.h>              //WinSock 2.0+ support
 
 //Part 2 including files(MUST be including after Part 1)
+	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 	#include <mswsock.h>               //Microsoft-specific extensions to the Windows Sockets API.
 	#include <windns.h>                //Windows DNS definitions and DNS API
 	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols

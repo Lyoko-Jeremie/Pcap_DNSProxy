@@ -203,7 +203,7 @@ bool SSPI_Handshake(
 		InputBufferDescPointer = nullptr;
 
 	//Connect to server.
-		auto RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, reinterpret_cast<sockaddr *>(&SocketDataList.front().SockAddr), SocketDataList.front().AddrLen, reinterpret_cast<const uint8_t *>(OutputBufferSec.at(0).pvBuffer), OutputBufferSec.at(0).cbBuffer);
+		auto RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, reinterpret_cast<const sockaddr *>(&SocketDataList.front().SockAddr), SocketDataList.front().AddrLen, reinterpret_cast<const uint8_t *>(OutputBufferSec.at(0).pvBuffer), OutputBufferSec.at(0).cbBuffer);
 		if (RecvLen == EXIT_FAILURE)
 		{
 			if (OutputBufferSec.at(0).pvBuffer != nullptr)
@@ -1218,7 +1218,7 @@ bool TLS_TransportSerial(
 		else {
 			SocketSelectingDataList.front().RecvLen += RecvLen;
 			if (RecvLen < static_cast<ssize_t>(Parameter.LargeBufferSize) && SocketSelectingDataList.front().RecvLen >= PacketMinSize && 
-				((RequestType != REQUEST_PROCESS_TYPE::TCP_NORMAL && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER && //Only TCP DNS response should be check.
+				((RequestType != REQUEST_PROCESS_TYPE::TCP_NORMAL && //Only TCP DNS response should be check.
 				RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_1 && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_2) || //Only HTTP CONNECT response should be check.
 				CheckConnectionStreamFin(RequestType, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen)))
 					return true;

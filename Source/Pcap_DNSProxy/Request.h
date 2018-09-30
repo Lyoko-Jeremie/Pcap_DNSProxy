@@ -26,20 +26,4 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-
-//Functions
-#if defined(ENABLE_PCAP)
-void ICMP_TestReadCallback(
-	evutil_socket_t Socket, 
-	short EventType, 
-	void *Argument);
-void ICMP_TestWriteCallback(
-	evutil_socket_t Socket, 
-	short EventType, 
-	void *Argument);
-void ICMP_TestTimerCallback(
-	evutil_socket_t Socket, 
-	short EventType, 
-	void *Argument);
-#endif
 #endif

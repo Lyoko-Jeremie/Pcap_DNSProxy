@@ -39,8 +39,8 @@ void MonitorRequestProvider(
 	//Start threads.
 		for (size_t Index = 0;Index < ThreadIncreaseNum;++Index)
 		{
-			std::thread MonitorConsumerThread(std::bind(MonitorRequestConsumer));
-			MonitorConsumerThread.detach();
+			std::thread Thread_MonitorConsumer(std::bind(MonitorRequestConsumer));
+			Thread_MonitorConsumer.detach();
 		}
 	}
 

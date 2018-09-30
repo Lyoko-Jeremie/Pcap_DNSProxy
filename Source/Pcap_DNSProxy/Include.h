@@ -112,22 +112,22 @@ void ReadHosts(
 
 //DNSCurveControl.h
 #if defined(ENABLE_LIBSODIUM)
-bool DNSCurveVerifyKeypair(
+bool DNSCurve_VerifyKeypair(
 	const uint8_t * const PublicKey, 
 	const uint8_t * const SecretKey);
-DNSCURVE_SERVER_DATA *DNSCurveSelectSignatureTargetSocket(
+DNSCURVE_SERVER_DATA *DNSCurve_SelectSignatureTargetSocket(
 	const uint16_t Protocol, 
 	const bool IsAlternate, 
 	DNSCURVE_SERVER_TYPE &ServerType, 
 	std::vector<SOCKET_DATA> &SocketDataList);
-bool DNSCurvePacketTargetSetting(
+bool DNSCurve_PacketTargetSetting(
 	const DNSCURVE_SERVER_TYPE ServerType, 
 	DNSCURVE_SERVER_DATA ** const PacketTarget);
-bool DNSCurvePrecomputationKeySetting(
+bool DNSCurve_PrecomputationKeySetting(
 	uint8_t * const PrecomputationKey, 
 	uint8_t * const Client_PublicKey, 
 	const uint8_t * const ServerFingerprint);
-void DNSCurveSocketPrecomputation(
+void DNSCurve_SocketPrecomputation(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
@@ -143,7 +143,7 @@ void DNSCurveSocketPrecomputation(
 	size_t &DataLength, 
 	std::unique_ptr<uint8_t[]> &Alternate_SendBuffer, 
 	size_t &Alternate_DataLength);
-size_t DNSCurvePacketEncryption(
+size_t DNSCurve_PacketEncryption(
 	const uint16_t Protocol, 
 	const uint8_t * const SendMagicNumber, 
 	const uint8_t * const Client_PublicKey, 
@@ -152,13 +152,13 @@ size_t DNSCurvePacketEncryption(
 	const size_t Length, 
 	uint8_t * const SendBuffer, 
 	const size_t SendSize);
-ssize_t DNSCurvePacketDecryption(
+ssize_t DNSCurve_PacketDecryption(
 	const uint8_t * const ReceiveMagicNumber, 
 	const uint8_t * const PrecomputationKey, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ssize_t Length);
-bool DNSCruveGetSignatureData(
+bool DNSCruve_GetSignatureData(
 	const uint8_t * const Buffer, 
 	const DNSCURVE_SERVER_TYPE ServerType);
 
@@ -211,10 +211,33 @@ bool SocketSetting(
 	const SOCKET_SETTING_TYPE SettingType, 
 	const bool IsPrintError, 
 	void * const DataPointer);
-#if defined(PLATFORM_WIN)
-bool FirewallTest(
-	const uint16_t Protocol, 
-	ssize_t &ErrorCode);
+#if defined(ENABLE_PCAP)
+void ReadCallback_SocketSend(
+	evutil_socket_t Socket, 
+	short EventType, 
+	void *Argument);
+void WriteCallback_SocketSend(
+	evutil_socket_t Socket, 
+	short EventType, 
+	void *Argument);
+void TimerCallback_SocketSend(
+	evutil_socket_t Socket, 
+	short EventType, 
+	void *Argument);
+void EventCallback_TransmissionOnce(
+	bufferevent *BufferEvent, 
+	short EventType, 
+	void *Argument);
+void ReadCallback_TransmissionOnce(
+	bufferevent *BufferEvent, 
+	void *Argument);
+void WriteCallback_TransmissionOnce(
+	bufferevent *BufferEvent, 
+	void *Argument);
+void TimerCallback_TransmissionOnce(
+	evutil_socket_t Socket, 
+	short EventType, 
+	void *Argument);
 #endif
 uint16_t SelectProtocol_Network(
 	const REQUEST_MODE_NETWORK GlobalSpecific, 
@@ -271,7 +294,7 @@ void RegisterPortToList(
 	size_t *EDNS_Length);
 
 //PacketData.h
-uint16_t GetChecksum(
+uint16_t GetChecksum_Internet(
 	const uint16_t *Buffer, 
 	const size_t Length);
 uint16_t GetChecksum_ICMPv6(
@@ -349,15 +372,15 @@ void ErrorCodeToMessage(
 	const LOG_ERROR_TYPE ErrorType, 
 	const ssize_t ErrorCode, 
 	std::wstring &Message);
-void ReadTextPrintLog(
+void PrintLog_ReadText(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
-void HTTP_CONNECT_2_PrintLog(
+void PrintLog_HTTP_CONNECT_2(
 	const uint32_t ErrorCode, 
 	std::wstring &Message);
 #if defined(ENABLE_LIBSODIUM)
-void DNSCurvePrintLog(
+void PrintLog_DNSCurve(
 	const DNSCURVE_SERVER_TYPE ServerType, 
 	std::wstring &Message);
 #endif
@@ -456,10 +479,17 @@ size_t HTTP_CONNECT_TCP_Request(
 	const SOCKET_DATA &LocalSocketData);
 
 //Request.h
+#if defined(PLATFORM_WIN)
+bool FirewallTest(
+	const uint16_t Protocol, 
+	ssize_t &ErrorCode);
+#endif
 #if defined(ENABLE_PCAP)
-bool DomainTestRequest(
+bool LoadBufferEvent_DomainTest(
+	EVENT_TABLE_TRANSMISSION_ONCE *EventArgument_Domain);
+bool TestRequest_Domain(
 	const uint16_t Protocol);
-bool ICMP_TestRequest(
+bool TestRequest_ICMP(
 	const uint16_t Protocol);
 #endif
 size_t TCP_RequestSingle(

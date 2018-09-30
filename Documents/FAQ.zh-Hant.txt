@@ -134,8 +134,10 @@ Error.log 詳細錯誤報表：
   * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * HTTP CONNECT request error - HTTP CONNECT 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
-  * ICMP Test event initialization error - ICMP 協定事件模組初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
-  * ICMP Test event error - ICMP 協定事件模組錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * ICMP Test event initialization error - ICMP 協定測試事件模組初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * ICMP Test event error - ICMP 協定測試事件模組錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Domain Test event initialization error - 網域名稱測試事件模組初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Domain Test event error - 網域名稱測試事件模組錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * No any available gateways to external network - 沒有任何通往外部網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
   * Socket Do Not Fragment flag settings error - 設置 IPv4 Do Not Fragment 標誌錯誤：具體原因可參見錯誤代碼
   * Socket Hop Limits settings error - 設置 Hop Limits/TTL 錯誤：具體原因可參見錯誤代碼

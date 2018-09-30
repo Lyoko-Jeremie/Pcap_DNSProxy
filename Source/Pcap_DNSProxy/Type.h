@@ -179,7 +179,7 @@ typedef enum class _socket_setting_type
 	REUSE, 
 	TCP_FAST_OPEN, 
 	TCP_NO_DELAY, 
-//	TCP_KEEP_ALIVE, 
+	TCP_KEEP_ALIVE, 
 	TIMEOUT, 
 	UDP_BLOCK_RESET
 }SOCKET_SETTING_TYPE;
@@ -190,7 +190,6 @@ typedef enum class _request_process_type_
 	LOCAL_IN_WHITE, 
 	DIRECT, 
 	TCP_NORMAL, 
-	TCP_WITHOUT_REGISTER, 
 	SOCKS_MAIN, 
 	SOCKS_CLIENT_SELECTION, 
 	SOCKS_USER_AUTH, 
@@ -209,8 +208,7 @@ typedef enum class _request_process_type_
 	DNSCURVE_MAIN, 
 	DNSCURVE_SIGN, 
 #endif
-	UDP_NORMAL, 
-	UDP_WITHOUT_REGISTER
+	UDP_NORMAL
 }REQUEST_PROCESS_TYPE;
 #if defined(ENABLE_LIBSODIUM)
 typedef enum class _dnscurve_server_type_
@@ -605,12 +603,10 @@ public:
 //Member functions(Public)
 	ConfigurationTable(
 		void);
-/* No need copy constructor
-	ConfigurationTable(
-		const ConfigurationTable &Reference);
-	ConfigurationTable & operator=(
-		const ConfigurationTable &Reference);
-*/
+//	ConfigurationTable(
+//		const ConfigurationTable &Reference);
+//	ConfigurationTable & operator=(
+//		const ConfigurationTable &Reference);
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
@@ -620,12 +616,10 @@ public:
 	~ConfigurationTable(
 		void);
 
-/* No need copy constructor
 //Member functions(Private)
-private:
-	void CopyMemberOperator(
-		const ConfigurationTable &Reference);
-*/
+//private:
+//	void CopyMemberOperator(
+//		const ConfigurationTable &Reference);
 }CONFIGURATION_TABLE;
 
 //Global status class
@@ -654,7 +648,8 @@ public:
 #endif
 	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
 	std::default_random_engine           *RandomEngine;
-	uint8_t                              *DomainTable;
+	uint8_t                              *DomainTable_Normal;
+	uint8_t                              *DomainTable_Upper;
 #if !defined(ENABLE_LIBSODIUM)
 	uint8_t                              *Base64_EncodeTable;
 	int8_t                               *Base64_DecodeTable;
@@ -694,21 +689,17 @@ public:
 //Member functions(Public)
 	GlobalStatus(
 		void);
-/* No need copy constructor
-	GlobalStatus(
-		const GlobalStatus &Reference);
-	GlobalStatus & operator=(
-		const GlobalStatus &Reference);
-*/
+//	GlobalStatus(
+//		const GlobalStatus &Reference);
+//	GlobalStatus & operator=(
+//		const GlobalStatus &Reference);
 	~GlobalStatus(
 		void);
 
-/* No need copy constructor
 //Member functions(Private)
-private:
-	void CopyMemberOperator(
-		const GlobalStatus &Reference);
-*/
+//private:
+//	void CopyMemberOperator(
+//		const GlobalStatus &Reference);
 }GLOBAL_STATUS;
 
 //IP address ranges class
@@ -761,7 +752,7 @@ public:
 	std::string                          PatternString;
 
 //Redefine operator functions
-//	ResultBlacklistTable() = default; //No need to set default.
+//	ResultBlacklistTable() = default;
 //	ResultBlacklistTable(const ResultBlacklistTable &) = delete;
 //	ResultBlacklistTable & operator=(const ResultBlacklistTable &) = delete;
 }RESULT_BLACKLIST_TABLE;
@@ -774,7 +765,7 @@ public:
 	std::vector<ADDRESS_RANGE_TABLE>     Address_Source;
 
 //Redefine operator functions
-//	AddressHostsTable() = default; //No need to set default.
+//	AddressHostsTable() = default;
 //	AddressHostsTable(const AddressHostsTable &) = delete;
 //	AddressHostsTable & operator=(const AddressHostsTable &) = delete;
 }ADDRESS_HOSTS_TABLE;
@@ -853,24 +844,6 @@ public:
 		void);
 }DIFFERNET_FILE_SET_HOSTS;
 
-//Socket Selecting Once table class
-typedef class SocketSelectingOnceTable
-{
-public:
-	std::unique_ptr<uint8_t[]>           RecvBuffer;
-	size_t                               RecvLen;
-	bool                                 IsPacketDone;
-
-//Redefine operator functions
-//	SocketSelectingOnceTable() = default;
-	SocketSelectingOnceTable(const SocketSelectingOnceTable &) = delete;
-	SocketSelectingOnceTable & operator=(const SocketSelectingOnceTable &) = delete;
-
-//Member functions
-	SocketSelectingOnceTable(
-		void);
-}SOCKET_SELECTING_ONCE_TABLE;
-
 //Socket value table class
 typedef class SocketValueTable
 {
@@ -892,13 +865,15 @@ public:
 		const uint16_t SocketPort, 
 		const void * const SocketAddress, 
 		ssize_t * const ErrorCode);
+	void ClearAllSocket(
+		const bool IsPrintError);
 	~SocketValueTable(
 		void);
 }SOCKET_VALUE_TABLE;
 
 #if defined(ENABLE_PCAP)
-//Internet Control Message Protocol/ICMP echo request(Ping) event table class
-typedef class EventTable_ICMP
+//Original socket send only event table class
+typedef class EventTable_SocketSend
 {
 public:
 	uint16_t                                  Protocol;
@@ -915,19 +890,75 @@ public:
 	size_t                                    OnceTimes;
 	size_t                                    RetestTimes;
 	uint64_t                                  FileModifiedTime;
+	uint16_t                                  PacketSequence;
 
 //Redefine operator functions
-//	EventTable_ICMP() = default;
-	EventTable_ICMP(const EventTable_ICMP &) = delete;
-	EventTable_ICMP & operator=(const EventTable_ICMP &) = delete;
+//	EventTable_SocketSend() = default;
+	EventTable_SocketSend(const EventTable_SocketSend &) = delete;
+	EventTable_SocketSend & operator=(const EventTable_SocketSend &) = delete;
 
 //Member functions
-	EventTable_ICMP(
+	EventTable_SocketSend(
 		void);
-	~EventTable_ICMP(
+	~EventTable_SocketSend(
 		void);
-}EVENT_TABLE_ICMP;
+}EVENT_TABLE_SOCKET_SEND;
 
+//Bufferevent transmission once event table class
+typedef class EventTable_TransmissionOnce
+{
+public:
+	uint16_t                                  Protocol_Network;
+	std::vector<uint16_t>                     *Protocol_Transport;
+	std::vector<timeval>                      *SocketTimeout;
+	timeval                                   IntervalTimeout;
+	event_base                                *EventBase;
+	std::vector<event *>                      *EventList;
+	std::vector<bufferevent *>                *EventBufferList;
+	SOCKET_VALUE_TABLE                        *SocketValue;
+	std::vector<std::unique_ptr<uint8_t[]>>   *SendBuffer;
+	uint8_t                                   *RecvBuffer;
+	size_t                                    SendSize;
+	std::vector<size_t>                       *SendLen;
+	std::vector<size_t>                       *SendTimes;
+	size_t                                    RecvSize;
+	size_t                                    TotalSleepTime;
+	size_t                                    OnceTimes;
+	size_t                                    RetestTimes;
+	uint64_t                                  FileModifiedTime;
+
+//Redefine operator functions
+//	EventTable_TransmissionOnce() = default;
+	EventTable_TransmissionOnce(const EventTable_TransmissionOnce &) = delete;
+	EventTable_TransmissionOnce & operator=(const EventTable_TransmissionOnce &) = delete;
+
+//Member functions
+	EventTable_TransmissionOnce(
+		void);
+	~EventTable_TransmissionOnce(
+		void);
+}EVENT_TABLE_TRANSMISSION_ONCE;
+#endif
+
+//Socket Selecting Once table class
+typedef class SocketSelectingOnceTable
+{
+public:
+	std::unique_ptr<uint8_t[]>           RecvBuffer;
+	size_t                               RecvLen;
+	bool                                 IsPacketDone;
+
+//Redefine operator functions
+//	SocketSelectingOnceTable() = default;
+	SocketSelectingOnceTable(const SocketSelectingOnceTable &) = delete;
+	SocketSelectingOnceTable & operator=(const SocketSelectingOnceTable &) = delete;
+
+//Member functions
+	SocketSelectingOnceTable(
+		void);
+}SOCKET_SELECTING_ONCE_TABLE;
+
+#if defined(ENABLE_PCAP)
 //Capture device class
 typedef class CaptureDeviceTable
 {
@@ -1019,12 +1050,10 @@ public:
 //Member functions(Public)
 	DNSCurveConfigurationTable(
 		void);
-/* No need copy constructor
-	DNSCurveConfigurationTable(
-		const DNSCurveConfigurationTable &Reference);
-	DNSCurveConfigurationTable & operator=(
-		const DNSCurveConfigurationTable &Reference);
-*/
+//	DNSCurveConfigurationTable(
+//		const DNSCurveConfigurationTable &Reference);
+//	DNSCurveConfigurationTable & operator=(
+//		const DNSCurveConfigurationTable &Reference);
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
@@ -1034,12 +1063,10 @@ public:
 	~DNSCurveConfigurationTable(
 		void);
 
-/* No need copy constructor
 //Member functions(Private)
-private:
-	void CopyMemberOperator(
-		const DNSCurveConfigurationTable &Reference);
-*/
+//private:
+//	void CopyMemberOperator(
+//		const DNSCurveConfigurationTable &Reference);
 }DNSCURVE_CONFIGURATION_TABLE;
 
 //DNSCurve Socket Selecting table class

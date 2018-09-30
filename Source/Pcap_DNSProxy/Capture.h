@@ -29,7 +29,7 @@ typedef struct _capture_handler_param_
 	int           DeviceType;
 	uint8_t       *Buffer;
 	size_t        BufferSize;
-}CaptureHandlerParam, CAPTURE_HANDLER_PARAM;
+}Capture_CallbackHandlerParam, CAPTURE_HANDLER_PARAM;
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
@@ -46,35 +46,35 @@ std::string PcapFilterRules;
 std::list<std::string> PcapRunningList;
 
 //Functions
-bool CaptureFilterRulesInit(
+bool Capture_FilterRulesInit(
 	std::string &FilterRules);
-bool CaptureModule(
+bool Capture_MainProcess(
 	const pcap_if * const DriveInterface, 
 	const bool IsCaptureList);
-void CaptureHandler(
+void Capture_CallbackHandler(
 	uint8_t * const ProcParameter, 
 	const pcap_pkthdr * const PacketHeader, 
 	const uint8_t * const PacketData);
-bool CaptureNetworkLayer(
+bool Capture_AnalyzeNetworkLayer(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize);
-ssize_t CaptureCheck_Fragment(
+ssize_t Capture_AnalyzeFragment(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	bool &IsNeedTruncated);
-bool CaptureCheck_ICMP(
+bool Capture_AnalyzeICMP(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t Length);
-bool CaptureCheck_TCP(
+bool Capture_AnalyzeTCP(
 	const uint8_t * const Buffer);
-bool CaptureCheck_DNS(
+bool Capture_AnalyzeDNS(
 	const uint8_t * const Buffer, 
 	bool &IsRegisterStatus);
-bool CaptureCheck_PacketStatus(
+bool Capture_PacketStatusCheck(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t DNS_DataOffset, 
@@ -83,7 +83,7 @@ bool CaptureCheck_PacketStatus(
 	const size_t EDNS_Length, 
 	const bool IsRegisterStatus, 
 	DNS_SERVER_DATA * const PacketSource);
-bool MatchPortToSend(
+bool Capture_MatchPortToSend(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t Length, 

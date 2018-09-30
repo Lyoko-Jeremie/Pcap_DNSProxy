@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.10 changelog(2018-09-09):
+﻿Pcap_DNSProxy 0.4.9.10-0.4.9.11 changelog(2018-09-30):
 
 * Add --log-file command, which can set location of log file. [LGA1150/Syrone Wong]
+* Rebuild Domain Test and ICMP Test module
 * Change set path command from --config-file to --config-path.
+* OpenSSL upgrade to 1.1.1. (macOS)
 * Change default log output to stderr. (OpenWrt) [Syrone Wong]
-* Fix interval time in Domain Test and ICMP Test module.
+* Fix packet sequence, network operation and interval time problems in Domain Test and ICMP Test module.
 * Fix range mismatch of Hop Limits Fluctuation parameter.
 * Fix echo parameter problem in shell. (Linux/macOS) [YKilin]
 * Release Hash:

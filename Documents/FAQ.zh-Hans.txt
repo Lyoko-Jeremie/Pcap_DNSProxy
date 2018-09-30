@@ -134,8 +134,10 @@ Error.log 详细错误报告：
   * HTTP CONNECT connecting error - HTTP CONNECT 协议连接错误：可能为网络错误，具体原因可参见错误代码
   * HTTP CONNECT request error - HTTP CONNECT 协议请求错误：可能为网络错误，具体原因可参见错误代码
   * HTTP CONNECT socket initialization error - HTTP CONNECT 协议请求套接字初始化错误：具体原因可参见错误代码
-  * ICMP Test event initialization error - ICMP 协议事件模块初始化错误：可能为网络错误，具体原因可参见错误代码
-  * ICMP Test event error - ICMP 协议事件模块错误：可能为网络错误，具体原因可参见错误代码
+  * ICMP Test event initialization error - ICMP 协议测试事件模块初始化错误：可能为网络错误，具体原因可参见错误代码
+  * ICMP Test event error - ICMP 协议测试事件模块错误：可能为网络错误，具体原因可参见错误代码
+  * Domain Test event initialization error - 域名测试事件模块初始化错误：可能为网络错误，具体原因可参见错误代码
+  * Domain Test event error - 域名测试事件模块错误：可能为网络错误，具体原因可参见错误代码
   * No any available gateways to external network - 没有任何通往外部网络的可用网关：可能为网络错误，请检查网络是否通畅
   * Socket Do Not Fragment flag settings error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
   * Socket Hop Limits settings error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码

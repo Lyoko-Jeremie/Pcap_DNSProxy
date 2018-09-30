@@ -136,6 +136,8 @@ Details of Error.log error report:
   * HTTP CONNECT socket initialization error - Please mark the error code.
   * ICMP Test event initialization error -Please mark the error code.
   * ICMP Test event error - Please mark the error code.
+  * Domain Test event initialization error -Please mark the error code.
+  * Domain Test event error - Please mark the error code.
   * No any available gateways to external network - Please check the network interface and the external network.
   * Socket Do Not Fragment flag settings error - Please mark the error code.
   * Socket Hop Limits settings error - Please mark the error code.

@@ -57,8 +57,8 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET6), false));
-			DNSCurve_TCP_SignatureRequestThread.detach();
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET6), false));
+			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
 	//Main(IPv4)
@@ -69,8 +69,8 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET), false));
-			DNSCurve_TCP_SignatureRequestThread.detach();
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET), false));
+			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
 	//Alternate(IPv6)
@@ -81,8 +81,8 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET6), true));
-			DNSCurve_TCP_SignatureRequestThread.detach();
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET6), true));
+			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
 	//Alternate(IPv4)
@@ -93,8 +93,8 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET), true));
-			DNSCurve_TCP_SignatureRequestThread.detach();
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET), true));
+			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 	}
 
@@ -111,8 +111,8 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET6), false));
-		DNSCurve_UDP_SignatureRequestThread.detach();
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET6), false));
+		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
 //Main(IPv4)
@@ -123,8 +123,8 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET), false));
-		DNSCurve_UDP_SignatureRequestThread.detach();
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET), false));
+		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
 //Alternate(IPv6)
@@ -135,8 +135,8 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET6), true));
-		DNSCurve_UDP_SignatureRequestThread.detach();
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET6), true));
+		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
 //Alternate(IPv4)
@@ -147,15 +147,15 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET), true));
-		DNSCurve_UDP_SignatureRequestThread.detach();
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET), true));
+		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
 	return;
 }
 
-//Send TCP request to get Signature Data of servers
-bool DNSCurve_TCP_SignatureRequest(
+//Get signature data from server via TCP request
+bool DNSCurve_SignatureRequest_TCP(
 	const uint16_t Protocol, 
 	const bool IsAlternate)
 {
@@ -174,13 +174,7 @@ bool DNSCurve_TCP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
 #else
-#if defined(PLATFORM_WIN)
-	DNS_TCP_Header->ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
-#elif defined(PLATFORM_LINUX)
-	DNS_TCP_Header->ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
-#elif defined(PLATFORM_MACOS)
-	DNS_TCP_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
-#endif
+	GenerateRandomBuffer(&DNS_TCP_Header->ID, sizeof(DNS_TCP_Header->ID), nullptr, 0, 0);
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
 	DNS_TCP_Header->Question = htons(UINT16_NUM_ONE);
@@ -218,7 +212,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	ssize_t RecvLen = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
-	const auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, TCPSocketDataList);
+	const auto PacketTarget = DNSCurve_SelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, TCPSocketDataList);
 	if (PacketTarget == nullptr)
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -264,8 +258,7 @@ bool DNSCurve_TCP_SignatureRequest(
 			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
 			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 			(Protocol == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
-			(Protocol == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr)))) // || 
-//			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+			(Protocol == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))))
 				goto JumpTo_Restart;
 
 	//Socket selecting
@@ -276,7 +269,7 @@ bool DNSCurve_TCP_SignatureRequest(
 		}
 		else {
 		//Check signature.
-			if (!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpTo_Restart;
@@ -291,7 +284,7 @@ bool DNSCurve_TCP_SignatureRequest(
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 	//Print error log.
-		DNSCurvePrintLog(ServerType, Message);
+		PrintLog_DNSCurve(ServerType, Message);
 		if (!Message.empty())
 		{
 			Message.append(L"TCP get signature data error");
@@ -319,8 +312,8 @@ bool DNSCurve_TCP_SignatureRequest(
 	return true;
 }
 
-//Send UDP request to get Signature Data of servers
-bool DNSCurve_UDP_SignatureRequest(
+//Get signature data from server via UDP request
+bool DNSCurve_SignatureRequest_UDP(
 	const uint16_t Protocol, 
 	const bool IsAlternate)
 {
@@ -339,13 +332,7 @@ bool DNSCurve_UDP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
 #else
-#if defined(PLATFORM_WIN)
-	DNS_Header->ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
-#elif defined(PLATFORM_LINUX)
-	DNS_Header->ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
-#elif defined(PLATFORM_MACOS)
-	DNS_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
-#endif
+	GenerateRandomBuffer(&DNS_Header->ID, sizeof(DNS_Header->ID), nullptr, 0, 0);
 #endif
 	DNS_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
 	DNS_Header->Question = htons(UINT16_NUM_ONE);
@@ -379,7 +366,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	ssize_t RecvLen = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
-	const auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, UDPSocketDataList);
+	const auto PacketTarget = DNSCurve_SelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, UDPSocketDataList);
 	if (PacketTarget == nullptr)
 	{
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -436,7 +423,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 		else {
 		//Check signature.
-			if (!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpTo_Restart;
@@ -451,7 +438,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 	//Print error log.
-		DNSCurvePrintLog(ServerType, Message);
+		PrintLog_DNSCurve(ServerType, Message);
 		if (!Message.empty())
 		{
 			Message.append(L"UDP get signature data error");
@@ -522,7 +509,7 @@ size_t DNSCurve_TCP_RequestSingle(
 		PrecomputationKeyBufferTemp.Swap(PrecomputationKeyBuffer);
 		Client_PublicKey = Client_PublicKey_Buffer.get();
 		PrecomputationKey = PrecomputationKeyBuffer.Buffer;
-		if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
+		if (!DNSCurve_PrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
 		{
 			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return EXIT_FAILURE;
@@ -540,7 +527,7 @@ size_t DNSCurve_TCP_RequestSingle(
 	}
 
 //Make encryption or normal packet.
-	RecvLen = DNSCurvePacketEncryption(IPPROTO_TCP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
+	RecvLen = DNSCurve_PacketEncryption(IPPROTO_TCP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
 	if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -614,7 +601,7 @@ size_t DNSCurve_TCP_RequestMultiple(
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket precomputation
-	DNSCurveSocketPrecomputation(IPPROTO_TCP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
+	DNSCurve_SocketPrecomputation(IPPROTO_TCP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
 		TCPSocketDataList, TCPSocketSelectingDataList, QueryType, LocalSocketData, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
 	if (TCPSocketDataList.empty() || TCPSocketDataList.size() != TCPSocketSelectingDataList.size())
 		return EXIT_FAILURE;
@@ -625,7 +612,7 @@ size_t DNSCurve_TCP_RequestMultiple(
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
+			DNSCurve_PacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
 			SocketSelectingItem.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate
@@ -715,7 +702,7 @@ size_t DNSCurve_UDP_RequestSingle(
 		std::swap(PrecomputationKeyBuffer, PrecomputationKeyBufferTemp);
 		Client_PublicKey = Client_PublicKey_Buffer.get();
 		PrecomputationKey = PrecomputationKeyBuffer.get();
-		if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
+		if (!DNSCurve_PrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
 		{
 			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return EXIT_FAILURE;
@@ -734,7 +721,7 @@ size_t DNSCurve_UDP_RequestSingle(
 	}
 
 //Make encryption or normal packet.
-	RecvLen = DNSCurvePacketEncryption(IPPROTO_UDP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
+	RecvLen = DNSCurve_PacketEncryption(IPPROTO_UDP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
 	if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 	{
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -812,7 +799,7 @@ size_t DNSCurve_UDP_RequestMultiple(
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket precomputation
-	DNSCurveSocketPrecomputation(IPPROTO_UDP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
+	DNSCurve_SocketPrecomputation(IPPROTO_UDP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
 		UDPSocketDataList, UDPSocketSelectingDataList, QueryType, LocalSocketData, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
 	if (UDPSocketDataList.empty() || UDPSocketDataList.size() != UDPSocketSelectingDataList.size())
 		return EXIT_FAILURE;
@@ -823,7 +810,7 @@ size_t DNSCurve_UDP_RequestMultiple(
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
+			DNSCurve_PacketTargetSetting(SocketSelectingItem.ServerType, &PacketTarget);
 			SocketSelectingItem.ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate

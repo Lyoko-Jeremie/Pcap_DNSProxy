@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.10 更新日志(2018-09-09)：
+﻿Pcap_DNSProxy 0.4.9.10-0.4.9.11 更新日志(2018-09-30)：
 
 * 添加 --log-file 参数，可在启动时指定日志文件的储存位置 [LGA1150/Syrone Wong]
+* 重写 Domain Test 和 ICMP Test 模块
 * 参数 --config-file 改名为 --config-path
+* OpenSSL 更新到 1.1.1 (macOS)
 * 调整日志文件的初始输出为 stderr (OpenWrt) [Syrone Wong]
-* 修正 Domain Test 和 ICMP Test 模块测试的间隔问题
+* 修正 Domain Test 和 ICMP Test 模块的数据包序列号、网络请求策略和时间间隔的问题
 * 修正 Hop Limits Fluctuation 参数范围不准确的问题
 * 修正脚本 echo 参数的问题 (Linux/macOS) [YKilin]
 * Release Hash:

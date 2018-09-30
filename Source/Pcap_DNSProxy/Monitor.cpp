@@ -25,8 +25,8 @@ void MonitorLauncher(
 {
 //Network monitor(Mark Local DNS address to PTR records)
 	ParameterModificating.SetToMonitorItem();
-	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
-	NetworkInformationMonitorThread.detach();
+	std::thread Thread_NetworkInformationMonitor(std::bind(NetworkInformationMonitor));
+	Thread_NetworkInformationMonitor.detach();
 
 //DNSCurve initialization(Encryption mode)
 #if defined(ENABLE_LIBSODIUM)
@@ -39,22 +39,22 @@ void MonitorLauncher(
 #endif
 
 //Read parameter(Monitor mode)
-	std::thread ReadParameterThread(std::bind(ReadParameter, false));
-	ReadParameterThread.detach();
+	std::thread Thread_ReadParameter(std::bind(ReadParameter, false));
+	Thread_ReadParameter.detach();
 
 //Read Hosts monitor
 	if (!GlobalRunningStatus.FileList_Hosts->empty())
 	{
-		std::thread ReadHostsThread(std::bind(ReadHosts));
-		ReadHostsThread.detach();
+		std::thread Thread_ReadHosts(std::bind(ReadHosts));
+		Thread_ReadHosts.detach();
 	}
 
 //Read IPFilter monitor
 	if (!GlobalRunningStatus.FileList_IPFilter->empty() && 
 		(Parameter.OperationMode == LISTEN_MODE::CUSTOM || Parameter.DataCheck_Blacklist || Parameter.IsLocalRouting))
 	{
-		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
-		ReadIPFilterThread.detach();
+		std::thread Thread_ReadIPFilter(std::bind(ReadIPFilter));
+		Thread_ReadIPFilter.detach();
 	}
 
 //Capture monitor
@@ -77,40 +77,40 @@ void MonitorLauncher(
 		)
 	{
 	#if defined(ENABLE_PCAP)
-		std::thread CaptureInitializationThread(std::bind(CaptureInit));
-		CaptureInitializationThread.detach();
+		std::thread Thread_CaptureInitialization(std::bind(CaptureInit));
+		Thread_CaptureInitialization.detach();
 	#endif
 
 	//Get Hop Limits with normal DNS request(IPv6).
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
-			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET6)));
-			IPv6TestDoaminThread.detach();
+			std::thread Thread_TestDoamin_IPv6(std::bind(TestRequest_Domain, static_cast<uint16_t>(AF_INET6)));
+			Thread_TestDoamin_IPv6.detach();
 		}
 
 	//Get TTL with normal DNS request(IPv4).
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
-			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET)));
-			IPv4TestDoaminThread.detach();
+			std::thread Thread_TestDoamin_IPv4(std::bind(TestRequest_Domain, static_cast<uint16_t>(AF_INET)));
+			Thread_TestDoamin_IPv4.detach();
 		}
 
 	//Get Hop Limits with ICMPv6 echo(IPv6).
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
-			std::thread ICMPv6Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET6)));
-			ICMPv6Thread.detach();
+			std::thread Thread_ICMPv6(std::bind(TestRequest_ICMP, static_cast<uint16_t>(AF_INET6)));
+			Thread_ICMPv6.detach();
 		}
 
 	//Get TTL with ICMP echo(IPv4).
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
-			std::thread ICMP_Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET)));
-			ICMP_Thread.detach();
+			std::thread Thread_ICMP(std::bind(TestRequest_ICMP, static_cast<uint16_t>(AF_INET)));
+			Thread_ICMP.detach();
 		}
 	}
 #endif
@@ -126,19 +126,19 @@ void MonitorLauncher(
 		)) || Parameter.Target_Server_Local_Alternate_IPv6.Storage.ss_family != 0 || 
 		Parameter.Target_Server_Local_Alternate_IPv4.Storage.ss_family != 0)
 	{
-		std::thread AlternateServerMonitorThread(std::bind(AlternateServerMonitor));
-		AlternateServerMonitorThread.detach();
+		std::thread Thread_AlternateServerSwitcher(std::bind(AlternateServerSwitcher));
+		Thread_AlternateServerSwitcher.detach();
 	}
 
 //MailSlot and FIFO monitor
 	if (Parameter.IsProcessUnique)
 	{
 	#if defined(PLATFORM_WIN)
-		std::thread Flush_DNS_MailSlotMonitorThread(std::bind(Flush_DNS_MailSlotMonitor));
-		Flush_DNS_MailSlotMonitorThread.detach();
+		std::thread Thread_Flush_DNS_MailSlotMonitor(std::bind(Flush_DNS_MailSlotMonitor));
+		Thread_Flush_DNS_MailSlotMonitor.detach();
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		std::thread Flush_DNS_FIFO_MonitorThread(std::bind(Flush_DNS_FIFO_Monitor));
-		Flush_DNS_FIFO_MonitorThread.detach();
+		std::thread Thread_Flush_DNS_FIFO_Monitor(std::bind(Flush_DNS_FIFO_Monitor));
+		Thread_Flush_DNS_FIFO_Monitor.detach();
 	#endif
 	}
 
@@ -196,7 +196,7 @@ bool MonitorInit(
 						reinterpret_cast<sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_port = reinterpret_cast<const sockaddr_in6 *>(&ListenAddressItem)->sin6_port;
 
 					//Try to bind socket to system.
-						if (!MonitorSocketBinding(IPPROTO_UDP, LocalSocketData))
+						if (!ListenMonitor_BindSocket(IPPROTO_UDP, LocalSocketData))
 						{
 						//Close all sockets.
 							for (auto &SocketDataItem:LocalSocketDataList)
@@ -241,7 +241,7 @@ bool MonitorInit(
 							reinterpret_cast<sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_port = ListenPortItem;
 
 						//Try to bind socket to system.
-							if (!MonitorSocketBinding(IPPROTO_UDP, LocalSocketData))
+							if (!ListenMonitor_BindSocket(IPPROTO_UDP, LocalSocketData))
 							{
 							//Close all sockets.
 								for (auto &SocketDataItem:LocalSocketDataList)
@@ -298,7 +298,7 @@ bool MonitorInit(
 						reinterpret_cast<sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_port = reinterpret_cast<const sockaddr_in6 *>(&ListenAddressItem)->sin6_port;
 
 					//Try to bind socket to system.
-						if (!MonitorSocketBinding(IPPROTO_TCP, LocalSocketData))
+						if (!ListenMonitor_BindSocket(IPPROTO_TCP, LocalSocketData))
 						{
 						//Close all sockets.
 							for (auto &SocketDataItem:LocalSocketDataList)
@@ -343,7 +343,7 @@ bool MonitorInit(
 							reinterpret_cast<sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_port = ListenPortItem;
 
 						//Try to bind socket to system.
-							if (!MonitorSocketBinding(IPPROTO_TCP, LocalSocketData))
+							if (!ListenMonitor_BindSocket(IPPROTO_TCP, LocalSocketData))
 							{
 							//Close all sockets.
 								for (auto &SocketDataItem:LocalSocketDataList)
@@ -403,7 +403,7 @@ bool MonitorInit(
 						reinterpret_cast<sockaddr_in *>(&LocalSocketData.SockAddr)->sin_port = reinterpret_cast<const sockaddr_in *>(&ListenAddressItem)->sin_port;
 
 					//Try to bind socket to system.
-						if (!MonitorSocketBinding(IPPROTO_UDP, LocalSocketData))
+						if (!ListenMonitor_BindSocket(IPPROTO_UDP, LocalSocketData))
 						{
 						//Close all sockets.
 							for (auto &SocketDataItem:LocalSocketDataList)
@@ -448,7 +448,7 @@ bool MonitorInit(
 							reinterpret_cast<sockaddr_in *>(&LocalSocketData.SockAddr)->sin_port = ListenPortItem;
 
 						//Try to bind socket to system.
-							if (!MonitorSocketBinding(IPPROTO_UDP, LocalSocketData))
+							if (!ListenMonitor_BindSocket(IPPROTO_UDP, LocalSocketData))
 							{
 							//Close all sockets.
 								for (auto &SocketDataItem:LocalSocketDataList)
@@ -505,7 +505,7 @@ bool MonitorInit(
 						reinterpret_cast<sockaddr_in *>(&LocalSocketData.SockAddr)->sin_port = reinterpret_cast<const sockaddr_in *>(&ListenAddressItem)->sin_port;
 
 					//Try to bind socket to system.
-						if (!MonitorSocketBinding(IPPROTO_TCP, LocalSocketData))
+						if (!ListenMonitor_BindSocket(IPPROTO_TCP, LocalSocketData))
 						{
 						//Close all sockets.
 							for (auto &SocketDataItem:LocalSocketDataList)
@@ -552,7 +552,7 @@ bool MonitorInit(
 							reinterpret_cast<sockaddr_in *>(&LocalSocketData.SockAddr)->sin_port = ListenPortItem;
 
 						//Try to bind socket to system.
-							if (!MonitorSocketBinding(IPPROTO_TCP, LocalSocketData))
+							if (!ListenMonitor_BindSocket(IPPROTO_TCP, LocalSocketData))
 							{
 							//Close all sockets.
 								for (auto &SocketDataItem:LocalSocketDataList)
@@ -581,8 +581,8 @@ bool MonitorInit(
 		for (size_t MonitorThreadIndex = 0;MonitorThreadIndex < Parameter.ThreadPoolBaseNum;++MonitorThreadIndex)
 		{
 		//Start monitor consumer thread.
-			std::thread MonitorConsumerThread(std::bind(MonitorRequestConsumer));
-			MonitorConsumerThread.detach();
+			std::thread Thread_MonitorConsumer(std::bind(MonitorRequestConsumer));
+			Thread_MonitorConsumer.detach();
 		}
 
 		*GlobalRunningStatus.ThreadRunningNum += Parameter.ThreadPoolBaseNum;
@@ -598,14 +598,14 @@ bool MonitorInit(
 		//UDP Monitor
 			if (LocalSocketProtocol.at(MonitorThreadIndex) == IPPROTO_UDP)
 			{
-				std::thread MonitorThreadTemp(UDP_Monitor, LocalSocketDataList.at(MonitorThreadIndex));
-				MonitorThreadList.push_back(std::move(MonitorThreadTemp));
+				std::thread ThreadTemp_Monitor(ListenMonitor_UDP, LocalSocketDataList.at(MonitorThreadIndex));
+				MonitorThreadList.push_back(std::move(ThreadTemp_Monitor));
 			}
 		//TCP Monitor
 			else if (LocalSocketProtocol.at(MonitorThreadIndex) == IPPROTO_TCP)
 			{
-				std::thread MonitorThreadTemp(TCP_Monitor, LocalSocketDataList.at(MonitorThreadIndex));
-				MonitorThreadList.push_back(std::move(MonitorThreadTemp));
+				std::thread ThreadTemp_Monitor(ListenMonitor_TCP, LocalSocketDataList.at(MonitorThreadIndex));
+				MonitorThreadList.push_back(std::move(ThreadTemp_Monitor));
 			}
 		//Not supported protocol
 			else {
@@ -662,8 +662,8 @@ bool MonitorInit(
 	return true;
 }
 
-//Socket binding of monitor process
-bool MonitorSocketBinding(
+//Bind and transfer socket to monitor process
+bool ListenMonitor_BindSocket(
 	const uint16_t Protocol, 
 	SOCKET_DATA &LocalSocketData)
 {
@@ -729,8 +729,8 @@ bool MonitorSocketBinding(
 	return true;
 }
 
-//Local DNS server with UDP protocol
-bool UDP_Monitor(
+//Listen UDP request
+bool ListenMonitor_UDP(
 	SOCKET_DATA LocalSocketData)
 {
 //Initialization
@@ -862,8 +862,8 @@ bool UDP_Monitor(
 					MonitorRequestProvider(MonitorQueryData);
 				}
 				else { //New thread mode
-					std::thread RequestProcessThread(std::bind(EnterRequestProcess, MonitorQueryData, nullptr, 0));
-					RequestProcessThread.detach();
+					std::thread Thread_RequestProcess(std::bind(EnterRequestProcess, MonitorQueryData, nullptr, 0));
+					Thread_RequestProcess.detach();
 				}
 
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
@@ -898,8 +898,8 @@ bool UDP_Monitor(
 	return true;
 }
 
-//Local DNS server with TCP protocol
-bool TCP_Monitor(
+//Listen TCP request
+bool ListenMonitor_TCP(
 	SOCKET_DATA LocalSocketData)
 {
 //Initialization
@@ -1010,8 +1010,8 @@ bool TCP_Monitor(
 					MonitorRequestProvider(MonitorQueryData);
 				}
 				else { //New thread mode
-					std::thread TCP_AcceptProcessThread(std::bind(TCP_AcceptProcess, MonitorQueryData, nullptr, 0));
-					TCP_AcceptProcessThread.detach();
+					std::thread Thread_TCP_AcceptProcess(std::bind(TCP_AcceptProcess, MonitorQueryData, nullptr, 0));
+					Thread_TCP_AcceptProcess.detach();
 				}
 
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
@@ -1258,7 +1258,7 @@ bool TCP_AcceptProcess(
 }
 
 //Alternate DNS servers switcher
-void AlternateServerMonitor(
+void AlternateServerSwitcher(
 	void)
 {
 //Initialization
@@ -1376,7 +1376,7 @@ bool GetBestInterfaceAddress(
 		AddrLen = sizeof(sockaddr_in6);
 
 	//UDP connecting
-		if (connect(InterfaceSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in6)) == SOCKET_ERROR || 
+		if (connect(InterfaceSocket, reinterpret_cast<const sockaddr *>(&SockAddr), sizeof(sockaddr_in6)) == SOCKET_ERROR || 
 			getsockname(InterfaceSocket, reinterpret_cast<sockaddr *>(&SockAddr), &AddrLen) == SOCKET_ERROR || 
 			SockAddr.ss_family != AF_INET6 || AddrLen != sizeof(sockaddr_in6) || 
 			CheckEmptyBuffer(&reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_addr, sizeof(reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_addr)))
@@ -1394,7 +1394,7 @@ bool GetBestInterfaceAddress(
 		AddrLen = sizeof(sockaddr_in);
 
 	//UDP connecting
-		if (connect(InterfaceSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in)) == SOCKET_ERROR || 
+		if (connect(InterfaceSocket, reinterpret_cast<const sockaddr *>(&SockAddr), sizeof(sockaddr_in)) == SOCKET_ERROR || 
 			getsockname(InterfaceSocket, reinterpret_cast<sockaddr *>(&SockAddr), &AddrLen) == SOCKET_ERROR || 
 			SockAddr.ss_family != AF_INET || AddrLen != sizeof(sockaddr_in) || 
 			CheckEmptyBuffer(&reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_addr, sizeof(reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_addr)))

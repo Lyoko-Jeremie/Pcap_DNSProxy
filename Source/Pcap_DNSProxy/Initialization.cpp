@@ -20,7 +20,8 @@
 #include "Initialization.h"
 
 //Preferred name syntax(Section 2.3.1 in RFC 1035)
-static const uint8_t DomainTable_Initialization[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.-";
+static const uint8_t DomainTable_Normal[] = "0123456789abcdefghijklmnopqrstuvwxyz.-";
+static const uint8_t DomainTable_Upper[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-";
 
 #if !defined(ENABLE_LIBSODIUM)
 //RFC domain and Base64 encoding table
@@ -310,8 +311,6 @@ void ConfigurationTableSetting(
 
 	//[Data] block
 #if defined(ENABLE_PCAP)
-//	ConfigurationParameter->ICMP_ID = 0; //ICMP ID should use a random value.
-	ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
 	memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data(Windows).
@@ -324,7 +323,6 @@ void ConfigurationTableSetting(
 		ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
 	ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(macOS).
 #endif
-//	ConfigurationParameter->DomainTest_ID = 0; //Domain Test ID should use a random value.
 #endif
 
 	//[Proxy] block
@@ -820,7 +818,8 @@ void GlobalStatusSetting(
 #endif
 	std::random_device RandomDevice;
 	GlobalRunningStatusParameter->RandomEngine->seed(RandomDevice());
-	GlobalRunningStatusParameter->DomainTable = const_cast<uint8_t *>(DomainTable_Initialization);
+	GlobalRunningStatusParameter->DomainTable_Normal = const_cast<uint8_t *>(DomainTable_Normal);
+	GlobalRunningStatusParameter->DomainTable_Upper = const_cast<uint8_t *>(DomainTable_Upper);
 #if !defined(ENABLE_LIBSODIUM)
 	GlobalRunningStatusParameter->Base64_EncodeTable = const_cast<uint8_t *>(Base64_EncodeTable_Initialization);
 	GlobalRunningStatusParameter->Base64_DecodeTable = const_cast<int8_t *>(Base64_DecodeTable_Initialization);
@@ -972,15 +971,6 @@ DiffernetFileSetHosts::DiffernetFileSetHosts(
 	return;
 }
 
-//SocketSelectingOnceTable class constructor
-SocketSelectingOnceTable::SocketSelectingOnceTable(
-	void)
-{
-	RecvLen = 0;
-	IsPacketDone = false;
-
-	return;
-}
 
 //SocketValueTable class SocketValueInit function
 bool SocketValueTable::SocketValueInit(
@@ -1003,8 +993,6 @@ bool SocketValueTable::SocketValueInit(
 		{
 			if (ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
-
-			return false;
 		}
 		else {
 			ValueItem.AddrLen = sizeof(sockaddr_in6);
@@ -1013,6 +1001,7 @@ bool SocketValueTable::SocketValueInit(
 			if (SocketAddress != nullptr)
 				memcpy_s(&reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr, sizeof(reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr), SocketAddress, sizeof(in6_addr));
 
+		//Add item to list.
 			ValueSet.push_back(ValueItem);
 			return true;
 		}
@@ -1025,8 +1014,6 @@ bool SocketValueTable::SocketValueInit(
 		{
 			if (ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
-
-			return false;
 		}
 		else {
 			ValueItem.AddrLen = sizeof(sockaddr_in);
@@ -1035,6 +1022,7 @@ bool SocketValueTable::SocketValueInit(
 			if (SocketAddress != nullptr)
 				memcpy_s(&reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr, sizeof(reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr), SocketAddress, sizeof(in_addr));
 
+		//Add item to list.
 			ValueSet.push_back(ValueItem);
 			return true;
 		}
@@ -1043,11 +1031,28 @@ bool SocketValueTable::SocketValueInit(
 	return false;
 }
 
+//SocketValueTable class ClearAllSocket function
+void SocketValueTable::ClearAllSocket(
+	const bool IsPrintError)
+{
+//Close all sockets and clear list.
+	if (!ValueSet.empty())
+	{
+		for (auto &SocketItem:ValueSet)
+			SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::CLOSE, IsPrintError, nullptr);
+
+		ValueSet.clear();
+		ValueSet.shrink_to_fit();
+	}
+
+	return;
+}
+
 //SocketValueTable class destructor
 SocketValueTable::~SocketValueTable(
 	void)
 {
-//Close all list sockets and reset values.
+//Close all sockets.
 	for (auto &SocketItem:ValueSet)
 		SocketSetting(SocketItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
@@ -1055,8 +1060,8 @@ SocketValueTable::~SocketValueTable(
 }
 
 #if defined(ENABLE_PCAP)
-//EventTable_ICMP class constructor
-EventTable_ICMP::EventTable_ICMP(
+//EventTable_SocketSend class constructor
+EventTable_SocketSend::EventTable_SocketSend(
 	void)
 {
 	Protocol = 0;
@@ -1073,12 +1078,13 @@ EventTable_ICMP::EventTable_ICMP(
 	OnceTimes = 0;
 	RetestTimes = 0;
 	FileModifiedTime = 0;
+	PacketSequence = 0;
 
 	return;
 }
 
-//EventTable_ICMP class destructor
-EventTable_ICMP::~EventTable_ICMP(
+//EventTable_SocketSend class destructor
+EventTable_SocketSend::~EventTable_SocketSend(
 	void)
 {
 //Free all event items.
@@ -1101,6 +1107,78 @@ EventTable_ICMP::~EventTable_ICMP(
 	return;
 }
 
+//EventTable_TransmissionOnce class constructor
+EventTable_TransmissionOnce::EventTable_TransmissionOnce(
+	void)
+{
+	Protocol_Network = 0;
+	Protocol_Transport = nullptr;
+	SocketTimeout = nullptr;
+	memset(&IntervalTimeout, 0, sizeof(IntervalTimeout));
+	EventBase = nullptr;
+	EventList = nullptr;
+	EventBufferList = nullptr;
+	SocketValue = nullptr;
+	SendBuffer = nullptr;
+	RecvBuffer = nullptr;
+	SendSize = 0;
+	SendLen = nullptr;
+	SendTimes = nullptr;
+	RecvSize = 0;
+	TotalSleepTime = 0;
+	OnceTimes = 0;
+	RetestTimes = 0;
+	FileModifiedTime = 0;
+
+	return;
+}
+
+//EventTable_TransmissionOnce class destructor
+EventTable_TransmissionOnce::~EventTable_TransmissionOnce(
+	void)
+{
+//Free all bufferevent items.
+	for (auto &EventBufferItem:*EventBufferList)
+	{
+		if (EventBufferItem != nullptr)
+		{
+			bufferevent_free(EventBufferItem);
+			EventBufferItem = nullptr;
+		}
+	}
+
+//Free all event items.
+	for (auto &EventItem:*EventList)
+	{
+		if (EventItem != nullptr)
+		{
+			event_free(EventItem);
+			EventItem = nullptr;
+		}
+	}
+
+//Free event base.
+	if (EventBase != nullptr)
+	{
+		event_base_free(EventBase);
+		EventBase = nullptr;
+	}
+
+	return;
+}
+#endif
+
+//SocketSelectingOnceTable class constructor
+SocketSelectingOnceTable::SocketSelectingOnceTable(
+	void)
+{
+	RecvLen = 0;
+	IsPacketDone = false;
+
+	return;
+}
+
+#if defined(ENABLE_PCAP)
 //CaptureDeviceTable class constructor
 CaptureDeviceTable::CaptureDeviceTable(
 	void)
@@ -1698,7 +1776,7 @@ OpenSSLContextTable::~OpenSSLContextTable(
 		MethodContext = nullptr;
 	}
 
-//Free all sockets.
+//Close all sockets.
 	if (SocketSetting(Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 		SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 

@@ -138,7 +138,7 @@ bool ReadIPFilterData(
 				Data.erase(Data.find("| ") + 1U, strlen("|"));
 		}
 
-		return ReadBlacklistData(Data, FileIndex, Line);
+		return ReadIPFilter_BlacklistData(Data, FileIndex, Line);
 	}
 //Local Routing items
 	else if (LabelType == LABEL_IPFILTER_TYPE::LOCAL_ROUTING && Parameter.IsLocalRouting)
@@ -146,7 +146,7 @@ bool ReadIPFilterData(
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 		if (Data.length() >= READ_IPFILTER_LOCAL_ROUTING_MINSIZE)
-			return ReadLocalRoutingData(Data, FileIndex, Line);
+			return ReadIPFilter_LocalRoutingData(Data, FileIndex, Line);
 	}
 //Main IPFilter items
 	else if (LabelType == LABEL_IPFILTER_TYPE::NORMAL && Parameter.OperationMode == LISTEN_MODE::CUSTOM)
@@ -154,14 +154,14 @@ bool ReadIPFilterData(
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 		if (Data.length() >= READ_IPFILTER_MAIN_MINSIZE)
-			return ReadMainIPFilterData(Data, FileIndex, Line);
+			return ReadIPFilter_MainData(Data, FileIndex, Line);
 	}
 
 	return true;
 }
 
 //Read Blacklist items in IPFilter file from data
-bool ReadBlacklistData(
+bool ReadIPFilter_BlacklistData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -215,7 +215,7 @@ bool ReadBlacklistData(
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
 	std::array<uint8_t, ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES> AddrBuffer{};
 	std::vector<std::string> ListData;
-	GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
+	ReadSupport_GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
 	uint16_t PreviousType = 0;
 
@@ -431,7 +431,7 @@ bool ReadBlacklistData(
 }
 
 //Read Local Routing items in IPFilter file from data
-bool ReadLocalRoutingData(
+bool ReadIPFilter_LocalRoutingData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -601,7 +601,7 @@ bool ReadLocalRoutingData(
 }
 
 //Read Address Prefix Block data
-bool ReadAddressPrefixBlock(
+bool ReadIPFilter_AddressPrefixData(
 	const uint16_t Protocol, 
 	std::string OriginalData, 
 	const size_t DataOffset, 
@@ -707,7 +707,7 @@ bool ReadAddressPrefixBlock(
 }
 
 //Read Main IPFilter items in IPFilter file from data
-bool ReadMainIPFilterData(
+bool ReadIPFilter_MainData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)

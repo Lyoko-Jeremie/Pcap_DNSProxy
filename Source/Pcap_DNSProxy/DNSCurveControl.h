@@ -32,12 +32,12 @@ extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
 extern std::mutex SocketRegisterLock;
 
 //Functions
-size_t DNSCurvePaddingData(
+size_t DNSCurve_PaddingData(
 	const bool IsSetPadding, 
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize);
-uint16_t DNSCurveSelectTargetSocket(
+uint16_t DNSCurve_SelectTargetSocket(
 	const uint16_t Protocol, 
 	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData, 

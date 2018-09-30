@@ -154,7 +154,7 @@ bool ReadHostsData(
 		}
 		else if (LabelType == LABEL_HOSTS_TYPE::NORMAL || LabelType == LABEL_HOSTS_TYPE::LOCAL)
 		{
-			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LabelTypeTemp);
+			return ReadHosts_OtherData(Data, FileIndex, Line, LabelType, LabelTypeTemp);
 		}
 		else {
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -169,7 +169,7 @@ bool ReadHostsData(
 			(Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 				return true;
 		else 
-			return ReadLocalHostsData(Data, FileIndex, Line);
+			return ReadHosts_LocalData(Data, FileIndex, Line);
 	}
 
 //Remove spaces before or after verticals.
@@ -183,19 +183,19 @@ bool ReadHostsData(
 
 //Main Hosts block
 	if (LabelType == LABEL_HOSTS_TYPE::ADDRESS) //[Address Hosts] block
-		return ReadAddressHostsData(Data, FileIndex, Line);
+		return ReadHosts_AddressData(Data, FileIndex, Line);
 	else if (LabelType == LABEL_HOSTS_TYPE::CNAME) //[CNAME Hosts] block
-		return ReadMainHostsData(Data, HOSTS_TYPE::CNAME, FileIndex, Line);
+		return ReadHosts_MainData(Data, HOSTS_TYPE::CNAME, FileIndex, Line);
 	else if (LabelType == LABEL_HOSTS_TYPE::SOURCE) //[Source Hosts] block
-		return ReadMainHostsData(Data, HOSTS_TYPE::SOURCE, FileIndex, Line);
+		return ReadHosts_MainData(Data, HOSTS_TYPE::SOURCE, FileIndex, Line);
 	else //[Hosts] block
-		return ReadMainHostsData(Data, HOSTS_TYPE::NORMAL, FileIndex, Line);
+		return ReadHosts_MainData(Data, HOSTS_TYPE::NORMAL, FileIndex, Line);
 
 	return true;
 }
 
 //Read other type items in Hosts file from data
-bool ReadOtherHostsData(
+bool ReadHosts_OtherData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
@@ -238,7 +238,7 @@ bool ReadOtherHostsData(
 		ssize_t Result = 0;
 
 	//Mark all data in list.
-		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, ASCII_VERTICAL, false, false);
+		ReadSupport_GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, ASCII_VERTICAL, false, false);
 		for (const auto &StringIter:ListData)
 		{
 			const auto RecordType = DNSTypeNameToBinary(reinterpret_cast<const uint8_t *>(StringIter.c_str()));
@@ -310,7 +310,7 @@ bool ReadOtherHostsData(
 }
 
 //Read Local Hosts items in Hosts file from data
-bool ReadLocalHostsData(
+bool ReadHosts_LocalData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -352,7 +352,7 @@ bool ReadLocalHostsData(
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 
 	//Get all list data.
-		GetParameterListData(HostsListData, Data, SeparatedOrResult, Data.length(), ASCII_SLASH, false, true);
+		ReadSupport_GetParameterListData(HostsListData, Data, SeparatedOrResult, Data.length(), ASCII_SLASH, false, true);
 		if (HostsListData.empty() || HostsListData.size() > 2U)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -378,7 +378,7 @@ bool ReadLocalHostsData(
 			//Target server with port
 				std::string DataTemp(HostsListData.back());
 				HostsListData.clear();
-				GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
+				ReadSupport_GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
 				if (HostsListData.empty() || HostsListData.size() > 2U)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -503,7 +503,7 @@ bool ReadLocalHostsData(
 				//Target server with port
 					std::string DataTemp(HostsListData.back());
 					HostsListData.clear();
-					GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
+					ReadSupport_GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
 					if (HostsListData.empty() || HostsListData.size() > 2U)
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -626,7 +626,7 @@ AddListData:
 }
 
 //Read Address Hosts items in Hosts file from data
-bool ReadAddressHostsData(
+bool ReadHosts_AddressData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -682,8 +682,8 @@ bool ReadAddressHostsData(
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
-	GetParameterListData(TargetListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
-	GetParameterListData(SourceListData, Data, Separated, Data.length(), ASCII_VERTICAL, false, false);
+	ReadSupport_GetParameterListData(TargetListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
+	ReadSupport_GetParameterListData(SourceListData, Data, Separated, Data.length(), ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
 	uint16_t PreviousType = 0;
 
@@ -712,7 +712,7 @@ bool ReadAddressHostsData(
 		//Address prefix format
 			if (StringIter.find(ASCII_SLASH) != std::string::npos)
 			{
-				if (!ReadAddressPrefixBlock(AF_INET6, StringIter, 0, &AddressTargetPrefix, FileList_Hosts, FileIndex, Line))
+				if (!ReadIPFilter_AddressPrefixData(AF_INET6, StringIter, 0, &AddressTargetPrefix, FileList_Hosts, FileIndex, Line))
 					return false;
 
 			//Address prefix check
@@ -758,7 +758,7 @@ bool ReadAddressHostsData(
 		//Address prefix format
 			if (StringIter.find(ASCII_SLASH) != std::string::npos)
 			{
-				if (!ReadAddressPrefixBlock(AF_INET, StringIter, 0, &AddressTargetPrefix, FileList_Hosts, FileIndex, Line))
+				if (!ReadIPFilter_AddressPrefixData(AF_INET, StringIter, 0, &AddressTargetPrefix, FileList_Hosts, FileIndex, Line))
 					return false;
 
 			//Address prefix check
@@ -936,7 +936,7 @@ bool ReadAddressHostsData(
 }
 
 //Read Main Hosts items in Hosts file from data
-bool ReadMainHostsData(
+bool ReadHosts_MainData(
 	std::string Data, 
 	const HOSTS_TYPE HostsType, 
 	const size_t FileIndex, 
@@ -1026,7 +1026,7 @@ bool ReadMainHostsData(
 	if (HostsType == HOSTS_TYPE::SOURCE)
 	{
 		std::vector<std::string> SourceListData;
-		GetParameterListData(SourceListData, Data, 0, Data.find("->"), ASCII_VERTICAL, false, false);
+		ReadSupport_GetParameterListData(SourceListData, Data, 0, Data.find("->"), ASCII_VERTICAL, false, false);
 		if (SourceListData.empty())
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -1046,20 +1046,20 @@ bool ReadMainHostsData(
 		//Mark all data in list.
 			for (const auto &StringIter:SourceListData)
 			{
-				if (!ReadAddressPrefixBlock(Protocol, StringIter, 0, &AddressPrefix, FileList_Hosts, FileIndex, Line))
+				if (!ReadIPFilter_AddressPrefixData(Protocol, StringIter, 0, &AddressPrefix, FileList_Hosts, FileIndex, Line))
 					return false;
 				else 
 					HostsTableTemp.SourceList.push_back(AddressPrefix);
 			}
 		}
 
-		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, ASCII_VERTICAL, false, false);
+		ReadSupport_GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, ASCII_VERTICAL, false, false);
 	}
 	else {
 		if (IsDnsmasqFormat)
-			GetParameterListData(HostsListData, Data, Separated, Data.length(), ASCII_SLASH, false, false);
+			ReadSupport_GetParameterListData(HostsListData, Data, Separated, Data.length(), ASCII_SLASH, false, false);
 		else 
-			GetParameterListData(HostsListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
+			ReadSupport_GetParameterListData(HostsListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	}
 
 //Address counts check

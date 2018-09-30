@@ -23,7 +23,7 @@
 std::array<size_t, NETWORK_LAYER_PARTNUM> ParameterHopLimitsIndex{};
 
 //Read texts
-bool ReadText(
+bool ReadSupport_ReadText(
 	const FILE * const FileHandle, 
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex)
@@ -56,7 +56,7 @@ bool ReadText(
 		{
 			if (errno != 0)
 			{
-				ReadTextPrintLog(InputType, FileIndex, Line);
+				PrintLog_ReadText(InputType, FileIndex, Line);
 				return false;
 			}
 			else {
@@ -69,7 +69,7 @@ bool ReadText(
 		{
 			if (ReadLength <= READ_DATA_MINSIZE)
 			{
-				ReadTextPrintLog(InputType, FileIndex, Line);
+				PrintLog_ReadText(InputType, FileIndex, Line);
 				return false;
 			}
 			else {
@@ -431,11 +431,11 @@ bool ReadText(
 					#if defined(ENABLE_LIBSODIUM)
 						case READ_TEXT_TYPE::DNSCURVE_DATABASE: //ReadDNSCurveDatabase
 						{
-							ReadDNSCurveDatabaseData(TextData, READ_TEXT_TYPE::DNSCURVE_DATABASE, FileIndex, Line);
+							ReadSupport_DNSCurveDatabaseData(TextData, READ_TEXT_TYPE::DNSCURVE_DATABASE, FileIndex, Line);
 						}break;
 						case READ_TEXT_TYPE::DNSCURVE_MONITOR: //ReadDNSCurveDatabase(Monitor mode)
 						{
-							ReadDNSCurveDatabaseData(TextData, READ_TEXT_TYPE::DNSCURVE_MONITOR, FileIndex, Line);
+							ReadSupport_DNSCurveDatabaseData(TextData, READ_TEXT_TYPE::DNSCURVE_MONITOR, FileIndex, Line);
 						}break;
 					#endif
 					}
@@ -548,7 +548,7 @@ bool ReadParameter(
 		for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
 		{
 		//Get attributes of file.
-			if (!ReadFileAttributesLoop(ReadConfigTextType, FileIndex, FileList_Config.at(FileIndex), IsConfigFileModified))
+			if (!ReadSupport_FileAttributesLoop(ReadConfigTextType, FileIndex, FileList_Config.at(FileIndex), IsConfigFileModified))
 			{
 				if (IsFirstRead)
 					return false;
@@ -578,7 +578,7 @@ bool ReadParameter(
 				}
 			}
 			else {
-				if (!ReadText(FileHandle, ReadConfigTextType, FileIndex))
+				if (!ReadSupport_ReadText(FileHandle, ReadConfigTextType, FileIndex))
 				{
 					fclose(FileHandle);
 					FileHandle = nullptr;
@@ -647,7 +647,7 @@ bool ReadParameter(
 			for (FileIndex = 0;FileIndex < FileList_DNSCurveDatabase.size();++FileIndex)
 			{
 			//Get attributes of file.
-				if (!ReadFileAttributesLoop(ReadDNSCurveTextType, FileIndex, FileList_DNSCurveDatabase.at(FileIndex), IsDNSCurveFileModified) && !IsConfigFileModified)
+				if (!ReadSupport_FileAttributesLoop(ReadDNSCurveTextType, FileIndex, FileList_DNSCurveDatabase.at(FileIndex), IsDNSCurveFileModified) && !IsConfigFileModified)
 				{
 					if (!IsDNSCurveFileModified)
 						continue;
@@ -677,7 +677,7 @@ bool ReadParameter(
 //					continue;
 				}
 				else {
-					if (!ReadText(FileHandle, ReadDNSCurveTextType, FileIndex))
+					if (!ReadSupport_ReadText(FileHandle, ReadDNSCurveTextType, FileIndex))
 					{
 						fclose(FileHandle);
 						FileHandle = nullptr;
@@ -692,7 +692,7 @@ bool ReadParameter(
 			}
 
 		//Read data from list.
-			if (IsDNSCurveFileModified && !ReadDNSCurveDatabaseItem(ReadDNSCurveTextType))
+			if (IsDNSCurveFileModified && !ReadSupport_DNSCurveDatabaseItem(ReadDNSCurveTextType))
 			{
 				if (IsFirstRead)
 					return false;
@@ -795,7 +795,7 @@ void ReadIPFilter(
 		for (FileIndex = 0;FileIndex < FileList_IPFilter.size();++FileIndex)
 		{
 		//Get attributes of file.
-			if (!ReadFileAttributesLoop(READ_TEXT_TYPE::IPFILTER, FileIndex, FileList_IPFilter.at(FileIndex), IsFileModified))
+			if (!ReadSupport_FileAttributesLoop(READ_TEXT_TYPE::IPFILTER, FileIndex, FileList_IPFilter.at(FileIndex), IsFileModified))
 				continue;
 
 		//Clear list data.
@@ -835,7 +835,7 @@ void ReadIPFilter(
 			}
 
 		//Read data.
-			ReadText(FileHandle, READ_TEXT_TYPE::IPFILTER, FileIndex);
+			ReadSupport_ReadText(FileHandle, READ_TEXT_TYPE::IPFILTER, FileIndex);
 			fclose(FileHandle);
 			FileHandle = nullptr;
 		}
@@ -905,7 +905,7 @@ void ReadHosts(
 		for (FileIndex = 0;FileIndex < FileList_Hosts.size();++FileIndex)
 		{
 		//Get attributes of file.
-			if (!ReadFileAttributesLoop(READ_TEXT_TYPE::HOSTS, FileIndex, FileList_Hosts.at(FileIndex), IsFileModified))
+			if (!ReadSupport_FileAttributesLoop(READ_TEXT_TYPE::HOSTS, FileIndex, FileList_Hosts.at(FileIndex), IsFileModified))
 				continue;
 
 		//clear list data.
@@ -945,7 +945,7 @@ void ReadHosts(
 			}
 
 		//Read data.
-			ReadText(FileHandle, READ_TEXT_TYPE::HOSTS, FileIndex);
+			ReadSupport_ReadText(FileHandle, READ_TEXT_TYPE::HOSTS, FileIndex);
 			fclose(FileHandle);
 			FileHandle = nullptr;
 		}
@@ -977,7 +977,7 @@ void ReadHosts(
 }
 
 //Loop of file attributes reading
-bool ReadFileAttributesLoop(
+bool ReadSupport_FileAttributesLoop(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	FILE_DATA &FileListItem, 
@@ -1118,7 +1118,7 @@ void ClearModificatingListData(
 }
 
 //Get data list from file
-void GetParameterListData(
+void ReadSupport_GetParameterListData(
 	std::vector<std::string> &ListData, 
 	const std::string &Data, 
 	const size_t DataOffset, 
