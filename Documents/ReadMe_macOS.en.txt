@@ -95,7 +95,16 @@ Reboot service method:
 3. Use launchctl load pcap_dnsproxy.service.plist to start the service
 
 
-Update the program method (do not overwrite it directly, otherwise it may cause unpredictable errors):
+How to update if configuration version not changed:
+1. Open the terminal, use sudo -i to obtain root permissions and enter the macOS directory
+2. Execute the service uninstall script using ./macOS_Uninstall.sh
+3. Back up all profiles and delete all Pcap_DNSProxy dependencies
+  * Restore the backup configuration files to the macOS directory before proceeding to step 4
+4. Redeploy Pcap_DNSProxy by installation method
+  * Config.conf file is recommended to be reset according to the backup profile, such as direct coverage may lead to no new features
+
+
+How to update if configuration version changed:
 1. Open the terminal, use sudo -i to obtain root permissions and enter the macOS directory
 2. Execute the service uninstall script using ./macOS_Uninstall.sh
 3. Back up all profiles and delete all Pcap_DNSProxy dependencies

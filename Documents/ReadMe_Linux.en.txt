@@ -23,13 +23,10 @@ The installation process is relatively long and more complex operation, please g
     * LibEvent
     * LibPcap
       * When decompressing LibPcap dependencies, you can skip compiling and installing dependencies and tools in the following table. For details, see below.
-      * Part of the Linux distributions may also require support for the libpcap-dev tool, as well as running ldconfig to refresh the system library cache
     * Libsodium
       * If you are depriving Libsodium dependencies, you can skip compiling and installing dependencies and tools in the following table. For details, see below.
-      * Part of the Linux distributions may also require support for the libsodium-dev tool, as well as running ldconfig to refresh the system library cache
     * OpenSSL
       * If you peel off the OpenSSL dependency, you can skip the compilation and installation of the following dependencies and tools, as described in the following, not recommended
-      * Part of the Linux distributions may also require support for the libssl-dev/openssl-dev tool, as well as running ldconfig to refresh the system library cache
 
 2. Compile the Pcap_DNSProxy program and configure the program properties
   * Use the terminal to enter the Source/Auxiliary/Scripts directory, use chmod 755 CMake_Build.sh to get the script to execute the license
@@ -149,7 +146,24 @@ Reboot service method:
   3. You can also service PcapDNSProxyService stop stop service, wait for some time and then service PcapDNSProxyService start start service
 
 
-Update the program method (do not overwrite it directly, otherwise it may cause unpredictable errors):
+How to update if configuration version not changed:
+* Systemd section:
+  1. Open the terminal, use su to get the root permission and enter the Release directory
+  2. Execute the service uninstall script using ./Linux_Uninstall.Systemd.sh
+  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
+  4. Redeploy Pcap_DNSProxy by installation method
+    * Restore the backup configuration file to the Release directory before proceeding to step 4
+    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
+* SysV section:
+  1. Open the terminal, use su to get the root permission and enter the Release directory
+  2. Execute the service uninstall script using ./Linux_Uninstall.SysV.sh
+  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
+  4. Redeploy Pcap_DNSProxy by installation method
+    * Restore the backup configuration file to the Release directory before proceeding to step 4
+    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
+
+
+How to update if configuration version changed:
 * Systemd section:
   1. Open the terminal, use su to get the root permission and enter the Release directory
   2. Execute the service uninstall script using ./Linux_Uninstall.Systemd.sh

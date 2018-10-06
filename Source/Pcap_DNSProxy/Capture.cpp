@@ -1194,7 +1194,7 @@ bool Capture_AnalyzeDNS(
 		reinterpret_cast<const dns_hdr *>(Buffer)->Question > 0)
 	{
 		std::string Domain;
-		if (PacketQueryToString(Buffer + sizeof(dns_hdr), Domain) > DOMAIN_MAXSIZE && 
+		if (PacketQueryToString(Buffer + sizeof(dns_hdr), Domain) > DOMAIN_MINSIZE && 
 			Domain == reinterpret_cast<const char *>(Parameter.DomainTest_Data))
 		{
 			IsRegisterStatus = true;

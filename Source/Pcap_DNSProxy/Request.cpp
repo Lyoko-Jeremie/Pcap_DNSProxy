@@ -91,11 +91,16 @@ bool LoadBufferEvent_DomainTest(
 	EVENT_TABLE_TRANSMISSION_ONCE *EventArgument_Domain)
 {
 //Mark arguments and check first load.
-	auto IsFirstLoad = false;
 	if (EventArgument_Domain == nullptr)
 		return false;
-	else if (EventArgument_Domain->Protocol_Transport->empty())
-		IsFirstLoad = true;
+
+//Reload all parameter list.
+	EventArgument_Domain->Protocol_Transport->clear();
+	EventArgument_Domain->SocketTimeout->clear();
+	for (auto &BufferItem:*EventArgument_Domain->SendBuffer)
+		memset(BufferItem.get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+	EventArgument_Domain->SendLen->clear();
+	EventArgument_Domain->SendTimes->clear();
 
 //Socket initialization
 	ssize_t ErrorCode = 0;
@@ -122,8 +127,7 @@ bool LoadBufferEvent_DomainTest(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 				return false;
 			}
-			else if (IsFirstLoad)
-			{
+			else {
 			//Socket timeout settings
 				timeval SocketTimeout;
 				memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -137,8 +141,11 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 				EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-				EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-				memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+				{
+					EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				}
 				EventArgument_Domain->SendLen->push_back(0);
 				EventArgument_Domain->SendTimes->push_back(0);
 
@@ -147,8 +154,11 @@ bool LoadBufferEvent_DomainTest(
 				{
 					EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 					EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-					EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+					{
+						EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					}
 					EventArgument_Domain->SendLen->push_back(0);
 					EventArgument_Domain->SendTimes->push_back(0);
 				}
@@ -168,8 +178,7 @@ bool LoadBufferEvent_DomainTest(
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 						return false;
 					}
-					else if (IsFirstLoad)
-					{
+					else {
 					//Socket timeout settings
 						timeval SocketTimeout;
 						memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -183,8 +192,11 @@ bool LoadBufferEvent_DomainTest(
 					//Multiple
 						EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 						EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-						EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+						{
+							EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+							memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						}
 						EventArgument_Domain->SendLen->push_back(0);
 						EventArgument_Domain->SendTimes->push_back(0);
 					}
@@ -211,8 +223,7 @@ bool LoadBufferEvent_DomainTest(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 				return false;
 			}
-			else if (IsFirstLoad)
-			{
+			else {
 			//Socket timeout settings
 				timeval SocketTimeout;
 				memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -226,8 +237,11 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 				EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-				EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-				memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+				{
+					EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				}
 				EventArgument_Domain->SendLen->push_back(0);
 				EventArgument_Domain->SendTimes->push_back(0);
 
@@ -236,8 +250,11 @@ bool LoadBufferEvent_DomainTest(
 				{
 					EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 					EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-					EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+					{
+						EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					}
 					EventArgument_Domain->SendLen->push_back(0);
 					EventArgument_Domain->SendTimes->push_back(0);
 				}
@@ -256,8 +273,7 @@ bool LoadBufferEvent_DomainTest(
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 						return false;
 					}
-					else if (IsFirstLoad)
-					{
+					else {
 					//Socket timeout settings
 						timeval SocketTimeout;
 						memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -271,8 +287,11 @@ bool LoadBufferEvent_DomainTest(
 					//Multiple
 						EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 						EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-						EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+						{
+							EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+							memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						}
 						EventArgument_Domain->SendLen->push_back(0);
 						EventArgument_Domain->SendTimes->push_back(0);
 					}
@@ -303,8 +322,7 @@ bool LoadBufferEvent_DomainTest(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 				return false;
 			}
-			else if (IsFirstLoad)
-			{
+			else {
 			//Socket timeout settings
 				timeval SocketTimeout;
 				memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -318,8 +336,11 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 				EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-				EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-				memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+				{
+					EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				}
 				EventArgument_Domain->SendLen->push_back(0);
 				EventArgument_Domain->SendTimes->push_back(0);
 
@@ -328,8 +349,11 @@ bool LoadBufferEvent_DomainTest(
 				{
 					EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 					EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-					EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+					{
+						EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					}
 					EventArgument_Domain->SendLen->push_back(0);
 					EventArgument_Domain->SendTimes->push_back(0);
 				}
@@ -349,8 +373,7 @@ bool LoadBufferEvent_DomainTest(
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 						return false;
 					}
-					else if (IsFirstLoad)
-					{
+					else {
 					//Socket timeout settings
 						timeval SocketTimeout;
 						memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -364,8 +387,11 @@ bool LoadBufferEvent_DomainTest(
 					//Multiple
 						EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_TCP);
 						EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-						EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+						{
+							EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+							memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						}
 						EventArgument_Domain->SendLen->push_back(0);
 						EventArgument_Domain->SendTimes->push_back(0);
 					}
@@ -394,8 +420,7 @@ bool LoadBufferEvent_DomainTest(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 				return false;
 			}
-			else if (IsFirstLoad)
-			{
+			else {
 			//Socket timeout settings
 				timeval SocketTimeout;
 				memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -409,8 +434,11 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 				EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-				EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-				memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+				{
+					EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+				}
 				EventArgument_Domain->SendLen->push_back(0);
 				EventArgument_Domain->SendTimes->push_back(0);
 
@@ -419,8 +447,11 @@ bool LoadBufferEvent_DomainTest(
 				{
 					EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 					EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-					EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-					memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+					{
+						EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+					}
 					EventArgument_Domain->SendLen->push_back(0);
 					EventArgument_Domain->SendTimes->push_back(0);
 				}
@@ -440,8 +471,7 @@ bool LoadBufferEvent_DomainTest(
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
 						return false;
 					}
-					else if (IsFirstLoad)
-					{
+					else {
 					//Socket timeout settings
 						timeval SocketTimeout;
 						memset(&SocketTimeout, 0, sizeof(SocketTimeout));
@@ -455,8 +485,11 @@ bool LoadBufferEvent_DomainTest(
 					//Multiple
 						EventArgument_Domain->Protocol_Transport->push_back(IPPROTO_UDP);
 						EventArgument_Domain->SocketTimeout->push_back(SocketTimeout);
-						EventArgument_Domain->SendBuffer->push_back(std::move(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES)));
-						memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						while (EventArgument_Domain->Protocol_Transport->size() > EventArgument_Domain->SendBuffer->size())
+						{
+							EventArgument_Domain->SendBuffer->push_back(std::make_unique<uint8_t[]>(EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES));
+							memset(EventArgument_Domain->SendBuffer->back().get(), 0, EventArgument_Domain->SendSize + MEMORY_RESERVED_BYTES);
+						}
 						EventArgument_Domain->SendLen->push_back(0);
 						EventArgument_Domain->SendTimes->push_back(0);
 					}
@@ -595,10 +628,10 @@ bool LoadBufferEvent_DomainTest(
 		}
 		else {
 			EventArgument_Domain->EventBufferList->push_back(BufferEvent);
+
+		//Set callback function.
+			bufferevent_setcb(EventArgument_Domain->EventBufferList->back(), ReadCallback_TransmissionOnce, WriteCallback_TransmissionOnce, EventCallback_TransmissionOnce, EventArgument_Domain);
 		}
-	
-	//Set callback function.
-		bufferevent_setcb(EventArgument_Domain->EventBufferList->back(), ReadCallback_TransmissionOnce, WriteCallback_TransmissionOnce, EventCallback_TransmissionOnce, EventArgument_Domain);
 
 	//Set timeouts and water mark.
 		if (EventArgument_Domain->Protocol_Transport->at(Index) == IPPROTO_TCP)
@@ -614,7 +647,7 @@ bool LoadBufferEvent_DomainTest(
 		//Set interval timeout.
 		//No need to read any data from bufferevent, set read socket timeout to interval timeout.
 			bufferevent_set_timeouts(EventArgument_Domain->EventBufferList->back(), &EventArgument_Domain->IntervalTimeout, &EventArgument_Domain->SocketTimeout->at(Index));
-	
+
 		//Set bufferevent water mark.
 			bufferevent_setwatermark(EventArgument_Domain->EventBufferList->back(), EV_READ, DNS_PACKET_MINSIZE, 0);
 		}
@@ -635,7 +668,7 @@ bool LoadBufferEvent_DomainTest(
 //			bufferevent_setwatermark(EventArgument_Domain->EventBufferList->back(), EV_READ, DNS_PACKET_MINSIZE, 0);
 		}
 
-	//Set highest priority for bufferevents.
+	//Set highest priority level for bufferevents.
 		bufferevent_priority_set(EventArgument_Domain->EventBufferList->back(), 0);
 
 	//Enable bufferevent read and write operations.
@@ -647,10 +680,23 @@ bool LoadBufferEvent_DomainTest(
 
 	//Connect to server and reset send times.
 		Result = SocketConnecting(EventArgument_Domain->Protocol_Transport->at(Index), EventArgument_Domain->SocketValue->ValueSet.at(Index).Socket, reinterpret_cast<const sockaddr *>(&EventArgument_Domain->SocketValue->ValueSet.at(Index).SockAddr), EventArgument_Domain->SocketValue->ValueSet.at(Index).AddrLen, EventArgument_Domain->SendBuffer->at(Index).get(), EventArgument_Domain->SendLen->at(Index));
-		if (Result >= DNS_PACKET_MINSIZE)
+		if (Result == EXIT_FAILURE)
+		{
+			if (EventArgument_Domain->EventBufferList->back() != nullptr)
+			{
+				bufferevent_free(EventArgument_Domain->EventBufferList->back());
+				EventArgument_Domain->EventBufferList->back() = nullptr;
+			}
+
+			SocketSetting(EventArgument_Domain->SocketValue->ValueSet.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		}
+		else if (Result >= DNS_PACKET_MINSIZE)
+		{
 			EventArgument_Domain->SendTimes->at(Index) = 1U;
-		else 
+		}
+		else {
 			EventArgument_Domain->SendTimes->at(Index) = 0;
+		}
 	}
 
 	return true;
@@ -696,8 +742,8 @@ bool TestRequest_Domain(
 	EventArgument_Domain.RecvSize = Parameter.LargeBufferSize;
 	EventArgument_Domain.FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 
-//Set priority to event base, but no need to make sure working.
-//Write + Read (Main + Alternate + Multiple servers) > Timer
+//Set priority level to event base, but no need to make sure working.
+//Write = Read (Main + Alternate + Multiple servers) > Timer
 	event_base_priority_init(EventArgument_Domain.EventBase, 2U);
 
 //Set timer event.
@@ -709,10 +755,10 @@ bool TestRequest_Domain(
 	}
 	else {
 		EventArgument_Domain.EventList->push_back(TimerEvent);
-	}
 
-//Set lowest priority for timer event.
-//	event_priority_set(TimerEvent, 1U);
+	//Set lowest priority level for timer event.
+//		event_priority_set(TimerEvent, 1U);
+	}
 
 //Add timer event to event base.
 	if (event_add(TimerEvent, &EventArgument_Domain.IntervalTimeout) == RETURN_ERROR)
@@ -728,8 +774,15 @@ bool TestRequest_Domain(
 		++EventArgument_Domain.OnceTimes;
 	}
 
-//Event loop.
-	event_base_dispatch(EventArgument_Domain.EventBase);
+//Event loop
+	for (;;)
+	{
+	//Start event loop.
+		event_base_dispatch(EventArgument_Domain.EventBase);
+
+	//Waiting for next loop.
+		Sleep(SENDING_INTERVAL_TIME);
+	}
 
 //Monitor terminated
 	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Domain Test module Monitor terminated", 0, nullptr, 0);
@@ -905,7 +958,6 @@ bool TestRequest_ICMP(
 	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	event *TimerEvent = nullptr;
 	std::vector<event *> EventList;
-	size_t Priority = 0;
 
 //Event initialization
 	EVENT_TABLE_SOCKET_SEND EventArgument_ICMP;
@@ -931,10 +983,9 @@ bool TestRequest_ICMP(
 	EventArgument_ICMP.RecvSize = Parameter.LargeBufferSize;
 	EventArgument_ICMP.FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 
-//Set priority level to event base.
-//Write (Main > Alternate > Multiple servers) > Read > Timer
-	if (SocketValue_ICMP.ValueSet.size() + 2U < EVENT_MAX_PRIORITIES)
-		event_base_priority_init(EventArgument_ICMP.EventBase, static_cast<int>(SocketValue_ICMP.ValueSet.size() + 2U));
+//Set priority level to event base, but no need to make sure working.
+//Write = Read (Main + Alternate + Multiple servers) > Timer
+	event_base_priority_init(EventArgument_ICMP.EventBase, 2U);
 
 //Set timer event.
 	TimerEvent = evtimer_new(EventArgument_ICMP.EventBase, TimerCallback_SocketSend, &EventArgument_ICMP);
@@ -945,10 +996,10 @@ bool TestRequest_ICMP(
 	}
 	else {
 		EventArgument_ICMP.EventList->push_back(TimerEvent);
-	}
 
-//Set lowest priority level for timer event.
-	event_priority_set(EventArgument_ICMP.EventList->back(), static_cast<int>(SocketValue_ICMP.ValueSet.size() + 1U));
+	//Set lowest priority level for timer event.
+//		event_priority_set(EventArgument_ICMP.EventList->back(), 1U);
+	}
 
 //Add timer event to event base.
 	if (event_add(EventArgument_ICMP.EventList->back(), &EventArgument_ICMP.IntervalTimeout) == RETURN_ERROR)
@@ -982,10 +1033,9 @@ bool TestRequest_ICMP(
 			EventArgument_ICMP.EventList->push_back(WriteEvent);
 		}
 
-	//Set second lowest priority level for read events and decrement priority level for write events.
-		event_priority_set(ReadEvent, static_cast<int>(SocketValue_ICMP.ValueSet.size()));
-		event_priority_set(WriteEvent, static_cast<int>(Priority));
-		++Priority;
+	//Set lowest priority level for read events and highest priority level for write events.
+//		event_priority_set(ReadEvent, 1U);
+		event_priority_set(WriteEvent, 0);
 
 	//Add events to event base.
 		if (event_add(ReadEvent, &EventArgument_ICMP.IntervalTimeout) == RETURN_ERROR || //No need to read any data from socket, set socket timeout to interval timeout.
@@ -996,9 +1046,16 @@ bool TestRequest_ICMP(
 		}
 	}
 
-//Event loop.
-	++EventArgument_ICMP.OnceTimes;
-	event_base_dispatch(EventArgument_ICMP.EventBase);
+//Event loop
+	EventArgument_ICMP.OnceTimes = 1U;
+	for (;;)
+	{
+	//Start event loop.
+		event_base_dispatch(EventArgument_ICMP.EventBase);
+
+	//Waiting for next loop.
+		Sleep(SENDING_INTERVAL_TIME);
+	}
 
 //Jump here to stop loop.
 StopLoop:

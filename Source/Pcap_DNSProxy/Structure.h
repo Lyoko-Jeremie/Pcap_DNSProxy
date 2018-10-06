@@ -2406,6 +2406,10 @@ typedef struct _dns_record_srv_
 #define EDNS_CODE_CSUBNET          0x0008        //Client subnet (RFC 7871)
 #define EDNS_CODE_EDNS_EXPIRE      0x0009        //EDNS Expire (RFC 7314)
 #define EDNS_CODE_COOKIES          0x000A        //DNS Cookies (RFC 7873)
+#define EDNS_CODE_TCP_KEEPALIVE    0x000B        //EDNS TCP Keepalive (RFC 7828)
+#define EDNS_CODE_PADDING          0x000C        //EDNS Padding (RFC 7830)
+#define EDNS_CODE_CHAIN            0x000D        //DNS CHAIN Query (RFC 7901)
+#define EDNS_CODE_KEY_TAG          0x000E        //DNSSEC Key Tag (RFC 8145)
 
 //Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define EDNS_ADDRESS_FAMILY_IPV4   0x0001

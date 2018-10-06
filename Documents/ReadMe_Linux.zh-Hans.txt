@@ -23,13 +23,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * LibEvent
     * LibPcap
       * 编译时如果剥离 LibPcap 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 部分 Linux 发行版可能还需要 libpcap-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
     * Libsodium
       * 编译时如果剥离 Libsodium 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 部分 Linux 发行版可能还需要 libsodium-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
     * OpenSSL
       * 编译时如果剥离 OpenSSL 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 部分 Linux 发行版可能还需要 libssl-dev/openssl-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
 
 2.编译 Pcap_DNSProxy 程序并配置程序属性
   * 使用终端进入 Source/Auxiliary/Scripts 目录，使用 chmod 755 CMake_Build.sh 使脚本获得执行权限
@@ -117,7 +114,24 @@ https://sourceforge.net/projects/pcap-dnsproxy
   3.也可以先 service PcapDNSProxyService stop 停止服务，稍等一段时间再 service PcapDNSProxyService start 启动服务即可
 
 
-更新程序方法（切勿直接覆盖，否则可能会造成不可预料的错误）：
+小更新的方法（需要以管理员身份进行，如果配置文件的 Version 有更新需要进行大更新）：
+* Systemd 部分：
+  1.打开终端，使用 su 获得 root 权限并进入 Release 目录内
+  2.使用 ./Linux_Uninstall.Systemd.sh 执行服务卸载脚本
+  3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
+  4.按照安装方法重新部署 Pcap_DNSProxy
+    * 进行第 4 步前先将备份的配置文件还原到 Release 目录内
+    * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
+* SysV 部分：
+  1.打开终端，使用 su 获得 root 权限并进入 Release 目录内
+  2.使用 ./Linux_Uninstall.SysV.sh 执行服务卸载脚本
+  3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
+  4.按照安装方法重新部署 Pcap_DNSProxy
+    * 进行第 4 步前先将备份的配置文件还原到 Release 目录内
+    * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
+
+
+大更新的方法（需要以管理员身份进行，切勿直接覆盖，否则可能会造成不可预料的错误）：
 * Systemd 部分：
   1.打开终端，使用 su 获得 root 权限并进入 Release 目录内
   2.使用 ./Linux_Uninstall.Systemd.sh 执行服务卸载脚本

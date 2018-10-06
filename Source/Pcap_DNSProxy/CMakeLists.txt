@@ -128,7 +128,7 @@ ENDIF(STATIC_LIB)
 ## All needed
 find_package(Threads REQUIRED)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(Pcap_DNSProxy event)
+target_link_libraries(Pcap_DNSProxy event_core)
 ## Libraries needed
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(Pcap_DNSProxy sodium)

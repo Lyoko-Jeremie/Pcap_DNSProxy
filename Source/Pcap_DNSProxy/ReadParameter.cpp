@@ -2099,12 +2099,16 @@ bool ReadParameterData_Listen(
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::IPV6;
 			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::IPV4;
+			else 
+				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::BOTH;
 
 		//Transport layer
 			if (InnerData.find("TCP") != std::string::npos && InnerData.find("UDP") == std::string::npos)
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::TCP;
 			else if (InnerData.find("UDP") != std::string::npos && InnerData.find("TCP") == std::string::npos)
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::UDP;
+			else 
+				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::BOTH;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
@@ -2146,12 +2150,7 @@ bool ReadParameterData_Listen(
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
-			if (InnerData.find("PRIVATE") != std::string::npos)
-			{
-				Parameter.OperationMode = LISTEN_MODE::PRIVATE;
-				IsFoundParameter = true;
-			}
-			else if (InnerData.find("SERVER") != std::string::npos)
+			if (InnerData.find("SERVER") != std::string::npos)
 			{
 				Parameter.OperationMode = LISTEN_MODE::SERVER;
 				IsFoundParameter = true;
@@ -2164,6 +2163,11 @@ bool ReadParameterData_Listen(
 			else if (InnerData.find("PROXY") != std::string::npos)
 			{
 				Parameter.OperationMode = LISTEN_MODE::PROXY;
+				IsFoundParameter = true;
+			}
+//			else if (InnerData.find("PRIVATE") != std::string::npos)
+			else {
+				Parameter.OperationMode = LISTEN_MODE::PRIVATE;
 				IsFoundParameter = true;
 			}
 		}
@@ -2276,6 +2280,8 @@ bool ReadParameterData_DNS(
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::IPV6;
 		else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::IPV4;
+		else 
+			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
 
 	//Transport layer
 		if (InnerData.find("FORCE") != std::string::npos)
@@ -2288,6 +2294,9 @@ bool ReadParameterData_DNS(
 		else if (InnerData.find("TCP") != std::string::npos)
 		{
 			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::TCP;
+		}
+		else {
+			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
 		}
 
 	//According type
@@ -2449,6 +2458,8 @@ bool ReadParameterData_Local_DNS(
 			ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
 		else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 			ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::IPV4;
+		else 
+			ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 
 	//Transport layer
 		if (InnerData.find("FORCE") != std::string::npos)
@@ -2461,6 +2472,9 @@ bool ReadParameterData_Local_DNS(
 		else if (InnerData.find("TCP") != std::string::npos)
 		{
 			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
+		}
+		else {
+			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 		}
 
 	//According type
@@ -3477,6 +3491,8 @@ bool ReadParameterData_Data(
 			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::TCP;
 		else if (InnerData.find("UDP") != std::string::npos && InnerData.find("TCP") == std::string::npos)
 			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
+		else 
+			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::BOTH;
 
 	//Mark parameter found.
 		IsFoundParameter = true;
@@ -3604,6 +3620,8 @@ bool ReadParameterData_Proxy(
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::IPV6;
 			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::IPV4;
+			else 
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
 
 		//Transport layer
 			if (InnerData.find("FORCE") != std::string::npos)
@@ -3616,6 +3634,9 @@ bool ReadParameterData_Proxy(
 			else if (InnerData.find("UDP") != std::string::npos)
 			{
 				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
+			}
+			else {
+				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
 			}
 
 		//According type
@@ -3720,6 +3741,8 @@ bool ReadParameterData_Proxy(
 				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::IPV6;
 			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::IPV4;
+			else 
+				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
 
 		//According type
 			if (InnerData.find("TYPE") != std::string::npos)
@@ -4014,6 +4037,8 @@ bool ReadParameterData_DNSCurve_Main(
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
 			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::IPV4;
+			else 
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 
 		//Transport layer
 			if (InnerData.find("FORCE") != std::string::npos)
@@ -4026,6 +4051,9 @@ bool ReadParameterData_DNSCurve_Main(
 			else if (InnerData.find("TCP") != std::string::npos)
 			{
 				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
+			}
+			else {
+				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 			}
 
 		//According type

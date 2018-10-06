@@ -273,7 +273,8 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
 	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
 	ConfigurationParameter->DirectRequest_Protocol = REQUEST_MODE_DIRECT::NONE;
-	ConfigurationParameter->DNS_CacheType = DNS_CACHE_TYPE::NONE;
+	ConfigurationParameter->DNS_CacheType = DNS_CACHE_TYPE::BOTH;
+	ConfigurationParameter->DNS_CacheParameter = DEFAULT_DNS_CACHE_PARAMETER;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	//[Local DNS] block
@@ -281,7 +282,6 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 
 	//[Values] block
-	ConfigurationParameter->ThreadPoolBaseNum = DEFAULT_THREAD_POOL_BASENUM;
 	ConfigurationParameter->ThreadPoolMaxNum = DEFAULT_THREAD_POOL_MAXNUM;
 	ConfigurationParameter->ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
 	ConfigurationParameter->EDNS_PayloadSize = EDNS_PACKET_MINSIZE;

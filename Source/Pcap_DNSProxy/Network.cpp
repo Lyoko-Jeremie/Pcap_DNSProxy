@@ -421,10 +421,6 @@ void ReadCallback_SocketSend(
 	short EventType, 
 	void *Argument)
 {
-//No response from server.
-	if ((EventType & EV_TIMEOUT) != 0)
-		return;
-
 //Mark arguments.
 	if (Argument == nullptr)
 		return;
@@ -563,7 +559,8 @@ void TimerCallback_SocketSend(
 	const auto CallbackArgument = reinterpret_cast<EVENT_TABLE_SOCKET_SEND *>(Argument);
 
 //Interval time controller
-	if (Parameter.ICMP_Speed == 0) //ICMP Test disable
+	if (Parameter.ICMP_Speed == 0 || //ICMP Test disable
+		event_base_get_num_events(CallbackArgument->EventBase, EVENT_BASE_COUNT_ACTIVE) > 0) //Waiting all callback finished.
 	{
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
@@ -573,9 +570,12 @@ void TimerCallback_SocketSend(
 	#endif
 
 	//Reset next recheck process.
-		CallbackArgument->TotalSleepTime = 0;
-		CallbackArgument->OnceTimes = 0;
-		CallbackArgument->RetestTimes = 0;
+		if (Parameter.ICMP_Speed == 0)
+		{
+			CallbackArgument->TotalSleepTime = 0;
+			CallbackArgument->OnceTimes = 0;
+			CallbackArgument->RetestTimes = 0;
+		}
 
 	//Add timer event again.
 		if (event_add(CallbackArgument->EventList->front(), &CallbackArgument->IntervalTimeout) == RETURN_ERROR)
@@ -687,14 +687,6 @@ void TimerCallback_SocketSend(
 		CallbackArgument->OnceTimes = 1U;
 	}
 
-//Reset socket timeout.
-#if defined(PLATFORM_WIN)
-	CallbackArgument->SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
-	CallbackArgument->SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	CallbackArgument->SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
-#endif
-
 //Increase sequence.
 	if (Parameter.ICMP_Sequence == 0)
 	{
@@ -703,6 +695,14 @@ void TimerCallback_SocketSend(
 		else 
 			CallbackArgument->PacketSequence = htons(ntohs(CallbackArgument->PacketSequence) + 1U);
 	}
+
+//Reset socket timeout.
+#if defined(PLATFORM_WIN)
+	CallbackArgument->SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
+	CallbackArgument->SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	CallbackArgument->SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
+#endif
 
 //Repeat events.
 	auto IsTimerEvent = true, IsWriteEvent = true;
@@ -713,6 +713,7 @@ void TimerCallback_SocketSend(
 		{
 			if (IsTimerEvent)
 			{
+			//Reset interval timeout.
 				CallbackArgument->IntervalTimeout.tv_sec = SENDING_INTERVAL_TIME / SECOND_TO_MILLISECOND;
 				IsTimerEvent = false;
 
@@ -758,10 +759,14 @@ void EventCallback_TransmissionOnce(
 	}
 
 //Connection finished, error or timeout
-	if (EventType & BEV_EVENT_EOF || EventType & BEV_EVENT_ERROR || EventType & BEV_EVENT_TIMEOUT)
+	if ((EventType & BEV_EVENT_EOF) > 0 || (EventType & BEV_EVENT_ERROR) > 0 || (EventType & BEV_EVENT_TIMEOUT) > 0)
 	{
-		bufferevent_free(CallbackArgument->EventBufferList->at(Index));
-		CallbackArgument->EventBufferList->at(Index) = nullptr;
+		if (CallbackArgument->EventBufferList->at(Index) != nullptr)
+		{
+			bufferevent_free(CallbackArgument->EventBufferList->at(Index));
+			CallbackArgument->EventBufferList->at(Index) = nullptr;
+		}
+
 		SocketSetting(CallbackArgument->SocketValue->ValueSet.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
@@ -796,10 +801,13 @@ void ReadCallback_TransmissionOnce(
 	}
 
 //Free bufferevent and close socket once completed.
-	bufferevent_free(CallbackArgument->EventBufferList->at(Index));
-	CallbackArgument->EventBufferList->at(Index) = nullptr;
-	SocketSetting(CallbackArgument->SocketValue->ValueSet.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+	if (CallbackArgument->EventBufferList->at(Index) != nullptr)
+	{
+		bufferevent_free(CallbackArgument->EventBufferList->at(Index));
+		CallbackArgument->EventBufferList->at(Index) = nullptr;
+	}
 
+	SocketSetting(CallbackArgument->SocketValue->ValueSet.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	return;
 }
 
@@ -867,7 +875,8 @@ void TimerCallback_TransmissionOnce(
 	CallbackArgument->SocketValue->ClearAllSocket(false);
 
 //Interval time controller
-	if (Parameter.DomainTest_Speed == 0) //Domain Test disable
+	if (Parameter.DomainTest_Speed == 0 || //Domain Test disable
+		event_base_get_num_events(CallbackArgument->EventBase, EVENT_BASE_COUNT_ACTIVE) > 0) //Waiting all callback finished.
 	{
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
@@ -877,9 +886,12 @@ void TimerCallback_TransmissionOnce(
 	#endif
 
 	//Reset next recheck process.
-		CallbackArgument->TotalSleepTime = 0;
-		CallbackArgument->OnceTimes = 0;
-		CallbackArgument->RetestTimes = 0;
+		if (Parameter.DomainTest_Speed == 0)
+		{
+			CallbackArgument->TotalSleepTime = 0;
+			CallbackArgument->OnceTimes = 0;
+			CallbackArgument->RetestTimes = 0;
+		}
 
 	//Add timer event again.
 		if (event_add(CallbackArgument->EventList->front(), &CallbackArgument->IntervalTimeout) == RETURN_ERROR)
@@ -991,7 +1003,7 @@ void TimerCallback_TransmissionOnce(
 		CallbackArgument->OnceTimes = 1U;
 	}
 
-//Repeat events.
+//Set interval timeout and repeat events.
 	CallbackArgument->IntervalTimeout.tv_sec = SENDING_INTERVAL_TIME / SECOND_TO_MILLISECOND;
 	if (event_add(CallbackArgument->EventList->front(), &CallbackArgument->IntervalTimeout) == RETURN_ERROR)
 		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event error", 0, nullptr, 0);

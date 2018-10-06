@@ -32,7 +32,7 @@ Special attention:
 Special use skills:
 Here are some of the proposed project group introduction and use of skills for your reference and use. For details on adjusting the configuration, see the section below
 
-* This tool configuration options are rich, configure the different combinations will have different effects, introduce several more commonly used combination:
+* Configure the different combinations will have different effects, introduce several more commonly used combination:
   * Default configuration: UDP request + capture mode
   * Outgoing Protocol = .. TCP: UDP request after the first request and UDP packet capture mode, the occupation of the network resources is relatively high
     * Because the TCP request most of the time will not be poisoned, this combination of filtering effect is more reliable
@@ -547,12 +547,12 @@ Base - the basic parameter area
   * Resource Record Set TTL Filter - RFC 2181 clarifications to the DNS specification, restrict TTL values of RRSet: 1 to enable/0 to disable.
 
 * Data - data area
-  * ICMP ID - ICMP/Ping packet header ID: hexadecimal character in the format 0x ****, if left blank, the thread ID of the thread is used as the request id
+  * ICMP ID - ICMP/Ping packet header ID: Hexadecimal character in 0x****, randomly generated if empty.
   * ICMP Sequence - ICMP/Ping Package Header Sequence/Serial Number: Hexadecimal character in the format 0x ****, if left blank, increments from 0x0001 to each request loopback increment
-  * ICMP PaddingData - ICMP Additional information, Ping program to send the request to make up the data to reach the Ethernet type network to send the minimum length of the data: length of 18 bytes - 2048 bytes between the ASCII data , Leave the ICMP extension using the Microsoft Windows Ping program
+  * ICMP Padding Data - ICMP Additional information, Ping program to send the request to make up the data to reach the Ethernet type network to send the minimum length of the data: length of 18 bytes - 2048 bytes between the ASCII data , Leave the ICMP extension using the Ping program
   * Domain Test Protocol - Protocol used when sending a request using Domain Test: Fill in TCP and UDP
-  * Domain Test ID - DNS packet header ID: hexadecimal character in the format 0x ****, if left blank, the thread ID of the thread is used as the request id
-  * Domain Test Data - DNS Server Resolution Function Variable Name Test: Please enter the correct, confirm the name of the function variable that will not be poisoned and do not exceed 253 bytes of ASCII data, leaving a function variable name randomly test
+  * Domain Test ID - DNS packet header ID: Hexadecimal character in 0x****, randomly generated if empty.
+  * Domain Test Data - DNS Server Resolution Function Variable Name Test: Please enter a correct domain which less than 253 bytes of ASCII, randomly generated if empty.
   * Local Machine Server Name - Local DNS Server Name: Enter the correct function variable name and do not exceed 253 bytes of ASCII data, leaving pcap-dnsproxy.server as the local server name
 
 * Proxy - proxy area

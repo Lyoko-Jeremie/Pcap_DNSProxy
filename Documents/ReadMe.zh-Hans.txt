@@ -32,7 +32,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 特别使用技巧：
 这里列出部分项目组建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
 
-* 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
+* 配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
   * Outgoing Protocol = ..TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
@@ -543,12 +543,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Resource Record Set TTL Filter - 严格的资源记录生存时间过滤：开启为 1/关闭为 0
 
 * Data - 数据区域
-  * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
+  * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则随机生成
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为从 0x0001 开始每个请求回环式递增
-  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18 字节 - 2048 字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据
+  * ICMP Padding Data - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18 字节 - 2048 字节 ASCII 数据之间，留空则使用 Ping 程序的 ICMP 附加数据
   * Domain Test Protocol - 使用 Domain Test 发送请求时所使用的协议：可填入 TCP 和 UDP
-  * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
-  * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试
+  * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则随机生成
+  * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则随机生成
   * Local Machine Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过 253 字节 ASCII 数据，留空则使用 pcap-dnsproxy.server 作为本地服务器名称
 
 * Proxy - 代理区域

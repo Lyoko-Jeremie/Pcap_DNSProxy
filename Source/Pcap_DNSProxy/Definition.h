@@ -129,7 +129,6 @@
 #define COMMAND_COUNT_MIN                             1                                 //Minimum count of commands
 #define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
 #define DEFAULT_LOG_READING_MAXSIZE                   8388608U                          //Default number of maximum log file size(8MB/8388608 bytes)
-#define DEFAULT_THREAD_POOL_BASENUM                   24U                               //Default number of base thread pool size
 #define DEFAULT_THREAD_POOL_MAXNUM                    256U                              //Default number of maximum thread pool size
 #define DIFFERNET_FILE_SET_NUM                        2U                                //Number of different file set
 #define DNS_RECORD_COUNT_AAAA_MAX                     43U                               //Maximum Record Resources size of whole AAAA answers, 28 bytes * 43 records = 1204 bytes
@@ -215,9 +214,10 @@
 #endif
 
 //Time definitions
-#define DEFAULT_ALTERNATE_RANGE_TIME                  10U                         //Default time of checking timeout(10 seconds)
+#define DEFAULT_ALTERNATE_RANGE_TIME                  60U                         //Default time of checking timeout(1 minute/60 seconds)
 #define DEFAULT_ALTERNATE_RESET_TIME                  300U                        //Default time to reset switching of alternate servers(300 seconds/5 minutes)
-#define DEFAULT_ALTERNATE_TIMES                       5U                          //Default times of request timeout(5 times)
+#define DEFAULT_ALTERNATE_TIMES                       10U                         //Default times of request timeout(10 times)
+#define DEFAULT_DNS_CACHE_PARAMETER                   4096U                       //Default parameter of DNS cache(4096 size of queue)
 #define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending(900 seconds/15 minutes)
 #define DEFAULT_FILE_REFRESH_TIME                     15000U                      //Default time between files auto-refreshing(15000 ms/15 seconds)
 #define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL(900 seconds/15 minutes)
