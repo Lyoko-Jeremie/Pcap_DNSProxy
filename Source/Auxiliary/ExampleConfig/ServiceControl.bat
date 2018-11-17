@@ -30,6 +30,7 @@ if not ERRORLEVEL 1 (
 	set Arch=_XP
 )
 set Prog=Pcap_DNSProxy%Arch%.exe
+set ServiceName=PcapDNSProxyService
 
 
 :: Command
@@ -61,16 +62,15 @@ goto %UserChoice%
 
 :: Service install
 :CASE_1
-	sc stop PcapDNSProxyService
-	sc delete PcapDNSProxyService
+	call :DEL_SERVICE
 	ping 127.0.0.1 -n 3 >NUL
-	taskkill /F /IM Pcap_DNSProxy.exe >NUL
+	call :KILL_PROG
 	ping 127.0.0.1 -n 3 >NUL
-	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
+	sc create %ServiceName% binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	%Prog% --first-setup
-	sc description PcapDNSProxyService "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
-	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
-	sc start PcapDNSProxyService
+	sc description %ServiceName% "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
+	sc failure %ServiceName% reset= 0 actions= restart/5000/restart/10000//
+	sc start %ServiceName%
 	ipconfig /flushdns
 	call :CHECK_PROG
 	if "%Command%" == "" (
@@ -84,10 +84,9 @@ goto %UserChoice%
 
 :: Service uninstall
 :CASE_2
-	sc stop PcapDNSProxyService
-	sc delete PcapDNSProxyService
+	call :DEL_SERVICE
 	ping 127.0.0.1 -n 3 >NUL
-	taskkill /F /IM Pcap_DNSProxy.exe >NUL
+	call :KILL_PROG
 	ipconfig /flushdns
 	if "%Command%" == "" (
 		echo.
@@ -101,7 +100,7 @@ goto %UserChoice%
 
 :: Service start
 :CASE_3
-	sc start PcapDNSProxyService
+	sc start %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	ping 127.0.0.1 -n 3 >NUL
@@ -117,7 +116,7 @@ goto %UserChoice%
 
 :: Service stop
 :CASE_4
-	sc stop PcapDNSProxyService
+	sc stop %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	if "%Command%" == "" (
@@ -132,11 +131,11 @@ goto %UserChoice%
 
 :: Service restart
 :CASE_5
-	sc stop PcapDNSProxyService
+	sc stop %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
-	taskkill /F /IM Pcap_DNSProxy.exe >NUL
+	call :KILL_PROG
 	ping 127.0.0.1 -n 3 >NUL
-	sc start PcapDNSProxyService
+	sc start %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	call :CHECK_PROG
@@ -185,7 +184,7 @@ goto %UserChoice%
 :: Process check
 :CHECK_PROG
 	tasklist | findstr /L /I "%Prog%" >NUL
-	if ERRORLEVEL 1 (
+	if %ERRORLEVEL% EQU 1 (
 		color 4F
 		echo.
 		echo The program is not running, please check the configurations and error log.
@@ -196,3 +195,24 @@ goto %UserChoice%
 		goto :CHOICE
 	)
 	echo.
+	goto :EOF
+
+:: Process kill
+:KILL_PROG
+	tasklist | findstr /L /I "%Prog%" >NUL
+	if %ERRORLEVEL% EQU 0 (
+		taskkill /F /IM %Prog% >NUL
+		goto :EOF
+	)
+	goto :EOF
+
+
+:: Service delete
+:DEL_SERVICE
+	sc query %ServiceName% >NUL
+	if %ERRORLEVEL% EQU 0 (
+		sc stop %ServiceName%
+		sc delete %ServiceName%
+		goto :EOF
+	)
+	goto :EOF
