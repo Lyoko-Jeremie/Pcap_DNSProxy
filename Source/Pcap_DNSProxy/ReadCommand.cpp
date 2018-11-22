@@ -24,7 +24,7 @@
 bool ReadCommand(
 	int argc, 
 	wchar_t *argv[])
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool ReadCommand(
 	int argc, 
 	char *argv[])
@@ -39,11 +39,11 @@ bool ReadCommand(
 	for (;;)
 	{
 	//Get full module file name which is the location of program and not its working directory.
-		const auto Result = GetModuleFileNameW(
+		const auto ResultValue = GetModuleFileNameW(
 			nullptr, 
 			FilePathBuffer.get(), 
-			static_cast<DWORD>(BufferSize));
-		if (Result == 0)
+			static_cast<const DWORD>(BufferSize));
+		if (ResultValue == 0)
 		{
 			std::wstring Message(L"[System Error] Path initialization error");
 			if (GetLastError() == 0)
@@ -59,7 +59,7 @@ bool ReadCommand(
 
 			return false;
 		}
-		else if (Result == BufferSize)
+		else if (ResultValue == BufferSize)
 		{
 		//Buffer is too small to hold the module name.
 		#if defined(PLATFORM_WIN_XP)
@@ -161,7 +161,7 @@ bool ReadCommand(
 
 //Read commands.
 	auto IsRewriteLogFile = false;
-	for (size_t Index = 1U;static_cast<int>(Index) < argc;++Index)
+	for (size_t Index = 1U;static_cast<const int>(Index) < argc;++Index)
 	{
 	//Case insensitive
 	#if defined(PLATFORM_WIN)
@@ -175,7 +175,7 @@ bool ReadCommand(
 		if (InsensitiveString == COMMAND_LONG_SET_PATH || InsensitiveString == COMMAND_SHORT_SET_PATH)
 		{
 		//Commands check
-			if (static_cast<int>(Index) + 1 >= argc)
+			if (static_cast<const int>(Index) + 1 >= argc)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 				return false;
@@ -222,14 +222,16 @@ bool ReadCommand(
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			PrintToScreen(false, false, L"Pcap_DNSProxy ");
 			PrintToScreen(false, false, FULL_VERSION);
-		#if defined(PLATFORM_WIN)
-			PrintToScreen(false, false, L"(Windows)\n");
+		#if defined(PLATFORM_FREEBSD)
+			PrintToScreen(false, false, L"(FreeBSD)\n");
 		#elif defined(PLATFORM_OPENWRT)
 			PrintToScreen(false, false, L"(OpenWrt)\n");
 		#elif defined(PLATFORM_LINUX)
 			PrintToScreen(false, false, L"(Linux)\n");
 		#elif defined(PLATFORM_MACOS)
 			PrintToScreen(false, false, L"(macOS)\n");
+		#elif defined(PLATFORM_WIN)
+			PrintToScreen(false, false, L"(Windows)\n");
 		#endif
 			PrintToScreen(false, false, COPYRIGHT_MESSAGE);
 			PrintToScreen(false, false, L"\nUsage: Please visit ReadMe.. files in Documents folder.\n");
@@ -238,7 +240,7 @@ bool ReadCommand(
 			PrintToScreen(false, false, L"   --help:                Print help messages on screen.\n");
 			PrintToScreen(false, false, L"   --log-file Path+Name:  Set path and name of log file.\n");
 			PrintToScreen(false, false, L"   --log-file stderr/out: Set output log to stderr or stdout.\n");
-			PrintToScreen(false, false, L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
+			PrintToScreen(false, false, L"   --flush-dns:           Flush all domain cache in program and system immediately.\n");
 			PrintToScreen(false, false, L"   --flush-dns Domain:    Flush cache of Domain in program and all in system immediately.\n");
 		#if defined(PLATFORM_WIN)
 			PrintToScreen(false, false, L"   --first-setup:         Test local firewall.\n");
@@ -255,7 +257,7 @@ bool ReadCommand(
 		else if (InsensitiveString == COMMAND_LONG_LOG_FILE || InsensitiveString == COMMAND_SHORT_LOG_FILE)
 		{
 		//Commands check
-			if (static_cast<int>(Index) + 1 >= argc)
+			if (static_cast<const int>(Index) + 1 >= argc)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 				return false;
@@ -308,34 +310,36 @@ bool ReadCommand(
 
 			return false;
 		}
-	//Flush DNS Cache from user.
-		else if (InsensitiveString == COMMAND_FLUSH_DNS)
+	//Flush domain Cache from user.
+		else if (InsensitiveString == COMMAND_FLUSH_DOMAIN_CACHE)
 		{
 		//Remove single domain cache.
 			if (argc > 2)
 			{
 			#if defined(PLATFORM_WIN)
-				if (wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
+				if (wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) == 0 || 
+					wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) + wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) + wcslen(L": ") >= FILE_BUFFER_SIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				if (strnlen(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && strnlen(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
+				if (strnlen(argv[2U], FILE_BUFFER_SIZE) == 0 || 
+					strnlen(argv[2U], FILE_BUFFER_SIZE) + strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) + strlen(": ") >= FILE_BUFFER_SIZE)
 			#endif
 				{
 					PrintToScreen(true, false, L"[Parameter Error] Domain name parameter error.\n");
 				}
 				else {
 				#if defined(PLATFORM_WIN)
-					Flush_DNS_MailSlotSender(argv[2U]);
+					FlushDomainCache_MailslotSender(argv[2U]);
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-					Flush_DNS_FIFO_Sender(reinterpret_cast<const uint8_t *>(argv[2U]));
+					FlushDomainCache_PipeSender(reinterpret_cast<const uint8_t *>(argv[2U]));
 				#endif
 				}
 			}
-		//Flush all DNS cache.
+		//Flush all domain cache.
 			else {
 			#if defined(PLATFORM_WIN)
-				Flush_DNS_MailSlotSender(nullptr);
+				FlushDomainCache_MailslotSender(nullptr);
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				Flush_DNS_FIFO_Sender(nullptr);
+				FlushDomainCache_PipeSender(nullptr);
 			#endif
 			}
 

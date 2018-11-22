@@ -274,7 +274,7 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
 	ConfigurationParameter->DirectRequest_Protocol = REQUEST_MODE_DIRECT::NONE;
 	ConfigurationParameter->DNS_CacheType = DNS_CACHE_TYPE::BOTH;
-	ConfigurationParameter->DNS_CacheParameter = DEFAULT_DNS_CACHE_PARAMETER;
+	ConfigurationParameter->DNS_CacheParameter = DEFAULT_DOMAIN_CACHE_PARAMETER;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	//[Local DNS] block
@@ -997,9 +997,9 @@ bool SocketValueTable::SocketValueInit(
 		else {
 			ValueItem.AddrLen = sizeof(sockaddr_in6);
 			ValueItem.SockAddr.ss_family = AF_INET6;
-			reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_port = htons(SocketPort);
+			reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_port = hton16(SocketPort);
 			if (SocketAddress != nullptr)
-				memcpy_s(&reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr, sizeof(reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr), SocketAddress, sizeof(in6_addr));
+				memcpy_s(&reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr, sizeof(reinterpret_cast<const sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr), SocketAddress, sizeof(in6_addr));
 
 		//Add item to list.
 			ValueSet.push_back(ValueItem);
@@ -1018,9 +1018,9 @@ bool SocketValueTable::SocketValueInit(
 		else {
 			ValueItem.AddrLen = sizeof(sockaddr_in);
 			ValueItem.SockAddr.ss_family = AF_INET;
-			reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_port = htons(SocketPort);
+			reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_port = hton16(SocketPort);
 			if (SocketAddress != nullptr)
-				memcpy_s(&reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr, sizeof(reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr), SocketAddress, sizeof(in_addr));
+				memcpy_s(&reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr, sizeof(reinterpret_cast<const sockaddr_in *>(&ValueItem.SockAddr)->sin_addr), SocketAddress, sizeof(in_addr));
 
 		//Add item to list.
 			ValueSet.push_back(ValueItem);

@@ -73,6 +73,7 @@ bool Capture_AnalyzeTCP(
 	const uint8_t * const Buffer);
 bool Capture_AnalyzeDNS(
 	const uint8_t * const Buffer, 
+	const size_t BufferSize, 
 	bool &IsRegisterStatus);
 bool Capture_PacketStatusCheck(
 	const uint16_t Protocol, 

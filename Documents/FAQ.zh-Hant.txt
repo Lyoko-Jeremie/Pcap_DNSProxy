@@ -9,7 +9,7 @@
 當程式運行時發生錯誤，可能會建置錯誤報告也就是 Error.log 檔，其位於工具服務註冊的目錄內，對解決問題至關重要
 * 錯誤報表的格式為 "[日期 時間] -> [錯誤類型] 對錯誤代碼的簡單介紹[錯誤代碼] in 錯誤出處(Line 行數)."（不含雙引號）
 * Windows 的錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
-* Linux/macOS 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
+* FreeBSD/Linux/macOS 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
 * WinPcap/LibPcap 錯誤資訊的具體含義可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 * Winsock 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 * HTTP 狀態碼具體含義可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -27,20 +27,20 @@ Error.log 詳細錯誤報表：
   * Capture module Monitor terminated - 抓包模組已經停止運行：建議重新開機服務或程式
   * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
   * Convert multiple byte or wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
-  * Create FIFO error - FIFO 創建錯誤：建議重新開機服務或程式
+  * Create FIFO pipe error - FIFO 管道創建錯誤：建議重新開機服務或程式
   * Create mailslot error - Mailslot 創建錯誤：建議重新開機服務或程式
   * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
   * DNSCurve UDP Signature Request module Monitor terminated - DNSCurve UDP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
   * Domain Test module Monitor terminated - 網域名稱測試模組已經停止運行：建議重新開機服務或程式
-  * FIFO read messages error - FIFO 讀取資訊錯誤：建議重新開機服務或程式
-  * FIFO module Monitor terminated - FIFO 監視模組已經停止運行：建議重新開機服務或程式
-  * FIFO write messages error - FIFO 寫入資訊錯誤：建議重新開機服務或程式
+  * FIFO pipe read messages error - FIFO 讀取資訊錯誤：建議重新開機服務或程式
+  * FIFO pipe module listener terminated - FIFO 監視模組已經停止運行：建議重新開機服務或程式
+  * FIFO pipe write messages error - FIFO 寫入資訊錯誤：建議重新開機服務或程式
   * Get Local Address Information module Monitor terminated - 本地位址監視模組已經停止監視：建議重新開機服務或程式
   * Handle system signals error - 設置系統信號處理函數錯誤：建議重新開機服務或程式
   * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求：建議重新開機服務或程式
   * Ignore system signal error - 設置忽略系統部分信號錯誤：建議重新開機服務或程式
   * Mailslot read messages error - Mailslot 讀取資訊錯誤：建議重新開機服務或程式
-  * Mailslot module Monitor terminated - Mailslot 監視模組已經停止運行：建議重新開機服務或程式
+  * Mailslot module listener terminated - Mailslot 監視模組已經停止運行：建議重新開機服務或程式
   * Mailslot write messages error - Mailslot 寫入資訊錯誤：建議重新開機服務或程式
   * Process already exists error - 進程已經存在：請確認只有一個本程式實例運行中
   * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視：建議重新開機服務或程式

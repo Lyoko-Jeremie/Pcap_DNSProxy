@@ -7,7 +7,7 @@
 *.vcxproj text eol=crlf
 Documents/*.txt text eol=crlf
 
-# Newline format in Linux/macOS(LF)
+# Newline format in FreeBSD/Linux/macOS(LF)
 *.pbxproj text eol=lf
 *.plist text eol=lf
 *.service text eol=lf

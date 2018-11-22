@@ -70,7 +70,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 8: Exit - 退出
 * 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
   * Windows: Config.ini > Config.conf > Config.cfg > Config
-  * Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
+  * FreeBSD/Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
 * 請求網域名稱解析優先順序
   * 使用系統 API 函數進行網域名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS 緩存 > Local Hosts/境內 DNS 解析網域名稱清單 > 遠端DNS伺服器
   * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行網域名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS緩存 > Local Hosts/境內 DNS 解析網域名稱清單 > 遠端 DNS 伺服器
@@ -88,25 +88,27 @@ https://sourceforge.net/projects/pcap-dnsproxy
 所有外掛參數也可通過-h 和--help 參數查詢
 
 * --config-path Path
-  啟動時指定設定檔所在的工作目錄
+    啟動時指定設定檔所在的工作目錄
 * --help
-  輸出程式説明資訊到螢幕上
+    輸出程式説明資訊到螢幕上
 * --version
-  輸出程式版本號資訊到螢幕上
+    輸出程式版本號資訊到螢幕上
 * --flush-dns
-  立即清空所有程式內以及系統內的 DNS 緩存
+    立即清空所有程式內以及系統內的 DNS 緩存
 * --flush-dns Domain
-  立即清空網域名稱為 Domain 以及所有系統內的 DNS 緩存
+    立即清空網域名稱為 Domain 以及所有系統內的 DNS 緩存
 * --keypair-generator
-  生成 DNSCurve(DNSCrypt) 協定所需使用的金鑰組到 KeyPair.txt
+    生成 DNSCurve(DNSCrypt) 協定所需使用的金鑰組到 KeyPair.txt
 * --lib-version
-  輸出程式所用庫的版本號資訊到螢幕上
+    輸出程式所用庫的版本號資訊到螢幕上
 * --log-file Path+Name
-  啟動時指定日誌檔的儲存位置，當 Path+Name 為 stderr 或 stdout 時將按標準流方式輸出
+    啟動時指定日誌檔的儲存位置
+* --log-file stderr/out
+    啟動時指定日誌檔按 stderr 或 stdout 方式輸出
 * --disable-daemon
-  關閉守護進程模式 (Linux)
+    關閉守護進程模式 (Linux)
 * --first-setup
-  進行本地防火牆測試 (Windows)
+    進行本地防火牆測試 (Windows)
 
 
 -------------------------------------------------------------------------------
@@ -295,20 +297,20 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
     * 本功能開啟後才會嘗試讀取 Local Hosts 白名單內的資料，關閉時不會讀取任何白名單的資料
   * Local Routing - 境內路由表識別功能：開啟為 1 /關閉為 0
-    * 本功能開啟後所有請求都會先發送至境內伺服器進行功能變數名稱解析，再根據解析結果進行下一步的操作
+    * 本功能開啟後所有請求都會先發送至境內伺服器進行網域名稱解析，再根據解析結果進行下一步的操作
   * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
   * 注意：關於 Local Hosts 和 Local Routing 和 Local Force Request 的組合說明
     * 預設情況下在境內伺服器解析失敗會進行下一步的操作
-    * 所有參數均為關閉時，直接跳過使用境內伺服器進行功能變數名稱解析的過程
-    * Local Hosts 可以單獨開啟：將按照（黑）白名單（無）命中規則的功能變數名稱，才（不）使用境內伺服器進行解析
-    * Local Routing 可以單獨開啟：所有請求都會先發送至境內伺服器進行功能變數名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+    * 所有參數均為關閉時，直接跳過使用境內伺服器進行網域名稱解析的過程
+    * Local Hosts 可以單獨開啟：將按照（黑）白名單（無）命中規則的網域名稱，才（不）使用境內伺服器進行解析
+    * Local Routing 可以單獨開啟：所有請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
     * Local Force Request 不能單獨啟用：需要和 Local Hosts 配合使用
     * Local Hosts + Local Routing 不能同時啟用：功能衝突
-    * Local Hosts + Local Force Request 可以同時啟用：強制已命中規則的功能變數名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
+    * Local Hosts + Local Force Request 可以同時啟用：強制已命中規則的網域名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
     * Local Routing + Local Force Request 不能同時啟用：功能衝突
-    * Local Hosts + Local Routing + Local Force Request 可以同時啟用：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行功能變數名稱解析，根據請求的性質：
-      * 如果該請求的功能變數名稱命中 Local Hosts 則強制已命中規則的功能變數名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
-      * 如果該請求的功能變數名稱沒有命中 Local Hosts 則根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+    * Local Hosts + Local Routing + Local Force Request 可以同時啟用：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行網域名稱解析，根據請求的性質：
+      * 如果該請求的網域名稱命中 Local Hosts 則強制已命中規則的網域名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
+      * 如果該請求的網域名稱沒有命中 Local Hosts 則根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
       * 所有沒有命中且沒有成功匹配路由表的請求將會進行下一步的操作
 
 * Addresses - 普通模式位址區域
@@ -806,12 +808,12 @@ Hosts 設定檔分為多個提供不同功能的區域
     127.0.0.1|127.0.0.2 127.0.0.0-127.255.255.255
     255.255.255.255/24 255.254.253.252
     ::1 ::-::FFFF
-    FFFF:EEEE::/64|FFFF:EEEE:: FFFF::EEEE|FFFF::EEEF-FFFF::FFFF
+    1234:5678::/64|8765:4321:: AAAA::BBBB|CCCC::DDDD-CCCC::EEEE
 
   * 解析結果的位址範圍為 127.0.0.0 到 127.255.255.255 時將被替換為 127.0.0.1 或 127.0.0.2
   * 解析結果的位址為 255.254.253.252 時將被替換為 255.255.255.252
   * 解析結果的位址範圍為 :: 到 ::FFFF 時將被替換為 ::1
-  * 解析結果的位址範圍為 FFFF::EEEE 或 FFFF::EEEF 到 FFFF::FFFF 時將被替換為 FFFF:FFFF::EEEE 或 FFFF:FFFF::xxxx:xxxx:xxxx:xxxx 或 FFFF:EEEE::EEEE 或 FFFF:EEEE::xxxx:xxxx:xxxx:xxxx
+  * 解析結果的位址為 AAAA::BBBB 或範圍為 CCCC::DDDD 到 CCCC::EEEE 時將被替換為 1234:5678::BBBB 或 8765:4321:: 和 CCCC::xxxx 或 8765:4321::
 
 
 * Stop - 臨時停止讀取標籤

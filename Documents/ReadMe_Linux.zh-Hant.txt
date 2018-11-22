@@ -148,19 +148,18 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 小更新的方法（需要以管理員身份進行，如果設定檔的 Version 有更新需要進行大更新）：
 * Systemd 部分：
-  1.打開終端，使用 su 獲得 root 許可權並進入 Release 目錄內
-  2.使用 ./Linux_Uninstall.Systemd.sh 執行服務卸載腳本
-  3.備份所有設定檔，刪除所有 Pcap_DNSProxy 相關檔
-  4.按照安裝方法重新部署 Pcap_DNSProxy
-    * 進行第 4 步前先將備份的配置檔案還原到 Release 目錄內
-    * Config.conf 檔建議按照備份的設定檔重新設置一次，如直接覆蓋可能會導致沒有新功能的選項
+  1.打開終端，使用 su 獲得 root 許可權
+  2.使用 systemctl stop Pcap_DNSProxy 停止服務
+  3.將目錄內的所有可執行檔刪除
+  4.將新版本的 Pcap_DNSProxy 的所有可執行檔解壓到相同位置
+  5.使用 systemctl start Pcap_DNSProxy 啟動服務
 * SysV 部分：
-  1.打開終端，使用 su 獲得 root 許可權並進入 Release 目錄內
-  2.使用 ./Linux_Uninstall.SysV.sh 執行服務卸載腳本
-  3.備份所有設定檔，刪除所有 Pcap_DNSProxy 相關檔
-  4.按照安裝方法重新部署 Pcap_DNSProxy
-    * 進行第 4 步前先將備份的配置檔案還原到 Release 目錄內
-    * Config.conf 檔建議按照備份的設定檔重新設置一次，如直接覆蓋可能會導致沒有新功能的選項
+  1.打開終端，使用 su 獲得 root 許可權
+  2.使用 service PcapDNSProxyService stop 停止服務
+  3.將目錄內的所有可執行檔刪除
+  4.將新版本的 Pcap_DNSProxy 的所有可執行檔解壓到相同位置
+  5.使用 service PcapDNSProxyService start 啟動服務
+
 
 大更新的方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
 * Systemd 部分：

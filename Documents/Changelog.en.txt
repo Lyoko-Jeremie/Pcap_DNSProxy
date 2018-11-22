@@ -1,24 +1,27 @@
-﻿Pcap_DNSProxy 0.4.9.10-0.4.9.11 changelog(2018-10-06):
+﻿Pcap_DNSProxy 0.4.9.10-0.4.9.12 changelog(2018-11-22):
 
 * Add --log-file command, which can set location of log file. [LGA1150/Syrone Wong]
 * Rebuild Domain Test and ICMP Test module.
 * Change set path command from --config-file to --config-path.
 * OpenSSL upgrade to 1.1.1. (macOS)
+* Project IDE Xcode upgrade to version 10.0. (macOS)
 * Change default log output to stderr. (OpenWrt) [Syrone Wong]
-* Fix packet sequence, network operation and interval time problems in Domain Test and ICMP Test module.
+* Fix case sensitive bug of domain request. [muink/WeirdoShaw]
+* Fix Address Hosts network prefix bug. [LGA1150]
+* Fix packet sequence, network operation and interval time problems in Domain Test and ICMP Test module. [LisonFan]
 * Fix range mismatch of Hop Limits Fluctuation parameter.
 * Fix echo parameter problem in shell. (Linux/macOS) [YKilin]
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: F84E29744E3EB866D8BE6AD7FB39A301AD398A35074A513E99D59CA052FB59B0
-    * Windows/Pcap_DNSProxy_x86.exe: 90793D6A634B1FD27D813D888A1E4E4B9FA3E8CABB54CA8792F1A5CA8C34F283
-    * Windows/Pcap_DNSProxy_XP.exe: 8F4A732261756857078D0189CA41D5B3CE7F7207B30A272EB387B7DD949544C4
-    * macOS/Pcap_DNSProxy: E443096CF03EB7C0C827D68FE8504136BA4646F7C682EC4A7C5909FEE5C8E875
+    * Windows/Pcap_DNSProxy.exe: D6CF2AD8C6E79DBB5C621350AB4EEE4D1B9543CA2D1B0201B72C2B081779F793
+    * Windows/Pcap_DNSProxy_x86.exe: 6C7C58EB33CB5EAAD8E2E0AD20240791DD5706D7706DD977EF9251AAA67690A2
+    * Windows/Pcap_DNSProxy_XP.exe: DC7B10F343B94CB056AEB884358E91659F592590043B2C6D6A86C2D9B6643B06
+    * macOS/Pcap_DNSProxy: A4A8B93BAD61E0931C8A293E35BF3358E60515512392B50B45CB06B73200FA6E
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 24E43F3E525FA2B881D99682215D16CD89D4C3EDB893F59AB91B240F4D628F32
-    * Windows/Pcap_DNSProxy_x86.exe: 5572C7F036B7B27A9F345D6BC9932B41CC13B8D9423FCF6B1513CA34C0F87609
-    * Windows/Pcap_DNSProxy_XP.exe: 81C303B966D03C28A81B8839F51CAC48DCE07D45D566DB108CBF0C8C3B332238
-    * macOS/Pcap_DNSProxy: 4C99BFA830843C4DD082AB5B25204D1DDEC86931809B8859FEEDCA73B78E4E0A
+    * Windows/Pcap_DNSProxy.exe: D25CED3830F7200BE7BC7B103691C05828C5ECFC65F2BA85824A688D39185E7B
+    * Windows/Pcap_DNSProxy_x86.exe: 7ADD0F5205D5BBF1F7728812DAE93CE3F816260B034FB6F323A762CB1A0CE49B
+    * Windows/Pcap_DNSProxy_XP.exe: 280EAC0375F52F1C0C2FE7F86C8B9CF8DF23BB151C49F67B68811CD26DB231E9
+    * macOS/Pcap_DNSProxy: B4FBB6B90087165C6BF5C98850123E22F3B48B80A3229DDC0FF565C043860C28
 
 
 -------------------------------------------------------------------------------

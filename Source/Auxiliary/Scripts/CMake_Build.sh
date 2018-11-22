@@ -26,7 +26,7 @@ mkdir Release
 chmod -R 755 Auxiliary/Scripts
 
 # Set thread number variable.
-if (uname -s | grep -iq "Darwin"); then
+if (uname -s | grep -iq "FreeBSD" || uname -s | grep -iq "Darwin"); then
 	ThreadNum=`sysctl -n hw.ncpu`
 else 
 	ThreadNum=`nproc`
@@ -50,7 +50,7 @@ if (echo "$*" | grep -iq -e "--enable-static"); then
 fi
 CMakeShell="${CMakeShell}../Pcap_DNSProxy"
 ${CMakeShell}
-make -j${ThreadNum}
+make -j ${ThreadNum}
 cd ..
 
 # Cleanup

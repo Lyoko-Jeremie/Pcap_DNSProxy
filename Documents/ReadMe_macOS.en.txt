@@ -89,36 +89,34 @@ Special notes about the OpenSSL library:
 -------------------------------------------------------------------------------
 
 
-Reboot service method:
-1. Open the terminal, use sudo -i to get the root permission and go to the/Library/LaunchDaemons directory
-2. Use the launchctl unload pcap_dnsproxy.service.plist to stop the service, wait a while
-3. Use launchctl load pcap_dnsproxy.service.plist to start the service
+Restart service method:
+1. Open the terminal, use "sudo -i" to get the root permission and go to /Library/LaunchDaemons directory.
+2. Use "launchctl unload pcap_dnsproxy.service.plist" to stop the service, and wait a moment.
+3. Use "launchctl load pcap_dnsproxy.service.plist" to start the service.
 
 
 How to update if configuration version not changed:
-1. Open the terminal, use sudo -i to obtain root permissions and enter the macOS directory
-2. Execute the service uninstall script using ./macOS_Uninstall.sh
-3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  * Restore the backup configuration files to the macOS directory before proceeding to step 4
-4. Redeploy Pcap_DNSProxy by installation method
-  * Config.conf file is recommended to be reset according to the backup profile, such as direct coverage may lead to no new features
+1. Open the terminal, use "sudo -i" to get the root permission and go to /Library/LaunchDaemons directory.
+2. Remove all executable files in the macOS folder.
+3. Decompress all executable files of latest Pcap_DNSProxy to the same folder.
+4. Use "launchctl load pcap_dnsproxy.service.plist" to start the service.
 
 
 How to update if configuration version changed:
-1. Open the terminal, use sudo -i to obtain root permissions and enter the macOS directory
-2. Execute the service uninstall script using ./macOS_Uninstall.sh
-3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  * Restore the backup configuration files to the macOS directory before proceeding to step 4
-4. Redeploy Pcap_DNSProxy by installation method
-  * Config.conf file is recommended to be reset according to the backup profile, such as direct coverage may lead to no new features
+1. Open the terminal, use "sudo -i" to get root permission and enter macOS directory.
+2. Run "./macOS_Uninstall.sh"
+3. Do BACKUP all profiles and delete all Pcap_DNSProxy files.
+  * Restore the backup configuration files to the macOS directory before proceeding to step 4.
+4. Redeploy Pcap_DNSProxy via installation method.
+  * Config.conf file is recommended to be reset according to the backup profiles.
 
 
 Uninstall method:
-1. Restore the system network settings
-2. Open the terminal, use sudo -i to obtain root permissions and enter the macOS directory
-3. Execute the service uninstall script using ./macOS_Uninstall.sh
-  * What the script does: stop and uninstall the daemon service, remove the plist profile
-4. Remove all Pcap_DNSProxy dependencies
+1. Restore the system network settings.
+2. Open the terminal, use "sudo -i" to get root permissions and enter macOS directory.
+3. Run "./macOS_Uninstall.sh"
+  * This script: Stop, uninstall daemon service, and remove plist profile.
+4. Remove all Pcap_DNSProxy files.
 
 
 -------------------------------------------------------------------------------

@@ -133,7 +133,7 @@ bool ReadSupport_ReadText(
 			//About this check process, please visit https://en.wikipedia.org/wiki/UTF-8.
 				if (FileBuffer.get()[Index] > 0xE0 && Index >= 3U)
 				{
-					SingleText = ((static_cast<uint16_t>(FileBuffer.get()[Index] & 0x0F)) << 12U) + ((static_cast<uint16_t>(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + static_cast<uint16_t>(FileBuffer.get()[Index + 2U] & 0x3F);
+					SingleText = ((static_cast<const uint16_t>(FileBuffer.get()[Index] & 0x0F)) << 12U) + ((static_cast<const uint16_t>(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + static_cast<const uint16_t>(FileBuffer.get()[Index + 2U] & 0x3F);
 
 				//Next line format
 					if (SingleText == UNICODE_LINE_SEPARATOR || 
@@ -173,7 +173,7 @@ bool ReadSupport_ReadText(
 				}
 				else if (FileBuffer.get()[Index] > 0xC0 && Index >= 2U)
 				{
-					SingleText = ((static_cast<uint16_t>(FileBuffer.get()[Index] & 0x1F)) << 6U) + static_cast<uint16_t>(FileBuffer.get()[Index] & 0x3F);
+					SingleText = ((static_cast<const uint16_t>(FileBuffer.get()[Index] & 0x1F)) << 6U) + static_cast<const uint16_t>(FileBuffer.get()[Index] & 0x3F);
 
 				//Next line format
 					if (SingleText == UNICODE_NEXT_LINE)
@@ -733,8 +733,8 @@ bool ReadParameter(
 					DNSCurveParameterModificating.MonitorItemReset();
 			#endif
 
-			//Mark configuration file modified time and flush DNS cache.
-				Flush_DNS_Cache(nullptr);
+			//Mark configuration file modified time and flush domain cache.
+				FlushDomainCache_Main(nullptr);
 				GlobalRunningStatus.ConfigFileModifiedTime = GetCurrentSystemTime();
 			}
 		}
@@ -856,8 +856,8 @@ void ReadIPFilter(
 		IPFilterFileMutex.unlock();
 		IPFilterFileSetModificating->shrink_to_fit();
 
-	//Flush DNS cache and auto-refresh.
-		Flush_DNS_Cache(nullptr);
+	//Flush domain cache and auto-refresh.
+		FlushDomainCache_Main(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -966,8 +966,8 @@ void ReadHosts(
 		HostsFileMutex.unlock();
 		HostsFileSetModificating->shrink_to_fit();
 
-	//Flush DNS cache and auto-refresh.
-		Flush_DNS_Cache(nullptr);
+	//Flush domain cache and auto-refresh.
+		FlushDomainCache_Main(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -1024,9 +1024,9 @@ bool ReadSupport_FileAttributesLoop(
 #if defined(PLATFORM_WIN)
 	FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 	FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-	if (FileSizeData.QuadPart < 0 || static_cast<uint64_t>(FileSizeData.QuadPart) >= FILE_READING_MAXSIZE)
+	if (FileSizeData.QuadPart < 0 || static_cast<const uint64_t>(FileSizeData.QuadPart) >= FILE_READING_MAXSIZE)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (FileStatData.st_size >= static_cast<off_t>(FILE_READING_MAXSIZE))
+	if (FileStatData.st_size >= static_cast<const off_t>(FILE_READING_MAXSIZE))
 #endif
 	{
 	//Clear list data.

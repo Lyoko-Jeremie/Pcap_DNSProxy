@@ -1,7 +1,7 @@
 :: Pcap_DNSProxy service control batch
 :: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 :: 
-:: Author: Hugo Chan, Syrone Wong, Chengr28
+:: Author: Hugo Chan, Syrone Wong, Stzx, Chengr28
 :: 
 
 
@@ -21,15 +21,15 @@ if ERRORLEVEL 1 (
 
 
 :: Processor architecture and system version check
-set Arch=
+set Architecture=
 if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-	set Arch=_x86
+	set Architecture=_x86
 )
 ver | findstr /L /I " 5." >NUL
 if not ERRORLEVEL 1 (
-	set Arch=_XP
+	set Architecture=_XP
 )
-set Prog=Pcap_DNSProxy%Arch%.exe
+set Executable=Pcap_DNSProxy%Architecture%.exe
 set ServiceName=PcapDNSProxyService
 
 
@@ -49,8 +49,8 @@ echo 2: Uninstall service
 echo 3: Start service
 echo 4: Stop service
 echo 5: Restart service
-echo 6: Flush DNS cache in Pcap_DNSProxy
-echo 7: Flush DNS cache in system only
+echo 6: Flush domain cache in Pcap_DNSProxy
+echo 7: Flush domain cache in system only
 echo 8: Exit
 echo.
 set /P UserChoice="Choose: "
@@ -62,17 +62,17 @@ goto %UserChoice%
 
 :: Service install
 :CASE_1
-	call :DEL_SERVICE
+	call :DELETE_SERVICE
 	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROG
+	call :KILL_PROCESS
 	ping 127.0.0.1 -n 3 >NUL
-	sc create %ServiceName% binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
-	%Prog% --first-setup
+	sc create %ServiceName% binPath= "%~dp0%Executable%" DisplayName= "PcapDNSProxy Service" start= auto
+	%Executable% --first-setup
 	sc description %ServiceName% "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
 	sc failure %ServiceName% reset= 0 actions= restart/5000/restart/10000//
 	sc start %ServiceName%
 	ipconfig /flushdns
-	call :CHECK_PROG
+	call :CHECK_PROCESS
 	if "%Command%" == "" (
 		pause
 		cls
@@ -84,9 +84,9 @@ goto %UserChoice%
 
 :: Service uninstall
 :CASE_2
-	call :DEL_SERVICE
+	call :DELETE_SERVICE
 	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROG
+	call :KILL_PROCESS
 	ipconfig /flushdns
 	if "%Command%" == "" (
 		echo.
@@ -104,7 +104,7 @@ goto %UserChoice%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	ping 127.0.0.1 -n 3 >NUL
-	call :CHECK_PROG
+	call :CHECK_PROCESS
 	if "%Command%" == "" (
 		pause
 		cls
@@ -133,12 +133,12 @@ goto %UserChoice%
 :CASE_5
 	sc stop %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROG
+	call :KILL_PROCESS
 	ping 127.0.0.1 -n 3 >NUL
 	sc start %ServiceName%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
-	call :CHECK_PROG
+	call :CHECK_PROCESS
 	if "%Command%" == "" (
 		pause
 		cls
@@ -148,10 +148,10 @@ goto %UserChoice%
 	)
 
 
-:: Flush DNS cache(Pcap_DNSProxy)
+:: Flush domain cache(Pcap_DNSProxy)
 :CASE_6
-	call :CHECK_PROG
-	%Prog% --flush-dns
+	call :CHECK_PROCESS
+	%Executable% --flush-dns
 	if "%Command%" == "" (
 		echo.
 		pause
@@ -162,7 +162,7 @@ goto %UserChoice%
 	)
 
 
-:: Flush DNS cache(System)
+:: Flush domain cache(System)
 :CASE_7
 	ipconfig /flushdns
 	if "%Command%" == "" (
@@ -182,8 +182,8 @@ goto %UserChoice%
 
 
 :: Process check
-:CHECK_PROG
-	tasklist | findstr /L /I "%Prog%" >NUL
+:CHECK_PROCESS
+	tasklist | findstr /L /I "%Executable%" >NUL
 	if %ERRORLEVEL% EQU 1 (
 		color 4F
 		echo.
@@ -197,18 +197,19 @@ goto %UserChoice%
 	echo.
 	goto :EOF
 
+
 :: Process kill
-:KILL_PROG
-	tasklist | findstr /L /I "%Prog%" >NUL
+:KILL_PROCESS
+	tasklist | findstr /L /I "%Executable%" >NUL
 	if %ERRORLEVEL% EQU 0 (
-		taskkill /F /IM %Prog% >NUL
+		taskkill /F /IM %Executable% >NUL
 		goto :EOF
 	)
 	goto :EOF
 
 
 :: Service delete
-:DEL_SERVICE
+:DELETE_SERVICE
 	sc query %ServiceName% >NUL
 	if %ERRORLEVEL% EQU 0 (
 		sc stop %ServiceName%

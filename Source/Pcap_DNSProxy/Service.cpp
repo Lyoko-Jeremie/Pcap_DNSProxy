@@ -384,8 +384,8 @@ void WINAPI TerminateService(
 	return;
 }
 
-//Mailslot of flush DNS cache Monitor
-bool Flush_DNS_MailSlotMonitor(
+//Mailslot listener of flush domain cache
+bool FlushDomainCache_MailslotListener(
 	void)
 {
 //System security initialization
@@ -406,7 +406,7 @@ bool Flush_DNS_MailSlotMonitor(
 
 //Create mailslot.
 	const auto MailslotHandle = CreateMailslotW(
-		MAILSLOT_NAME, 
+		FLUSH_DOMAIN_MAILSLOT_NAME, 
 		FILE_BUFFER_SIZE - 1U, 
 		MAILSLOT_WAIT_FOREVER, 
 		&SecurityAttributes);
@@ -418,20 +418,24 @@ bool Flush_DNS_MailSlotMonitor(
 
 		return false;
 	}
-
 //Free pointer.
-	ACL_Buffer.reset();
-	if (SID_Value != nullptr)
-		LocalFree(SID_Value);
+	else {
+		ACL_Buffer.reset();
+		if (SID_Value != nullptr)
+			LocalFree(SID_Value);
+	}
 
 //Initialization
 	const auto Buffer = std::make_unique<wchar_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	std::vector<std::wstring> MessageList;
+	std::vector<std::string> DomainList;
 	std::wstring Message;
-	std::string Domain;
+	std::string DomainString;
 	DWORD MessageLength = 0;
+	size_t Index = 0;
 
-//Start Mailslot Monitor.
+//Start Mailslot Listener.
 	for (;;)
 	{
 	//Reset parameters.
@@ -439,59 +443,134 @@ bool Flush_DNS_MailSlotMonitor(
 		MessageLength = 0;
 
 	//Read message from mailslot.
-		const auto Result = ReadFile(
-			MailslotHandle, 
-			Buffer.get(), 
-			FILE_BUFFER_SIZE, 
-			&MessageLength, 
-			nullptr);
-		if (Result == FALSE)
+		if (ReadFile(
+				MailslotHandle, 
+				Buffer.get(), 
+				FILE_BUFFER_SIZE, 
+				&MessageLength, 
+				nullptr) == FALSE)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SYSTEM, L"Mailslot read messages error", GetLastError(), nullptr, 0);
-			CloseHandle(
-				MailslotHandle);
+			Sleep(Parameter.FileRefreshTime);
 
-			return false;
+			continue;
+		}
+
+	//List all messages.
+		MessageList.clear();
+		Message = Buffer.get();
+		if (Message.find(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) != Message.rfind(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL))
+		{
+			for (Index = 0;Index < Message.length();++Index)
+			{
+			//Copy first item to list.
+				if (Index == 0)
+				{
+					if (Message.compare(Index, wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL), FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) == 0)
+					{
+						MessageList.push_back(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL);
+						Index += wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) - 1U;
+					}
+					else {
+						PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SYSTEM, L"Mailslot read messages error", GetLastError(), nullptr, 0);
+						break;
+					}
+				}
+			//Copy last item to list.
+				else if (Index + wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) >= Message.length())
+				{
+					MessageList.back().append(Message, Index, Message.length() - Index);
+					break;
+				}
+			//Create a new item.
+				else if (Message.compare(Index, wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL), FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) == 0)
+				{
+					MessageList.push_back(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL);
+					Index += wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) - 1U;
+				}
+			//Copy items to list.
+				else {
+					MessageList.back().append(1U, Message.at(Index));
+				}
+			}
 		}
 		else {
-			Message = Buffer.get();
-			Domain.clear();
+			MessageList.push_back(Message);
+		}
 
-		//Read message.
-			if (Message == MAILSLOT_MESSAGE_FLUSH_DNS_ALL) //Flush all DNS cache.
+	//Read all message.
+		for (Index = 0;Index < MessageList.size();++Index)
+		{
+			if (MessageList.at(Index) == FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) //Flush all domain cache.
 			{
-				Flush_DNS_Cache(nullptr);
+				FlushDomainCache_Main(nullptr);
 			}
-			else if (Message.compare(0, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
-				Message.length() > wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
-				Message.length() < wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
+			else if (MessageList.at(Index).compare(0, wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC), FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC) == 0 && //Flush domain cache.
+				MessageList.at(Index).length() > wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC) + DOMAIN_MINSIZE) //Message length check
 			{
-				if (WCS_To_MBS_String(Message.c_str() + wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), DOMAIN_MAXSIZE, Domain) && 
-					Domain.length() > DOMAIN_MINSIZE && Domain.length() < DOMAIN_MAXSIZE)
-						Flush_DNS_Cache(reinterpret_cast<const uint8_t *>(Domain.c_str()));
-				else 
+				DomainString.clear();
+
+			//Convert to C-Style string.
+				if (!WCS_To_MBS_String(MessageList.at(Index).c_str() + wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC), MessageList.at(Index).length() - wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC), DomainString))
+				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+					continue;
+				}
+
+			//List all domain name.
+				DomainList.clear();
+				if (DomainString.find(ASCII_VERTICAL) != std::string::npos)
+				{
+				//Add items to list.
+					DomainList.push_back("");
+					for (const auto StringIter:DomainString)
+					{
+						if (StringIter == ASCII_VERTICAL)
+							DomainList.push_back("");
+						else 
+							DomainList.back().append(1U, StringIter);
+					}
+
+				//Remove last item if it's empty.
+					while (!DomainList.empty() && DomainList.back().empty())
+						DomainList.pop_back();
+				}
+
+			//Flush listed domain cache.
+				if (DomainList.empty())
+				{
+					FlushDomainCache_Main(reinterpret_cast<const uint8_t *>(DomainString.c_str()));
+				}
+				else {
+					for (const auto &StringIter:DomainList)
+					{
+						if (!StringIter.empty())
+							FlushDomainCache_Main(reinterpret_cast<const uint8_t *>(StringIter.c_str()));
+					}
+				}
 			}
-			else {
+			else if (Index + 1U >= MessageList.size())
+			{
 				Sleep(Parameter.FileRefreshTime);
 			}
 		}
 	}
 
-//Monitor terminated
+//Listener terminated
 	CloseHandle(
 		MailslotHandle);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Mailslot module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Mailslot module listener terminated", 0, nullptr, 0);
 	return false;
 }
 
-//Mailslot of flush DNS cache sender
-bool WINAPI Flush_DNS_MailSlotSender(
+//Mailslot sender of flush domain cache
+bool WINAPI FlushDomainCache_MailslotSender(
 	const wchar_t * const Domain)
 {
 //Mailslot initialization
+	std::wstring Message(L"[System Error] Create mailslot error");
 	const auto FileHandle = CreateFileW(
-		MAILSLOT_NAME, 
+		FLUSH_DOMAIN_MAILSLOT_NAME, 
 		GENERIC_WRITE, 
 		FILE_SHARE_READ, 
 		nullptr, 
@@ -500,27 +579,32 @@ bool WINAPI Flush_DNS_MailSlotSender(
 		nullptr);
 	if (FileHandle == INVALID_HANDLE_VALUE)
 	{
-		std::wstring InnerMessage(L"[System Error] Create mailslot error");
 		if (GetLastError() == 0)
 		{
-			InnerMessage.append(L".\n");
-			PrintToScreen(true, false, InnerMessage.c_str());
+			Message.append(L".\n");
+			PrintToScreen(true, false, Message.c_str());
 		}
 		else {
-			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), InnerMessage);
-			InnerMessage.append(L".\n");
-			PrintToScreen(true, false, InnerMessage.c_str(), GetLastError());
+			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), Message);
+			Message.append(L".\n");
+			PrintToScreen(true, false, Message.c_str(), GetLastError());
 		}
 
 		return false;
 	}
 
 //Message initialization
-	std::wstring Message(MAILSLOT_MESSAGE_FLUSH_DNS_ALL);
-	if (Domain != nullptr && wcsnlen_s(Domain, DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
+	Message = FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL;
+	if (Domain != nullptr)
 	{
 		Message.append(L": ");
 		Message.append(Domain);
+		if (Message.length() + NULL_TERMINATE_LENGTH >= FILE_BUFFER_SIZE || 
+			Message.find(L"||") != std::string::npos)
+		{
+			PrintToScreen(true, false, L"[System Error] Mailslot write messages error.\n");
+			return false;
+		}
 	}
 
 //Write into mailslot.
@@ -534,16 +618,16 @@ bool WINAPI Flush_DNS_MailSlotSender(
 	{
 		CloseHandle(
 			FileHandle);
-		std::wstring InnerMessage(L"[System Error] Mailslot write messages error");
+		Message = L"[System Error] Mailslot write messages error";
 		if (GetLastError() == 0)
 		{
-			InnerMessage.append(L".\n");
-			PrintToScreen(true, false, InnerMessage.c_str());
+			Message.append(L".\n");
+			PrintToScreen(true, false, Message.c_str());
 		}
 		else {
-			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), InnerMessage);
-			InnerMessage.append(L".\n");
-			PrintToScreen(true, false, InnerMessage.c_str(), GetLastError());
+			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), Message);
+			Message.append(L".\n");
+			PrintToScreen(true, false, Message.c_str(), GetLastError());
 		}
 
 		return false;
@@ -551,7 +635,7 @@ bool WINAPI Flush_DNS_MailSlotSender(
 	else {
 		CloseHandle(
 			FileHandle);
-		PrintToScreen(true, false, L"[Notice] Flush DNS cache message was sent successfully.\n");
+		PrintToScreen(true, false, L"[Notice] Flush domain cache message was sent successfully.\n");
 	}
 
 	return true;
@@ -616,108 +700,198 @@ void SignalHandler(
 	return;
 }
 
-//Flush DNS cache FIFO Monitor
-bool Flush_DNS_FIFO_Monitor(
+//FIFO pipe listener of flush domain cache
+bool FlushDomainCache_PipeListener(
 	void)
 {
 //Initialization
 	const auto Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
-	std::string Message;
-	int FIFO_Handle = 0;
+	std::vector<std::string> MessageList, DomainList;
+	std::string Message, DomainString;
+	int PipeHandle = 0;
 	ssize_t MessageLength = 0;
+	size_t Index = 0;
 
-//Start FIFO Monitor.
+//Start FIFO pipe Listener.
 	for (;;)
 	{
-	//Create FIFO and create its notify monitor.
-		unlink(FIFO_PATH_NAME);
+	//Create FIFO pipe and create its notify listener.
+		unlink(FLUSH_DOMAIN_PIPE_PATH_NAME);
 		errno = 0;
-		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
-			chmod(FIFO_PATH_NAME, S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH) == RETURN_ERROR)
+		if (mkfifo(FLUSH_DOMAIN_PIPE_PATH_NAME, O_CREAT) == RETURN_ERROR || 
+			chmod(FLUSH_DOMAIN_PIPE_PATH_NAME, S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH) == RETURN_ERROR)
 		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Create FIFO pipe error", errno, nullptr, 0);
+			Sleep(Parameter.FileRefreshTime);
 
-			unlink(FIFO_PATH_NAME);
-			return false;
+			continue;
 		}
 
-	//Open FIFO.
+	//Open FIFO pipe.
 		errno = 0;
-		FIFO_Handle = open(FIFO_PATH_NAME, O_RDONLY, 0);
-		if (FIFO_Handle == RETURN_ERROR)
+		PipeHandle = open(FLUSH_DOMAIN_PIPE_PATH_NAME, O_RDONLY, 0);
+		if (PipeHandle == RETURN_ERROR)
 		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Create FIFO pipe error", errno, nullptr, 0);
+			Sleep(Parameter.FileRefreshTime);
 
-			unlink(FIFO_PATH_NAME);
-			return false;
+			continue;
 		}
 
 	//Read file data.
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		errno = 0;
-		MessageLength = read(FIFO_Handle, Buffer.get(), FILE_BUFFER_SIZE);
-		if (MessageLength == RETURN_ERROR || MessageLength < static_cast<ssize_t>(DOMAIN_MINSIZE) || MessageLength > static_cast<ssize_t>(DOMAIN_MAXSIZE))
+		MessageLength = read(PipeHandle, Buffer.get(), FILE_BUFFER_SIZE);
+		if (MessageLength == RETURN_ERROR || 
+			MessageLength < static_cast<ssize_t>(strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL)) || 
+			MessageLength >= static_cast<ssize_t>(FILE_BUFFER_SIZE))
 		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SYSTEM, L"FIFO read messages error", errno, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SYSTEM, L"FIFO pipe read messages error", errno, nullptr, 0);
+		}
+
+	//List all messages.
+		MessageList.clear();
+		Message = reinterpret_cast<const char *>(Buffer.get());
+		if (Message.find(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) != Message.rfind(FLUSH_DOMAIN_PIPE_MESSAGE_ALL))
+		{
+			for (Index = 0;Index < Message.length();++Index)
+			{
+			//Copy first item to list.
+				if (Index == 0)
+				{
+					if (Message.compare(Index, strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL), FLUSH_DOMAIN_PIPE_MESSAGE_ALL) == 0)
+					{
+						MessageList.push_back(FLUSH_DOMAIN_PIPE_MESSAGE_ALL);
+						Index += strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) - 1U;
+					}
+					else {
+						PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SYSTEM, L"FIFO pipe read messages error", errno, nullptr, 0);
+						break;
+					}
+				}
+			//Copy last item to list.
+				else if (Index + strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) >= Message.length())
+				{
+					MessageList.back().append(Message, Index, Message.length() - Index);
+					break;
+				}
+			//Create a new item.
+				else if (Message.compare(Index, strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL), FLUSH_DOMAIN_PIPE_MESSAGE_ALL) == 0)
+				{
+					MessageList.push_back(FLUSH_DOMAIN_PIPE_MESSAGE_ALL);
+					Index += strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) - 1U;
+				}
+			//Copy items to list.
+				else {
+					MessageList.back().append(1U, Message.at(Index));
+				}
+			}
 		}
 		else {
-			Message = reinterpret_cast<const char *>(Buffer.get());
-
-		//Read message.
-			if (Message == FIFO_MESSAGE_FLUSH_DNS_ALL) //Flush all DNS cache.
-				Flush_DNS_Cache(nullptr);
-			else if (Message.compare(0, strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN), FIFO_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
-				Message.length() > strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
-				Message.length() < strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
-					Flush_DNS_Cache(reinterpret_cast<const uint8_t *>(Message.c_str()) + strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN));
-			else 
-				Sleep(Parameter.FileRefreshTime);
+			MessageList.push_back(Message);
 		}
 
-	//Close FIFO.
-		close(FIFO_Handle);
-		FIFO_Handle = 0;
+	//Read all message.
+		for (Index = 0;Index < MessageList.size();++Index)
+		{
+			if (MessageList.at(Index) == FLUSH_DOMAIN_PIPE_MESSAGE_ALL) //Flush all domain cache.
+			{
+				FlushDomainCache_Main(nullptr);
+			}
+			else if (MessageList.at(Index).compare(0, strlen(FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC), FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC) == 0 && //Flush domain cache.
+				MessageList.at(Index).length() > strlen(FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC) + DOMAIN_MINSIZE) //Message length check
+			{
+				DomainString.clear();
+				DomainString.append(MessageList.at(Index), strlen(FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC), MessageList.at(Index).length() - strlen(FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC));
+
+			//List all domain name.
+				DomainList.clear();
+				if (DomainString.find(ASCII_VERTICAL) != std::string::npos)
+				{
+				//Add items to list.
+					DomainList.push_back("");
+					for (const auto StringIter:DomainString)
+					{
+						if (StringIter == ASCII_VERTICAL)
+							DomainList.push_back("");
+						else 
+							DomainList.back().append(1U, StringIter);
+					}
+
+				//Remove last item if it's empty.
+					while (!DomainList.empty() && DomainList.back().empty())
+						DomainList.pop_back();
+				}
+
+			//Flush listed domain cache.
+				if (DomainList.empty())
+				{
+					FlushDomainCache_Main(reinterpret_cast<const uint8_t *>(DomainString.c_str()));
+				}
+				else {
+					for (const auto &StringIter:DomainList)
+					{
+						if (!StringIter.empty())
+							FlushDomainCache_Main(reinterpret_cast<const uint8_t *>(StringIter.c_str()));
+					}
+				}
+			}
+			else if (Index + 1U >= MessageList.size())
+			{
+				Sleep(Parameter.FileRefreshTime);
+			}
+		}
+
+	//Close FIFO pipe.
+		close(PipeHandle);
+		PipeHandle = 0;
 	}
 
-//Monitor terminated
-	close(FIFO_Handle);
-	unlink(FIFO_PATH_NAME);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
+//Listener terminated
+	close(PipeHandle);
+	unlink(FLUSH_DOMAIN_PIPE_PATH_NAME);
+	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"FIFO pipe module listener terminated", 0, nullptr, 0);
 	return true;
 }
 
-//Flush DNS cache FIFO sender
-bool Flush_DNS_FIFO_Sender(
+//Flush domain cache FIFO pipe sender
+bool FlushDomainCache_PipeSender(
 	const uint8_t * const Domain)
 {
 //Message initialization
-	std::string Message(FIFO_MESSAGE_FLUSH_DNS_ALL);
-	if (Domain != nullptr && strnlen(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
+	std::string Message(FLUSH_DOMAIN_PIPE_MESSAGE_ALL);
+	if (Domain != nullptr)
 	{
 		Message.append(": ");
 		Message.append(reinterpret_cast<const char *>(Domain));
+		if (Message.length() + NULL_TERMINATE_LENGTH >= FILE_BUFFER_SIZE || 
+			Message.find("||") != std::string::npos)
+		{
+			PrintToScreen(true, false, L"[System Error] FIFO pipe write messages error.\n");
+			return false;
+		}
 	}
 
-//Write into FIFO file.
+//Write into FIFO pipe.
 	errno = 0;
-	const int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY | O_TRUNC | O_NONBLOCK, 0);
-	if (FIFO_Handle > 0)
+	const int PipeHandle = open(FLUSH_DOMAIN_PIPE_PATH_NAME, O_WRONLY | O_TRUNC | O_NONBLOCK, 0);
+	if (PipeHandle > 0)
 	{
-		if (write(FIFO_Handle, Message.c_str(), Message.length() + NULL_TERMINATE_LENGTH) > 0)
+		if (write(PipeHandle, Message.c_str(), Message.length() + NULL_TERMINATE_LENGTH) > 0)
 		{
-			close(FIFO_Handle);
-			PrintToScreen(true, false, L"[Notice] Flush DNS cache message was sent successfully.\n");
+			close(PipeHandle);
+			PrintToScreen(true, false, L"[Notice] Flush domain cache message was sent successfully.\n");
 
 			return true;
 		}
 		else {
-			close(FIFO_Handle);
+			close(PipeHandle);
 		}
 	}
 
 //Print error log.
-	std::wstring InnerMessage(L"[System Error] FIFO write messages error");
+	std::wstring InnerMessage(L"[System Error] FIFO pipe write messages error");
 	if (errno == 0)
 	{
 		InnerMessage.append(L".\n");
@@ -733,31 +907,35 @@ bool Flush_DNS_FIFO_Sender(
 }
 #endif
 
-//Flush DNS cache
-void Flush_DNS_Cache(
+//Flush domain cache
+void FlushDomainCache_Main(
 	const uint8_t * const Domain)
 {
-//Flush DNS cache in process.
+//Flush domain cache in program.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	if (Domain == nullptr || //Flush all DNS cache.
-		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES) > DOMAIN_MAXSIZE)
+	if (Domain == nullptr || //Flush all domain cache.
+		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES) >= DOMAIN_MAXSIZE)
 	{
-	//Remove from DNS cache index list.
+	//Remove from cache index list.
 		DNSCacheIndexList.clear();
 
-	//Remove from DNS cache data list.
+	//Remove from cache data list.
 		DNSCacheList.clear();
 	}
 	else { //Flush single domain cache.
+	//Make insensitive domain.
 		std::string DomainString(reinterpret_cast<const char *>(Domain));
+		CaseConvert(DomainString, false);
+		
+	//Scan domain cache list.
 		if (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
 		{
-		//Remove from DNS cache data list.
+		//Remove from cache data list.
 			const auto CacheMapRange = DNSCacheIndexList.equal_range(DomainString);
 			for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
 				DNSCacheList.erase(CacheMapItem->second);
 
-		//Remove from DNS cache index list.
+		//Remove from cache index list.
 			while (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
 				DNSCacheIndexList.erase(DNSCacheIndexList.find(DomainString));
 		}
@@ -765,36 +943,36 @@ void Flush_DNS_Cache(
 
 	DNSCacheListMutex.unlock();
 
+//Flush system domain cache interval time check
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-//Flush system DNS interval time check
-	if (LastFlushCacheTime > 0 && LastFlushCacheTime < GetCurrentSystemTime() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
-		return;
-	else 
+	if (LastFlushCacheTime == 0 || LastFlushCacheTime >= GetCurrentSystemTime() + FLUSH_DOMAIN_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
 		LastFlushCacheTime = GetCurrentSystemTime();
+	else 
+		return;
 #endif
 
-//Flush DNS cache in system.
+//Flush domain cache in system.
 	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns 2>nul"); //All Windows version
 	fwprintf_s(stderr, L"\n");
 #elif defined(PLATFORM_LINUX)
 #if defined(PLATFORM_OPENWRT)
-	auto Result = system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
+	auto ResultValue = system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage domain cache on OpenWrt
 #else
-	auto Result = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
-	Result = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
-	Result = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
-	Result = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and later)
+	auto ResultValue = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
+	ResultValue = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
+	ResultValue = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
+	ResultValue = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and later)
 #endif
 #elif defined(PLATFORM_MACOS)
 //	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)
 //	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
-	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
+//	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
 	system("discoveryutil udnsflushcaches 2>/dev/null"); //Mac OS X Yosemite(10.10 - 10.10.3)
 	system("discoveryutil mdnsflushcache 2>/dev/null"); //Mac OS X Yosemite(10.10 - 10.10.3)
 	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Yosemite(10.10.4 - 10.10.5)
-//	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X El Capitan(10.11) and later
+	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X El Capitan(10.11) and later
 #endif
 
 	return;

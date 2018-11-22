@@ -119,7 +119,7 @@
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.11"                           //Current full version
+#define FULL_VERSION                                  L"0.4.9.12"                           //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
@@ -217,7 +217,7 @@
 #define DEFAULT_ALTERNATE_RANGE_TIME                  60U                         //Default time of checking timeout(1 minute/60 seconds)
 #define DEFAULT_ALTERNATE_RESET_TIME                  300U                        //Default time to reset switching of alternate servers(300 seconds/5 minutes)
 #define DEFAULT_ALTERNATE_TIMES                       10U                         //Default times of request timeout(10 times)
-#define DEFAULT_DNS_CACHE_PARAMETER                   4096U                       //Default parameter of DNS cache(4096 size of queue)
+#define DEFAULT_DOMAIN_CACHE_PARAMETER                4096U                       //Default parameter of domain cache(4096 size of queue)
 #define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending(900 seconds/15 minutes)
 #define DEFAULT_FILE_REFRESH_TIME                     15000U                      //Default time between files auto-refreshing(15000 ms/15 seconds)
 #define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL(900 seconds/15 minutes)
@@ -237,7 +237,7 @@
 	#define DNSCURVE_DEFAULT_UNRELIABLE_SOCKET_TIMEOUT    DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT   //Same as default timeout of unreliable sockets
 	#define DNSCURVE_SHORTEST_RECHECK_TIME                10U                                      //The shortest DNSCurve keys recheck time(10 seconds)
 #endif
-#define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing(5 seconds)
+#define FLUSH_DOMAIN_CACHE_INTERVAL_TIME              5U                          //Time between every flushing domain cache(5 seconds)
 #define LOOP_INTERVAL_TIME_DELAY                      20U                         //Delay mode loop interval time(20 ms)
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
@@ -265,7 +265,7 @@
 //Data definitions
 #if defined(PLATFORM_WIN)
 	#define COMMAND_FIREWALL_TEST                         (L"--first-setup")
-	#define COMMAND_FLUSH_DNS                             (L"--flush-dns")
+	#define COMMAND_FLUSH_DOMAIN_CACHE                    (L"--flush-dns")
 	#define COMMAND_KEYPAIR_GENERATOR                     (L"--keypair-generator")
 	#define COMMAND_LIB_VERSION                           (L"--lib-version")
 	#define COMMAND_LONG_HELP                             (L"--help")
@@ -278,21 +278,21 @@
 	#define COMMAND_SHORT_SET_PATH                        (L"-c")
 	#define CONFIG_FILE_NAME_LIST_WCS                     {(L"Config.ini"), (L"Config.conf"), (L"Config.cfg"), (L"Config")}
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Default ICMP padding data(Windows)
-	#define ERROR_LOG_FILE_NAME_WCS                       (L"Error.log")
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
 #endif
-	#define MAILSLOT_MESSAGE_FLUSH_DNS_ALL                (L"Flush Pcap_DNSProxy DNS cache")             //The mailslot message to flush dns cache
-	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             (L"Flush Pcap_DNSProxy DNS cache: ")           //The mailslot message to flush dns cache(Single domain)
+	#define ERROR_LOG_FILE_NAME_WCS                       (L"Error.log")
+	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL             (L"Flush Pcap_DNSProxy domain cache")          //The mailslot message to flush domain cache(All)
+	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC        (L"Flush Pcap_DNSProxy domain cache: ")        //The mailslot message to flush domain cache(Specific)
+	#define FLUSH_DOMAIN_MAILSLOT_NAME                    (L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot")   //The mailslot name to flush domain cache
 	#define MUTEX_EXISTS_NAME                             (L"Global\\Pcap_DNSProxy Process Exists")      //Global mutex exists name
-	#define MAILSLOT_NAME                                 (L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot")   //MailSlot name
 	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows Administrators group SID header
 	#define SYSTEM_SERVICE_NAME                           (L"PcapDNSProxyService")                       //System service name
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(PLATFORM_LINUX)
 	#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
 #endif
-	#define COMMAND_FLUSH_DNS                             ("--flush-dns")
+	#define COMMAND_FLUSH_DOMAIN_CACHE                    ("--flush-dns")
 	#define COMMAND_KEYPAIR_GENERATOR                     ("--keypair-generator")
 	#define COMMAND_LIB_VERSION                           ("--lib-version")
 	#define COMMAND_LONG_HELP                             ("--help")
@@ -310,13 +310,13 @@
 #endif
 	#define ERROR_LOG_FILE_NAME_WCS                       (L"Error.log")
 	#define ERROR_LOG_FILE_NAME_MBS                       ("Error.log")
-	#define FIFO_MESSAGE_FLUSH_DNS_ALL                    ("Flush DNS cache of Pcap_DNSProxy")         //The FIFO message to flush dns cache
-	#define FIFO_MESSAGE_FLUSH_DNS_DOMAIN                 ("Flush DNS cache of Pcap_DNSProxy: ")       //The FIFO message to flush dns cache(Single domain)
-	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                  //FIFO pathname
+	#define FLUSH_DOMAIN_PIPE_MESSAGE_ALL                 ("Flush Pcap_DNSProxy domain cache")         //The FIFO pipe message to flush domain cache(All)
+	#define FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC            ("Flush Pcap_DNSProxy domain cache: ")       //The FIFO pipe message to flush domain cache(Specific)
+	#define FLUSH_DOMAIN_PIPE_PATH_NAME                   ("/tmp/pcap_dnsproxy_fifo")                  //The FIFO pipe pathname to flush domain cache
 #endif
 #define DEFAULT_LOCAL_SERVER_NAME                     ("pcap-dnsproxy.server")                     //Default Local DNS server name
-#define DNS_PACKET_QUERY_LOCATE(Buffer)               (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH)                     //Locate the beginning of DNS query.
-#define DNS_PACKET_RR_LOCATE(Buffer)                  (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))   //Locate the beginning of DNS resource records.
+#define DNS_PACKET_QUERY_LOCATE(Buffer, BufferSize)   (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr), BufferSize) + NULL_TERMINATE_LENGTH)                     //Locate the beginning of DNS query.
+#define DNS_PACKET_RR_LOCATE(Buffer, BufferSize)      (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr), BufferSize) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))   //Locate the beginning of DNS resource records.
 
 #if !defined(ENABLE_LIBSODIUM)
 //Base64 definitions
@@ -331,34 +331,53 @@
 //////////////////////////////////////////////////
 // Function definitions(Part 2)
 // 
-#define hton16_Force(Value)   (static_cast<const uint16_t>((reinterpret_cast<const uint8_t *>(&(Value)))[0] <<                                     \
-								(sizeof(uint8_t) * BYTES_TO_BITS) | (reinterpret_cast<const uint8_t *>(&(Value)))[1U]))
-#define ntoh16_Force          hton16_Force
-#define hton32_Force(Value)   (static_cast<const uint32_t>((reinterpret_cast<const uint8_t *>(&(Value)))[0] <<                                     \
-								((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) |                                                           \
-								(reinterpret_cast<const uint8_t *>(&(Value)))[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) |                          \
-								(reinterpret_cast<const uint8_t *>(&(Value)))[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) |                           \
-								(reinterpret_cast<const uint8_t *>(&(Value)))[3U]))
-#define ntoh32_Force          hton32_Force
-#if BYTE_ORDER == LITTLE_ENDIAN
-	#define hton64(Value)         (static_cast<const uint64_t>(((static_cast<const uint64_t>(htonl(static_cast<const uint32_t>                     \
-									(((Value) << (sizeof(uint32_t) * BYTES_TO_BITS)) >>                                                            \
-									(sizeof(uint32_t) * BYTES_TO_BITS))))) <<                                                                      \
-									(sizeof(uint32_t) * BYTES_TO_BITS)) | static_cast<const uint32_t>(htonl(static_cast<const uint32_t>((Value) >> \
-									(sizeof(uint32_t) * BYTES_TO_BITS))))))
-#else //BIG_ENDIAN
-	#define hton64(Value)         (Value)
-#endif
-#define ntoh64                hton64
+//Byte order function
+#define hton16_Force(Value)                           (static_cast<const uint16_t>((reinterpret_cast<const uint8_t *>(&(Value)))[0] <<                                      \
+														(sizeof(uint8_t) * BYTES_TO_BITS) | (reinterpret_cast<const uint8_t *>(&(Value)))[1U]))
+#define ntoh16_Force                                  hton16_Force
+#define hton16                                        htons
+#define ntoh16                                        ntohs
+#define hton32_Force(Value)                           (static_cast<const uint32_t>((reinterpret_cast<const uint8_t *>(&(Value)))[0] <<                                      \
+														((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) |                                                            \
+														(reinterpret_cast<const uint8_t *>(&(Value)))[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) |                           \
+														(reinterpret_cast<const uint8_t *>(&(Value)))[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) |                            \
+														(reinterpret_cast<const uint8_t *>(&(Value)))[3U]))
+#define ntoh32_Force                                  hton32_Force
+#define hton32                                        htonl
+#define ntoh32                                        ntohl
+#define hton64_Force(Value)                           (static_cast<const uint64_t>(((static_cast<const uint64_t>(hton32(static_cast<const uint32_t>                         \
+														(((Value) << (sizeof(uint32_t) * BYTES_TO_BITS)) >>                                                                 \
+														(sizeof(uint32_t) * BYTES_TO_BITS))))) <<                                                                           \
+														(sizeof(uint32_t) * BYTES_TO_BITS)) | static_cast<const uint32_t>(hton32(static_cast<const uint32_t>((Value) >>     \
+														(sizeof(uint32_t) * BYTES_TO_BITS))))))
+#define ntoh64_Force                                  hton64_Force
 #if defined(PLATFORM_WIN)
 #if defined(PLATFORM_WIN_XP)
-	#define GetCurrentSystemTime   GetTickCount
+	#define hton64                                        hton64_Force
+	#define ntoh64                                        hton64
 #else
-	#define GetCurrentSystemTime   GetTickCount64
+	#define hton64                                        htonll
+	#define ntoh64                                        ntohll
 #endif
-	#define Sleep(Millisecond)     Sleep(static_cast<const DWORD>(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	#define Sleep(Millisecond)     usleep(static_cast<const useconds_t>((Millisecond) * MICROSECOND_TO_MILLISECOND))
-	#define usleep(Millisecond)    usleep(static_cast<const useconds_t>(Millisecond))
+#if BYTE_ORDER == LITTLE_ENDIAN
+	#define hton64(Value)                                 hton64_Force(Value)
+#else //BIG_ENDIAN
+	#define hton64(Value)                                 (Value)
+#endif
+	#define ntoh64                                        hton64
+#endif
+
+//Time function
+#if defined(PLATFORM_WIN)
+#if defined(PLATFORM_WIN_XP)
+	#define GetCurrentSystemTime                           GetTickCount
+#else
+	#define GetCurrentSystemTime                           GetTickCount64
+#endif
+	#define Sleep(Millisecond)                             Sleep(static_cast<const DWORD>(Millisecond))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#define Sleep(Millisecond)                             usleep(static_cast<const useconds_t>((Millisecond) * MICROSECOND_TO_MILLISECOND))
+	#define usleep(Millisecond)                            usleep(static_cast<const useconds_t>(Millisecond))
 #endif
 #endif

@@ -98,12 +98,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 小更新的方法（需要以管理員身份進行，如果設定檔的 Version 有更新需要進行大更新）：
-1.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內
-2.使用 ./macOS_Uninstall.sh 執行服務卸載腳本
-3.備份所有設定檔，刪除所有 Pcap_DNSProxy 相關檔
-  * 進行第 4 步前先將備份的配置檔案還原到 macOS 目錄內
-4.按照安裝方法重新部署 Pcap_DNSProxy
-  * Config.conf 檔建議按照備份的設定檔重新設置，如直接覆蓋可能會導致沒有新功能的選項
+1.打開終端，使用 sudo -i 獲得 root 許可權並進入 /Library/LaunchDaemons 目錄內
+2.使用 launchctl unload pcap_dnsproxy.service.plist 停止服務
+3.將 macOS 目錄內的所有可執行檔刪除
+4.將新版本的 Pcap_DNSProxy 的所有可執行檔解壓到相同位置
+5.使用 launchctl load pcap_dnsproxy.service.plist 啟動服務即可
 
 
 大更新的方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：

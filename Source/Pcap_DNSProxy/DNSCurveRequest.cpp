@@ -57,7 +57,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET6), false));
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<const uint16_t>(AF_INET6), false));
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
@@ -69,7 +69,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET), false));
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<const uint16_t>(AF_INET), false));
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
@@ -81,7 +81,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET6), true));
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<const uint16_t>(AF_INET6), true));
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
@@ -93,7 +93,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<uint16_t>(AF_INET), true));
+			std::thread Thread_DNSCurve_SignatureRequest_TCP(std::bind(DNSCurve_SignatureRequest_TCP, static_cast<const uint16_t>(AF_INET), true));
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 	}
@@ -111,7 +111,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET6), false));
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<const uint16_t>(AF_INET6), false));
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
@@ -123,7 +123,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET), false));
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<const uint16_t>(AF_INET), false));
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
@@ -135,7 +135,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET6), true));
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<const uint16_t>(AF_INET6), true));
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
@@ -147,7 +147,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<uint16_t>(AF_INET), true));
+		std::thread Thread_DNSCurve_SignatureRequest_UDP(std::bind(DNSCurve_SignatureRequest_UDP, static_cast<const uint16_t>(AF_INET), true));
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
@@ -176,27 +176,27 @@ bool DNSCurve_SignatureRequest_TCP(
 #else
 	GenerateRandomBuffer(&DNS_TCP_Header->ID, sizeof(DNS_TCP_Header->ID), nullptr, 0, 0);
 #endif
-	DNS_TCP_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
-	DNS_TCP_Header->Question = htons(UINT16_NUM_ONE);
+	DNS_TCP_Header->Flags = hton16(DNS_FLAG_REQUEST_STANDARD);
+	DNS_TCP_Header->Question = hton16(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 		else //Main
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 	}
 	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 		else //Main
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 	}
 	else {
 		return false;
 	}
-	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = htons(DNS_TYPE_TEXT);
-	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = htons(DNS_CLASS_INTERNET);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = hton16(DNS_TYPE_TEXT);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = hton16(DNS_CLASS_INTERNET);
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
@@ -204,7 +204,7 @@ bool DNSCurve_SignatureRequest_TCP(
 	DataLength += sizeof(uint16_t);
 
 //Add length of request packet.
-	DNS_TCP_Header->Length = htons(static_cast<uint16_t>(DataLength - sizeof(DNS_TCP_Header->Length)));
+	DNS_TCP_Header->Length = hton16(static_cast<const uint16_t>(DataLength - sizeof(DNS_TCP_Header->Length)));
 
 //Socket initialization(Part 1)
 	std::wstring Message;
@@ -263,13 +263,13 @@ bool DNSCurve_SignatureRequest_TCP(
 
 	//Socket selecting
 		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, nullptr, nullptr);
-		if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+		if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 		{
 			goto JumpTo_Restart;
 		}
 		else {
 		//Check signature.
-			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get(), Parameter.LargeBufferSize), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpTo_Restart;
@@ -334,27 +334,27 @@ bool DNSCurve_SignatureRequest_UDP(
 #else
 	GenerateRandomBuffer(&DNS_Header->ID, sizeof(DNS_Header->ID), nullptr, 0, 0);
 #endif
-	DNS_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
-	DNS_Header->Question = htons(UINT16_NUM_ONE);
+	DNS_Header->Flags = hton16(DNS_FLAG_REQUEST_STANDARD);
+	DNS_Header->Question = hton16(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 		else //Main
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 	}
 	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 		else //Main
-			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, SendBuffer.get() + DataLength);
+			DataLength += StringToPacketQuery(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, SendBuffer.get() + DataLength, PACKET_NORMAL_MAXSIZE - DataLength);
 	}
 	else {
 		return false;
 	}
-	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = htons(DNS_TYPE_TEXT);
-	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = htons(DNS_CLASS_INTERNET);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = hton16(DNS_TYPE_TEXT);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = hton16(DNS_CLASS_INTERNET);
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
@@ -417,13 +417,13 @@ bool DNSCurve_SignatureRequest_UDP(
 
 	//Socket selecting
 		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_UDP, UDPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_NORMAL_MAXSIZE, nullptr, nullptr);
-		if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+		if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 		{
 			goto JumpTo_Restart;
 		}
 		else {
 		//Check signature.
-			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruve_GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get(), PACKET_NORMAL_MAXSIZE), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpTo_Restart;
@@ -516,7 +516,8 @@ size_t DNSCurve_TCP_RequestSingle(
 		}
 	}
 	else {
-		PrecomputationKey = PacketTarget->PrecomputationKey, Client_PublicKey = DNSCurveParameter.Client_PublicKey;
+		PrecomputationKey = PacketTarget->PrecomputationKey;
+		Client_PublicKey = DNSCurveParameter.Client_PublicKey;
 	}
 
 //Socket attribute setting(Non-blocking mode)
@@ -528,7 +529,7 @@ size_t DNSCurve_TCP_RequestSingle(
 
 //Make encryption or normal packet.
 	RecvLen = DNSCurve_PacketEncryption(IPPROTO_TCP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
-	if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+	if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return EXIT_FAILURE;
@@ -709,12 +710,13 @@ size_t DNSCurve_UDP_RequestSingle(
 		}
 	}
 	else {
-		PrecomputationKey = PacketTarget->PrecomputationKey, Client_PublicKey = DNSCurveParameter.Client_PublicKey;
+		PrecomputationKey = PacketTarget->PrecomputationKey;
+		Client_PublicKey = DNSCurveParameter.Client_PublicKey;
 	}
 
 //Socket attribute setting(Timeout) and UDP connecting
 	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TIMEOUT, true, &DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable) || 
-		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, reinterpret_cast<sockaddr *>(&UDPSocketDataList.front().SockAddr), UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
+		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, reinterpret_cast<const sockaddr *>(&UDPSocketDataList.front().SockAddr), UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
 	{
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return EXIT_FAILURE;
@@ -722,7 +724,7 @@ size_t DNSCurve_UDP_RequestSingle(
 
 //Make encryption or normal packet.
 	RecvLen = DNSCurve_PacketEncryption(IPPROTO_UDP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
-	if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+	if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 	{
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return EXIT_FAILURE;

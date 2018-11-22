@@ -46,42 +46,42 @@ Installation method (required as administrator):
 
 
 Restart the service method (required as an administrator):
-1. Right-click on the administrator (Vista and later) or run the ServiceControl.bat (XP/2003) by pressing the administrator login twice (XP/2003)
-2. Enter 5 and press Enter, select "5: Restart service" to restart the service immediately
+1. Run the ServiceControl.bat (XP/2003) as administrator (Vista and later).
+2. Enter "5" and press Enter to select "5: Restart service" to restart service immediately.
 
 
 How to update if configuration version not changed:
-1.Download latest Pcap_DNSProxy, please notice that DNS service will temporary stop until finished.
-2.Run ServiceControl.bat as administrator right.
-3.Enter 4 also known as "4: Stop service".
-4.Remove all executable files in the folder.
-5.Decompress all executable files of latest Pcap_DNSProxy to the same folder.
-6.Run ServiceControl.bat as administrator right.
-7.Enter 3 also known as "3: Start service".
+1. Download latest Pcap_DNSProxy, please notice that DNS service will temporary stop until finished.
+2. Run ServiceControl.bat as administrator.
+3. Enter "4": "4: Stop service".
+4. Remove all executable files in the folder.
+5. Decompress all executable files of latest Pcap_DNSProxy to the same folder.
+6. Run ServiceControl.bat as administrator right.
+7. Enter "3": "3: Start service".
 
 
 How to update if configuration version changed:
-1.Download latest Pcap_DNSProxy, please notice that DNS service will temporary stop until finished.
-2.Please BACKUP all custom configurations before update!
-3.Run ServiceControl.bat as administrator right.
-4.Enter 2 also known as "2: Uninstall service".
-5.Remove all files in the folder.
-6.Decompress all files of latest Pcap_DNSProxy to the same folder.
-7.Restore all custom configurations.
-8.Redeploy Pcap_DNSProxy in step 4 of the installation method.
+1. Download latest Pcap_DNSProxy, please notice that DNS service will temporary stop until finished.
+2. Please do BACKUP all configurations before update!
+3. Run ServiceControl.bat as administrator.
+4. Enter "2": "2: Uninstall service".
+5. Remove all files in the folder.
+6. Decompress all files of latest Pcap_DNSProxy to the same folder.
+7. Restore configurations.
+8. Redeploy Pcap_DNSProxy in step 4 of the installation method.
 
 
-How to use it in safe mode (requires an administrator):
-* Program has the ability to run in safe mode, in safe mode, right-click as an administrator to run the program directly
-* Direct operation mode has a console window, close the program directly close the console window can be
+How to use it in safe mode (requires as administrator):
+* Program can run in safe mode, please run program directly.
+* Direct operation mode has a console window, shutdown the window will shutdown program directly.
 
 
-Unload method (required as administrator):
-1. Restore the DNS function variable name server address configuration according to step 6 of the installation method
-2. Right-click on the administrator (Vista and later) or run the ServiceControl.bat (XP/2003) by pressing the administrator login (XP/2003)
-  * Enter 2 and press Enter, select "2: Uninstall service" to uninstall the service
-  * Note: Windows Firewall may have permission to access the network information, it may need to use the registry cleanup after the clean-up
-  * Transfer the tool directory path does not need to uninstall the service, first stop the service transfer, transfer is completed after the restart service
+Uninstall method (required as administrator):
+1. Restore network configuration according to step 6 of the installation method.
+2. Run the ServiceControl.bat (XP/2003) as administrator (Vista and later):
+  * Enter "2" and press Enter, select "2: Uninstall service" to uninstall service.
+  * Note: Windows Firewall may have permission to access the network information, it may need to use the registry cleanup tool after uninstalling.
+  * Move location of tool need to reinstall service. Please uninstall service, move folder and then install service again.
 
 
 -------------------------------------------------------------------------------

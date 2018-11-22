@@ -70,7 +70,7 @@ Function and technology:
   * 8: Exit - exit
 * The file name supported by the profile (only the higher priority will be read and the lower priority will be ignored):
   * Windows: Config.ini> Config.conf> Config.cfg> Config
-  * Linux/macOS: Config.conf> Config.ini> Config.cfg> Config
+  * FreeBSD/Linux/macOS: Config.conf> Config.ini> Config.cfg> Config
 * Request function variable name resolution precedence
   * Use the system API function to perform the function variable name resolution (mostly): Hosts> Pcap_DNSProxy Hosts entries (Whitelist/whitelist entries> Hosts list)> DNS cache> Local hosts/DNS resolution function variable name list> Remote DNS server
   * Read the DNS server address directly from the web interface card settings Function Variable Name Resolution (small): Pcap_DNSProxy Hosts configuration file (Whitelist/whitelist entry> Hosts list)> DNS cache> Local Hosts/DNS resolution in the country Variable list of names> Remote DNS server
@@ -88,25 +88,27 @@ Because some features can not be specified by using the configuration file, so u
 All plug-in parameters can also be queried with the -h and --help parameters
 
 * --config-path Path
-   Starts the job directory where the profile is located
+    Set path of configuration file.
 * --help
-   Output the program description information to the screen
+    Print help messages on screen.
 * --version
-   Export the program version number to the screen
+    Print current version on screen.
 * --flush-dns
-   Immediately empty all programs and DNS buffers within the system
+    Flush all domain cache in program and system immediately.
 * --flush-dns Domain
-   Immediately clear the function variable name for the Domain and all systems within the DNS cache
+    Flush cache of Domain in program and all in system immediately.
 * --keypair-generator
-   Generate the key group required for the DNSCurve (DNSCrypt) protocol to KeyPair.txt
+    Generate a DNSCurve(DNSCrypt) keypair.
 * --lib-version
-   Outputs the version number of the library used for the program to the screen
+    Print current version of libraries on screen.
 * --log-file Path+Name
-  Set location of log file, output to stderr or stdout if Path+Name set to them.
+    Set path and name of log file.
+* --log-file stderr/out
+    Set output log to stderr or stdout.
 * --disable-daemon
-   Turn off daemon mode (Linux)
+    Disable daemon mode. (Linux)
 * --first-setup
-   Perform a local firewall test (Windows)
+    Test local firewall. (Windows)
 
 
 -------------------------------------------------------------------------------
@@ -804,12 +806,12 @@ Valid parameter format is "regular expression" (without quotation marks)
     127.0.0.1|127.0.0.2 127.0.0.0-127.255.255.255
     255.255.255.255/24 255.254.253.252
     ::1::-::FFFF
-    FFFF:EEEE::/ 64|FFFF:EEEE::FFFF::EEEE|​​FFFF::EEEF-FFFF::FFFF
+    1234:5678::/64|8765:4321:: AAAA::BBBB|CCCC::DDDD-CCCC::EEEE
 
   * Resolution of the address range of 127.0.0.0 to 127.255.255.255 will be replaced by 127.0.0.1 or 127.0.0.2
   * The resolution of the result is 255.254.253.252 when the address is replaced by 255.255.255.252
   * The resolution of the address range is: to::FFFF will be replaced by::1
-  * FFFF::EEEE or FFFF::EEEF:EFFF::EEEF to FFFF:::EEEE or FFFF:EEEE::xxxx:xxxx:xxxx:xxxx
+  * Address will be replaced to 1234:5678::BBBB/8765:4321:: if address is AAAA::BBBB, or CCCC::xxxx/8765:4321:: if address range between CCCC::DDDD and CCCC::EEEE.
 
 * Stop - temporarily stop reading the label
   * Add "[Stop End]" (without quotation marks) before adding "[Stop]" and data to stop reading the data.

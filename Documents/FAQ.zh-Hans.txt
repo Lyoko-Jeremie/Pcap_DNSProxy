@@ -9,7 +9,7 @@
 当程序运行时发生错误，可能会生成错误报告也就是 Error.log 文件，其位于工具服务注册的目录内，对解决问题至关重要
 * 错误报告的格式为 "[日期 时间] -> [错误类型] 对错误代码的简单介绍[错误代码] in 错误出处(Line 行数)."（不含双引号）
 * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
-* Linux/macOS 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
+* FreeBSD/Linux/macOS 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
 * WinPcap/LibPcap 错误信息的具体含义可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 * Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 * HTTP 状态码具体含义可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
@@ -27,20 +27,20 @@ Error.log 详细错误报告：
   * Capture module Monitor terminated - 抓包模块已经停止运行：建议重新启动服务或程序
   * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Convert multiple byte or wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
-  * Create FIFO error - FIFO 创建错误：建议重新启动服务或程序
+  * Create FIFO pipe error - FIFO 管道创建错误：建议重新启动服务或程序
   * Create mailslot error - Mailslot 创建错误：建议重新启动服务或程序
   * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 协议握手信息获取模块已经停止运行：建议重新启动服务或程序
   * DNSCurve UDP Signature Request module Monitor terminated - DNSCurve UDP 协议握手信息获取模块已经停止运行：建议重新启动服务或程序
   * Domain Test module Monitor terminated - 域名测试模块已经停止运行：建议重新启动服务或程序
-  * FIFO read messages error - FIFO 读取信息错误：建议重新启动服务或程序
-  * FIFO module Monitor terminated - FIFO 监视模块已经停止运行：建议重新启动服务或程序
-  * FIFO write messages error - FIFO 写入信息错误：建议重新启动服务或程序
+  * FIFO pipe read messages error - FIFO 管道读取信息错误：建议重新启动服务或程序
+  * FIFO pipe module listener terminated - FIFO 管道监视模块已经停止运行：建议重新启动服务或程序
+  * FIFO pipe write messages error - FIFO 管道写入信息错误：建议重新启动服务或程序
   * Get Local Address Information module Monitor terminated - 本地地址监视模块已经停止监视：建议重新启动服务或程序
   * Handle system signals error - 设置系统信号处理函数错误：建议重新启动服务或程序
   * ICMP Test module Monitor terminated - ICMP 请求模块已经停止请求：建议重新启动服务或程序
   * Ignore system signal error - 设置忽略系统部分信号错误：建议重新启动服务或程序
   * Mailslot read messages error - Mailslot 读取信息错误：建议重新启动服务或程序
-  * Mailslot module Monitor terminated - Mailslot 监视模块已经停止运行：建议重新启动服务或程序
+  * Mailslot module listener terminated - Mailslot 监视模块已经停止运行：建议重新启动服务或程序
   * Mailslot write messages error - Mailslot 写入信息错误：建议重新启动服务或程序
   * Process already exists error - 进程已经存在：请确认只有一个本程序实例运行中
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视：建议重新启动服务或程序

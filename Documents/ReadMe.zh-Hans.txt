@@ -70,7 +70,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 8: Exit - 退出
 * 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
   * Windows: Config.ini > Config.conf > Config.cfg > Config
-  * Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
+  * FreeBSD/Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
 * 请求域名解析优先级
   * 使用系统 API 函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 直接从网络适配器设置内读取 DNS 服务器地址进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
@@ -88,25 +88,27 @@ https://sourceforge.net/projects/pcap-dnsproxy
 所有外挂参数也可通过 -h 和 --help 参数查询
 
 * --config-path Path
-  启动时指定配置文件所在的工作目录
+    启动时指定配置文件所在的工作目录
 * --help
-  输出程序帮助信息到屏幕上
+    输出程序帮助信息到屏幕上
 * --version
-  输出程序版本号信息到屏幕上
+    输出程序版本号信息到屏幕上
 * --flush-dns
-  立即清空所有程序内以及系统内的 DNS 缓存
+    立即清空所有程序内以及系统内的 DNS 缓存
 * --flush-dns Domain
-  立即清空域名为 Domain 以及所有系统内的 DNS 缓存
+    立即清空域名为 Domain 以及所有系统内的 DNS 缓存
 * --keypair-generator
-  生成 DNSCurve(DNSCrypt) 协议所需使用的密钥对到 KeyPair.txt
+    生成 DNSCurve(DNSCrypt) 协议所需使用的密钥对到 KeyPair.txt
 * --lib-version
-  输出程序所用库的版本号信息到屏幕上
+    输出程序所用库的版本号信息到屏幕上
 * --log-file Path+Name
-  启动时指定日志文件的储存位置，当 Path+Name 为 stderr 或 stdout 时将按标准流方式输出
+    启动时指定日志文件的储存位置，当 Path+Name 为 stderr 或 stdout 时将按标准流方式输出
+* --log-file stderr/out
+    启动时指定日志文件按 stderr 或 stdout 方式输出
 * --disable-daemon
-  关闭守护进程模式 (Linux)
+    关闭守护进程模式 (Linux)
 * --first-setup
-  进行本地防火墙测试 (Windows)
+    进行本地防火墙测试 (Windows)
 
 
 -------------------------------------------------------------------------------
@@ -681,7 +683,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv6 Alternate DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取
   * 注意：
     * 公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
-  
+
 * DNSCurve Magic Number - DNSCurve 协议魔数区域
   * DNSCurve IPv4 Main Receive Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数
   * DNSCurve IPv4 Alternate Receive Magic Number - DNSCurve 协议 IPv4 备用 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数
@@ -802,12 +804,12 @@ Hosts 配置文件分为多个提供不同功能的区域
     127.0.0.1|127.0.0.2 127.0.0.0-127.255.255.255
     255.255.255.255/24 255.254.253.252
     ::1 ::-::FFFF
-    FFFF:EEEE::/64|FFFF:EEEE:: FFFF::EEEE|FFFF::EEEF-FFFF::FFFF
+    1234:5678::/64|8765:4321:: AAAA::BBBB|CCCC::DDDD-CCCC::EEEE
 
   * 解析结果的地址范围为 127.0.0.0 到 127.255.255.255 时将被替换为 127.0.0.1 或 127.0.0.2
   * 解析结果的地址为 255.254.253.252 时将被替换为 255.255.255.252
   * 解析结果的地址范围为 :: 到 ::FFFF 时将被替换为 ::1
-  * 解析结果的地址范围为 FFFF::EEEE 或 FFFF::EEEF 到 FFFF::FFFF 时将被替换为 FFFF:FFFF::EEEE 或 FFFF:FFFF::xxxx:xxxx:xxxx:xxxx 或 FFFF:EEEE::EEEE 或 FFFF:EEEE::xxxx:xxxx:xxxx:xxxx
+  * 解析结果的地址为 AAAA::BBBB 或范围为 CCCC::DDDD 到 CCCC::EEEE 时将被替换为 1234:5678::BBBB 或 8765:4321:: 和 CCCC::xxxx 或 8765:4321::
 
 
 * Stop - 临时停止读取标签

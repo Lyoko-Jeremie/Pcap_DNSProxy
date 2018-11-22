@@ -3,13 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 48;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		D9112FA61CD7637100540550 /* libpcap.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D9112FA51CD7637100540550 /* libpcap.tbd */; };
 		D92660A51DCDB4A600061CE8 /* TransportSecurity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92660A31DCDB4A600061CE8 /* TransportSecurity.cpp */; };
-		D931644B2094B9DE00D0962D /* LibEvent_Extra_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D931644A2094B9DD00D0962D /* LibEvent_Extra_macOS.a */; };
 		D93C47241CD7596A00CD334A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47151CD7596A00CD334A /* Base.cpp */; };
 		D93C47251CD7596A00CD334A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47171CD7596A00CD334A /* Capture.cpp */; };
 		D93C47261CD7596A00CD334A /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C471A1CD7596A00CD334A /* Configuration.cpp */; };
@@ -29,9 +28,7 @@
 		D96BE5C61DB7A895001D8BF3 /* DNSCurveRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */; };
 		D96BE5C91DB7A8A7001D8BF3 /* Request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */; };
 		D98C9EA12094DB6F00F62D8A /* LibEvent_OpenSSL_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D98C9E9F2094DB6F00F62D8A /* LibEvent_OpenSSL_macOS.a */; };
-		D98C9EA22094DB6F00F62D8A /* LibEvent_Pthreads_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D98C9EA02094DB6F00F62D8A /* LibEvent_Pthreads_macOS.a */; };
 		D9C5DE1520666C5C0004F08D /* LibEvent_Core_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9C5DE1420666C5C0004F08D /* LibEvent_Core_macOS.a */; };
-		D9C5DE1920666C720004F08D /* LibEvent_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9C5DE1820666C720004F08D /* LibEvent_macOS.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 		D9C8DD2A205E4F6700C3D259 /* DNSCurveControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */; };
 		D9EF117D1DDB53C7004E4B90 /* LibSodium_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9EF117C1DDB53C7004E4B90 /* LibSodium_macOS.a */; };
 		D9EF11801DDB53D7004E4B90 /* LibCrypto_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9EF117E1DDB53D7004E4B90 /* LibCrypto_macOS.a */; settings = {ATTRIBUTES = (Required, ); }; };
@@ -55,7 +52,6 @@
 		D9112FA51CD7637100540550 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
 		D92660A31DCDB4A600061CE8 /* TransportSecurity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransportSecurity.cpp; sourceTree = "<group>"; };
 		D92660A41DCDB4A600061CE8 /* TransportSecurity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransportSecurity.h; sourceTree = "<group>"; };
-		D931644A2094B9DD00D0962D /* LibEvent_Extra_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibEvent_Extra_macOS.a; path = Dependency/LibEvent/LibEvent_Extra_macOS.a; sourceTree = "<group>"; };
 		D93C46FE1CD7582600CD334A /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D93C47151CD7596A00CD334A /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
 		D93C47161CD7596A00CD334A /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
@@ -95,7 +91,6 @@
 		D96BE5CA1DB7A8AF001D8BF3 /* Structure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structure.h; sourceTree = "<group>"; };
 		D96BE5CB1DB7A8AF001D8BF3 /* Template.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Template.h; sourceTree = "<group>"; };
 		D98C9E9F2094DB6F00F62D8A /* LibEvent_OpenSSL_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibEvent_OpenSSL_macOS.a; path = Dependency/LibEvent/LibEvent_OpenSSL_macOS.a; sourceTree = "<group>"; };
-		D98C9EA02094DB6F00F62D8A /* LibEvent_Pthreads_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibEvent_Pthreads_macOS.a; path = Dependency/LibEvent/LibEvent_Pthreads_macOS.a; sourceTree = "<group>"; };
 		D98C9ED92094DBE000F62D8A /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = Dependency/LibSodium/Include_macOS/core.h; sourceTree = "<group>"; };
 		D98C9EDA2094DBE000F62D8A /* crypto_aead_chacha20poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_chacha20poly1305.h; path = Dependency/LibSodium/Include_macOS/crypto_aead_chacha20poly1305.h; sourceTree = "<group>"; };
 		D98C9EDB2094DBE000F62D8A /* crypto_hash_sha512.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_hash_sha512.h; path = Dependency/LibSodium/Include_macOS/crypto_hash_sha512.h; sourceTree = "<group>"; };
@@ -284,7 +279,6 @@
 		D99203801F1B49B900B0698E /* x509.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = x509.h; path = Dependency/OpenSSL/openssl/x509.h; sourceTree = "<group>"; };
 		D99203811F1B49B900B0698E /* x509v3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = x509v3.h; path = Dependency/OpenSSL/openssl/x509v3.h; sourceTree = "<group>"; };
 		D9C5DE1420666C5C0004F08D /* LibEvent_Core_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibEvent_Core_macOS.a; path = Dependency/LibEvent/LibEvent_Core_macOS.a; sourceTree = "<group>"; };
-		D9C5DE1820666C720004F08D /* LibEvent_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibEvent_macOS.a; path = Dependency/LibEvent/LibEvent_macOS.a; sourceTree = "<group>"; };
 		D9C8DD27205E4F6700C3D259 /* DNSCurveControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurveControl.h; sourceTree = "<group>"; };
 		D9C8DD28205E4F6700C3D259 /* Include.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Include.h; sourceTree = "<group>"; };
 		D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurveControl.cpp; sourceTree = "<group>"; };
@@ -305,12 +299,9 @@
 			files = (
 				D9C5DE1520666C5C0004F08D /* LibEvent_Core_macOS.a in Frameworks */,
 				D9EF11801DDB53D7004E4B90 /* LibCrypto_macOS.a in Frameworks */,
-				D9C5DE1920666C720004F08D /* LibEvent_macOS.a in Frameworks */,
-				D98C9EA22094DB6F00F62D8A /* LibEvent_Pthreads_macOS.a in Frameworks */,
 				D9EF11811DDB53D7004E4B90 /* LibSSL_macOS.a in Frameworks */,
 				D9EF117D1DDB53C7004E4B90 /* LibSodium_macOS.a in Frameworks */,
 				D98C9EA12094DB6F00F62D8A /* LibEvent_OpenSSL_macOS.a in Frameworks */,
-				D931644B2094B9DE00D0962D /* LibEvent_Extra_macOS.a in Frameworks */,
 				D9112FA61CD7637100540550 /* libpcap.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -549,10 +540,7 @@
 			children = (
 				D9EF117E1DDB53D7004E4B90 /* LibCrypto_macOS.a */,
 				D9C5DE1420666C5C0004F08D /* LibEvent_Core_macOS.a */,
-				D931644A2094B9DD00D0962D /* LibEvent_Extra_macOS.a */,
-				D9C5DE1820666C720004F08D /* LibEvent_macOS.a */,
 				D98C9E9F2094DB6F00F62D8A /* LibEvent_OpenSSL_macOS.a */,
-				D98C9EA02094DB6F00F62D8A /* LibEvent_Pthreads_macOS.a */,
 				D9EF117C1DDB53C7004E4B90 /* LibSodium_macOS.a */,
 				D9EF117F1DDB53D7004E4B90 /* LibSSL_macOS.a */,
 				D9112FA51CD7637100540550 /* libpcap.tbd */,
@@ -699,7 +687,7 @@
 		D93C46F61CD7582600CD334A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = Chengr28;
 				TargetAttributes = {
 					D93C46FD1CD7582600CD334A = {
@@ -708,7 +696,7 @@
 				};
 			};
 			buildConfigurationList = D93C46F91CD7582600CD334A /* Build configuration list for PBXProject "Pcap_DNSProxy" */;
-			compatibilityVersion = "Xcode 8.0";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -771,12 +759,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -827,12 +817,14 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;

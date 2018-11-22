@@ -9,7 +9,7 @@ This document contains a set of common methods for dealing with problems, please
 Please find Error.log in working directory if there is an error report generated.
 * The format of error report is "[Date Time] -> [Error Type] Description of the error code[Error Code] in Filename(Line number)."
 * Error code in Windows, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
-* Error code in Linux/macOS, pleas visit http://man7.org/linux/man-pages/man3/errno.3.html.
+* Error code in FreeBSD/Linux/macOS, pleas visit http://man7.org/linux/man-pages/man3/errno.3.html.
 * Error code of WinPcap/LibPcap, pleas visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
 * Error code of Winsock, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 * Error code of HTTP status code, pleas visit https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
@@ -27,20 +27,20 @@ Details of Error.log error report:
   * Capture module Monitor terminated - It's recommended to restart the service or program.
   * Commands error - Please check the command parameters.
   * Convert multiple byte or wide char string error - It's recommended to restart the service or program.
-  * Create FIFO error - It's recommended to restart the service or program.
+  * Create FIFO pipe error - It's recommended to restart the service or program.
   * Create mailslot error - It's recommended to restart the service or program.
   * DNSCurve TCP Signature Request module Monitor terminated - It's recommended to restart the service or program.
   * DNSCurve UDP Signature Request module Monitor terminated - It's recommended to restart the service or program.
   * Domain Test module Monitor terminated - It's recommended to restart the service or program.
-  * FIFO read messages error - It's recommended to restart the service or program.
-  * FIFO module Monitor terminated - It's recommended to restart the service or program.
-  * FIFO write messages error - It's recommended to restart the service or program.
+  * FIFO pipe read messages error - It's recommended to restart the service or program.
+  * FIFO pipe module listener terminated - It's recommended to restart the service or program.
+  * FIFO pipe write messages error - It's recommended to restart the service or program.
   * Get Local Address Information module Monitor terminated - It's recommended to restart the service or program.
   * Handle system signals error - It's recommended to restart the service or program.
   * ICMP Test module Monitor terminated - It's recommended to restart the service or program.
   * Ignore system signal error - It's recommended to restart the service or program.
   * Mailslot read messages error - It's recommended to restart the service or program.
-  * Mailslot module Monitor terminated - It's recommended to restart the service or program.
+  * Mailslot module listener terminated - It's recommended to restart the service or program.
   * Mailslot write messages error - It's recommended to restart the service or program.
   * Process already exists error - Please make sure that only one process of this program is running at the same time.
   * Read Hosts module Monitor terminated - It's recommended to restart the service or program.

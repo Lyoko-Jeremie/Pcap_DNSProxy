@@ -51,7 +51,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 小更新的方法（需要以管理員身份進行，如果設定檔的 Version 有更新需要進行大更新）：
-1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第 2 步），更新過程可能會造成功能變數名稱解析短暫中斷
+1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第 2 步），更新過程可能會造成網域名稱解析短暫中斷
 2.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
 3.輸入 4 並回車，即選擇 "4: Stop service" 停止服務
 4.將目錄內的所有可執行檔刪除
@@ -61,7 +61,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 大更新的方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
-1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第 2 步），更新過程可能會造成功能變數名稱解析短暫中斷
+1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第 2 步），更新過程可能會造成網域名稱解析短暫中斷
 2.如果設定檔的 Version 有更新，則需要備份好所有設定檔的自訂內容
 3.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
 4.輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務

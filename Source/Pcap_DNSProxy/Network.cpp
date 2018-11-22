@@ -374,7 +374,7 @@ bool SocketSetting(
 
 		//Socket timeout options
 		#if defined(PLATFORM_WIN)
-			const auto OptionValue = *reinterpret_cast<DWORD *>(DataPointer);
+			const auto OptionValue = *reinterpret_cast<const DWORD *>(DataPointer);
 			if (setsockopt(Socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR || 
 				setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
@@ -431,7 +431,7 @@ void ReadCallback_SocketSend(
 	memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 	for (const auto &SocketDataItem:CallbackArgument->SocketValue->ValueSet)
 	{
-		if (static_cast<evutil_socket_t>(SocketDataItem.Socket) == Socket)
+		if (static_cast<const evutil_socket_t>(SocketDataItem.Socket) == Socket)
 		{
 			SocketDataTemp = SocketDataItem;
 			break;
@@ -443,7 +443,7 @@ void ReadCallback_SocketSend(
 		return;
 
 //Drop all responses.
-	while (recvfrom(Socket, reinterpret_cast<char *>(CallbackArgument->RecvBuffer), static_cast<int>(CallbackArgument->RecvSize), 0, reinterpret_cast<sockaddr *>(&SocketDataTemp.SockAddr), &SocketDataTemp.AddrLen) > 0)
+	while (recvfrom(Socket, reinterpret_cast<char *>(CallbackArgument->RecvBuffer), static_cast<const int>(CallbackArgument->RecvSize), 0, reinterpret_cast<sockaddr *>(&SocketDataTemp.SockAddr), &SocketDataTemp.AddrLen) > 0)
 		memset(CallbackArgument->RecvBuffer, 0, CallbackArgument->RecvSize);
 
 	return;
@@ -465,7 +465,7 @@ void WriteCallback_SocketSend(
 	memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 	for (const auto &SocketDataItem:CallbackArgument->SocketValue->ValueSet)
 	{
-		if (static_cast<evutil_socket_t>(SocketDataItem.Socket) == Socket)
+		if (static_cast<const evutil_socket_t>(SocketDataItem.Socket) == Socket)
 		{
 			SocketDataTemp = SocketDataItem;
 			break;
@@ -505,13 +505,13 @@ void WriteCallback_SocketSend(
 			if (Parameter.ICMP_Sequence == 0)
 			{
 				if (CallbackArgument->PacketSequence == 0)
-					CallbackArgument->PacketSequence = htons(ntohs(CallbackArgument->PacketSequence) + 1U);
+					CallbackArgument->PacketSequence = hton16(ntoh16(CallbackArgument->PacketSequence) + 1U);
 				ICMPv6_Header->Sequence = CallbackArgument->PacketSequence;
 			}
 
 		//Timestamp and Nonce
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
+			ICMPv6_Header->Timestamp = static_cast<const uint64_t>(Timestamp);
 		#if defined(PLATFORM_LINUX)
 			GenerateRandomBuffer(&ICMPv6_Header->Nonce, sizeof(ICMPv6_Header->Nonce), nullptr, 0, 0);
 		#endif
@@ -523,13 +523,13 @@ void WriteCallback_SocketSend(
 			if (Parameter.ICMP_Sequence == 0)
 			{
 				if (CallbackArgument->PacketSequence == 0)
-					CallbackArgument->PacketSequence = htons(ntohs(CallbackArgument->PacketSequence) + 1U);
+					CallbackArgument->PacketSequence = hton16(ntoh16(CallbackArgument->PacketSequence) + 1U);
 				ICMP_Header->Sequence = CallbackArgument->PacketSequence;
 			}
 
 		//Timestamp and Nonce
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
+			ICMP_Header->Timestamp = static_cast<const uint64_t>(Timestamp);
 		#if defined(PLATFORM_LINUX)
 			GenerateRandomBuffer(&ICMP_Header->Nonce, sizeof(ICMP_Header->Nonce), nullptr, 0, 0);
 		#endif
@@ -537,11 +537,11 @@ void WriteCallback_SocketSend(
 
 		//Checksum calculating
 			ICMP_Header->Checksum = 0;
-			ICMP_Header->Checksum = GetChecksum_Internet(reinterpret_cast<uint16_t *>(CallbackArgument->SendBuffer), CallbackArgument->SendSize);
+			ICMP_Header->Checksum = GetChecksum_Internet(reinterpret_cast<const uint16_t *>(CallbackArgument->SendBuffer), CallbackArgument->SendSize);
 		}
 
 	//Send request.
-		sendto(Socket, reinterpret_cast<const char *>(CallbackArgument->SendBuffer), static_cast<int>(CallbackArgument->SendSize), 0, reinterpret_cast<const sockaddr *>(&SocketDataTemp.SockAddr), SocketDataTemp.AddrLen);
+		sendto(Socket, reinterpret_cast<const char *>(CallbackArgument->SendBuffer), static_cast<const int>(CallbackArgument->SendSize), 0, reinterpret_cast<const sockaddr *>(&SocketDataTemp.SockAddr), SocketDataTemp.AddrLen);
 	}
 
 	return;
@@ -564,7 +564,7 @@ void TimerCallback_SocketSend(
 	{
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
-		CallbackArgument->IntervalTimeout.tv_sec = static_cast<DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
+		CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		CallbackArgument->IntervalTimeout.tv_sec = Parameter.FileRefreshTime / SECOND_TO_MILLISECOND;
 	#endif
@@ -640,7 +640,7 @@ void TimerCallback_SocketSend(
 		}
 
 	//Keep to retest if no any available gateways.
-		if (!GlobalRunningStatus.GatewayAvailable_IPv4 && !GlobalRunningStatus.GatewayAvailable_IPv6)
+		if (!GlobalRunningStatus.GatewayAvailable_IPv6 && !GlobalRunningStatus.GatewayAvailable_IPv4)
 			CallbackArgument->RetestTimes = 0;
 
 	//Retest if Hop Limits/TTLs are not exist or retest not more than a value times.
@@ -664,7 +664,7 @@ void TimerCallback_SocketSend(
 		//Interval time is not enough.
 			else {
 			#if defined(PLATFORM_WIN)
-				CallbackArgument->IntervalTimeout.tv_sec = static_cast<DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
+				CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				CallbackArgument->IntervalTimeout.tv_sec = LoopInterval / SECOND_TO_MILLISECOND;
 			#endif
@@ -677,7 +677,7 @@ void TimerCallback_SocketSend(
 			}
 		}
 	//Mark retest times.
-		else if (GlobalRunningStatus.GatewayAvailable_IPv4 || GlobalRunningStatus.GatewayAvailable_IPv6)
+		else if (GlobalRunningStatus.GatewayAvailable_IPv6 || GlobalRunningStatus.GatewayAvailable_IPv4)
 		{
 			++CallbackArgument->RetestTimes;
 		}
@@ -691,9 +691,9 @@ void TimerCallback_SocketSend(
 	if (Parameter.ICMP_Sequence == 0)
 	{
 		if (CallbackArgument->PacketSequence == UINT16_MAX)
-			CallbackArgument->PacketSequence = htons(UINT16_NUM_ONE);
+			CallbackArgument->PacketSequence = hton16(UINT16_NUM_ONE);
 		else 
-			CallbackArgument->PacketSequence = htons(ntohs(CallbackArgument->PacketSequence) + 1U);
+			CallbackArgument->PacketSequence = hton16(ntoh16(CallbackArgument->PacketSequence) + 1U);
 	}
 
 //Reset socket timeout.
@@ -880,7 +880,7 @@ void TimerCallback_TransmissionOnce(
 	{
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
-		CallbackArgument->IntervalTimeout.tv_sec = static_cast<DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
+		CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		CallbackArgument->IntervalTimeout.tv_sec = Parameter.FileRefreshTime / SECOND_TO_MILLISECOND;
 	#endif
@@ -956,7 +956,7 @@ void TimerCallback_TransmissionOnce(
 		}
 
 	//Keep to retest if no any available gateways.
-		if (!GlobalRunningStatus.GatewayAvailable_IPv4 && !GlobalRunningStatus.GatewayAvailable_IPv6)
+		if (!GlobalRunningStatus.GatewayAvailable_IPv6 && !GlobalRunningStatus.GatewayAvailable_IPv4)
 			CallbackArgument->RetestTimes = 0;
 
 	//Retest if Hop Limits/TTLs are not exist or retest not more than a value times.
@@ -980,7 +980,7 @@ void TimerCallback_TransmissionOnce(
 		//Interval time is not enough.
 			else {
 			#if defined(PLATFORM_WIN)
-				CallbackArgument->IntervalTimeout.tv_sec = static_cast<DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
+				CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				CallbackArgument->IntervalTimeout.tv_sec = LoopInterval / SECOND_TO_MILLISECOND;
 			#endif
@@ -993,7 +993,7 @@ void TimerCallback_TransmissionOnce(
 			}
 		}
 	//Mark retest times.
-		else if (GlobalRunningStatus.GatewayAvailable_IPv4 || GlobalRunningStatus.GatewayAvailable_IPv6)
+		else if (GlobalRunningStatus.GatewayAvailable_IPv6 && GlobalRunningStatus.GatewayAvailable_IPv4)
 		{
 			++CallbackArgument->RetestTimes;
 		}
@@ -1035,9 +1035,9 @@ uint16_t SelectProtocol_Network(
 	//According type specific
 		if (IsAccordingType)
 		{
-			if (ntohs(TypeSpecific) == DNS_TYPE_AAAA)
+			if (ntoh16(TypeSpecific) == DNS_TYPE_AAAA)
 				return AF_INET6;
-			else if (ntohs(TypeSpecific) == DNS_TYPE_A)
+			else if (ntoh16(TypeSpecific) == DNS_TYPE_A)
 				return AF_INET;
 		}
 
@@ -1736,7 +1736,7 @@ size_t SocketConnecting(
 			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
 			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
 				return EXIT_FAILURE;
-			else if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+			else if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 				return EXIT_SUCCESS;
 			else 
 				return RecvLen;
@@ -1767,7 +1767,7 @@ size_t SocketConnecting(
 			RecvLen = send(Socket, OriginalSend, SendSize, 0);
 			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
 				return EXIT_FAILURE;
-			else if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+			else if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 				return EXIT_SUCCESS;
 			else 
 				return RecvLen;
@@ -1892,7 +1892,7 @@ ssize_t SocketSelectingOnce(
 		{
 			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		}
-		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen > 0 && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen > 0 && RecvLen >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 		{
 		#if defined(ENABLE_LIBSODIUM)
 			if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
@@ -2011,7 +2011,7 @@ ssize_t SocketSelectingOnce(
 				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingDataList, nullptr, OriginalRecv, RecvSize, LocalSocketData);
 
 		//Get result or all socket cloesed
-			if (RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+			if (RecvLen >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 				return RecvLen;
 			else if (IsAllSocketShutdown)
 				return EXIT_FAILURE;
@@ -2092,7 +2092,8 @@ ssize_t SocketSelectingOnce(
 					continue;
 				}
 				else {
-					IsReadReady = false, IsWriteReady = false;
+					IsReadReady = false;
+					IsWriteReady = false;
 					if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) != 0)
 						IsReadReady = true;
 					if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) != 0)
@@ -2147,7 +2148,7 @@ ssize_t SocketSelectingOnce(
 						}
 
 					//Receive from selecting.
-						RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingDataList->at(Index).RecvLen), static_cast<int>(RecvSize - DNSCurveSocketSelectingDataList->at(Index).RecvLen), 0);
+						RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingDataList->at(Index).RecvLen), static_cast<const int>(RecvSize - DNSCurveSocketSelectingDataList->at(Index).RecvLen), 0);
 
 					//Connection closed or SOCKET_ERROR
 						if (RecvLen <= 0)
@@ -2158,7 +2159,7 @@ ssize_t SocketSelectingOnce(
 
 							continue;
 						}
-						else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && DNSCurveSocketSelectingDataList->at(Index).RecvLen > 0)
+						else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE) && DNSCurveSocketSelectingDataList->at(Index).RecvLen > 0)
 						{
 							memset(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), 0, DNSCurveSocketSelectingDataList->at(Index).RecvLen);
 							memmove_s(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingDataList->at(Index).RecvLen, RecvLen);
@@ -2174,7 +2175,7 @@ ssize_t SocketSelectingOnce(
 					if (IsWriteReady && 
 						!DNSCurveSocketSelectingDataList->at(Index).IsPacketDone)
 					{
-						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(DNSCurveSocketSelectingDataList->at(Index).SendBuffer), static_cast<int>(DNSCurveSocketSelectingDataList->at(Index).SendSize), 0) == SOCKET_ERROR)
+						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(DNSCurveSocketSelectingDataList->at(Index).SendBuffer), static_cast<const int>(DNSCurveSocketSelectingDataList->at(Index).SendSize), 0) == SOCKET_ERROR)
 						{
 							ssize_t InnerErrorCode = WSAGetLastError();
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -2211,7 +2212,7 @@ ssize_t SocketSelectingOnce(
 							}
 
 						//Receive from selecting.
-							RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen), static_cast<int>(RecvSize - SocketSelectingDataList.at(Index).RecvLen), 0);
+							RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen), static_cast<const int>(RecvSize - SocketSelectingDataList.at(Index).RecvLen), 0);
 
 						//Connection closed or SOCKET_ERROR
 							if (RecvLen <= 0)
@@ -2222,7 +2223,7 @@ ssize_t SocketSelectingOnce(
 
 								continue;
 							}
-							else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && SocketSelectingDataList.at(Index).RecvLen > 0)
+							else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE) && SocketSelectingDataList.at(Index).RecvLen > 0)
 							{
 								memset(SocketSelectingDataList.at(Index).RecvBuffer.get(), 0, SocketSelectingDataList.at(Index).RecvLen);
 								memmove_s(SocketSelectingDataList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen, RecvLen);
@@ -2247,7 +2248,7 @@ ssize_t SocketSelectingOnce(
 					if (IsWriteReady && 
 						!SocketSelectingDataList.at(Index).IsPacketDone)
 					{
-						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(OriginalSend), static_cast<int>(SendSize), 0) == SOCKET_ERROR)
+						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(OriginalSend), static_cast<const int>(SendSize), 0) == SOCKET_ERROR)
 						{
 							ssize_t InnerErrorCode = WSAGetLastError();
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -2309,7 +2310,7 @@ ssize_t SocketSelectingOnce(
 			#endif
 
 			//Buffer list check(Part 2)
-				if (RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+				if (RecvLen >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 					return RecvLen;
 			}
 
@@ -2378,8 +2379,8 @@ ssize_t SelectingResultOnce(
 			//TCP header length check
 				if (Protocol == IPPROTO_TCP)
 				{
-					RecvLen = ntohs(reinterpret_cast<uint16_t *>(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get())[0]);
-					if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE) || RecvLen >= static_cast<ssize_t>(RecvSize) || RecvLen > static_cast<ssize_t>(DNSCurveSocketSelectingDataList->at(Index).RecvLen))
+					RecvLen = ntoh16(reinterpret_cast<const uint16_t *>(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get())[0]);
+					if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE) || RecvLen >= static_cast<const ssize_t>(RecvSize) || RecvLen > static_cast<const ssize_t>(DNSCurveSocketSelectingDataList->at(Index).RecvLen))
 					{
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.reset();
@@ -2389,7 +2390,7 @@ ssize_t SelectingResultOnce(
 					}
 					else {
 						memmove_s(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-						memset(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, 0, static_cast<ssize_t>(RecvSize) - RecvLen);
+						memset(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, 0, static_cast<const ssize_t>(RecvSize) - RecvLen);
 					}
 				}
 			//UDP length
@@ -2409,7 +2410,7 @@ ssize_t SelectingResultOnce(
 				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 					RecvLen = DNSCurve_PacketDecryption(DNSCurveSocketSelectingDataList->at(Index).ReceiveMagicNumber, DNSCurveSocketSelectingDataList->at(Index).PrecomputationKey, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, RecvLen);
-					if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+					if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 					{
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.reset();
@@ -2459,7 +2460,7 @@ ssize_t SelectingResultOnce(
 
 				SocketRegisterMutex.unlock();
 
-			//Mark DNS cache.
+			//Mark domain cache.
 				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
 					MarkDomainCache(OriginalRecv, RecvLen, LocalSocketData);
 
@@ -2474,8 +2475,8 @@ ssize_t SelectingResultOnce(
 			//TCP header length check
 				if (Protocol == IPPROTO_TCP)
 				{
-					RecvLen = ntohs(reinterpret_cast<uint16_t *>(SocketSelectingDataList->at(Index).RecvBuffer.get())[0]);
-					if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE) || RecvLen >= static_cast<ssize_t>(RecvSize) || RecvLen > static_cast<ssize_t>(SocketSelectingDataList->at(Index).RecvLen))
+					RecvLen = ntoh16(reinterpret_cast<const uint16_t *>(SocketSelectingDataList->at(Index).RecvBuffer.get())[0]);
+					if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE) || RecvLen >= static_cast<const ssize_t>(RecvSize) || RecvLen > static_cast<const ssize_t>(SocketSelectingDataList->at(Index).RecvLen))
 					{
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketSelectingDataList->at(Index).RecvBuffer.reset();
@@ -2485,7 +2486,7 @@ ssize_t SelectingResultOnce(
 					}
 					else {
 						memmove_s(SocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, SocketSelectingDataList->at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-						memset(SocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, 0, RecvSize - static_cast<ssize_t>(RecvLen));
+						memset(SocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, 0, RecvSize - static_cast<const ssize_t>(RecvLen));
 					}
 				}
 			//UDP length
@@ -2509,7 +2510,7 @@ ssize_t SelectingResultOnce(
 					RecvSize, 
 					nullptr, 
 					nullptr);
-				if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+				if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 				{
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketSelectingDataList->at(Index).RecvBuffer.reset();
@@ -2558,7 +2559,7 @@ ssize_t SelectingResultOnce(
 
 				SocketRegisterMutex.unlock();
 
-			//Mark DNS cache.
+			//Mark domain cache.
 				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
 					MarkDomainCache(OriginalRecv, RecvLen, LocalSocketData);
 
@@ -2731,7 +2732,7 @@ size_t SocketSelectingSerial(
 					}
 
 				//Send data.
-					if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(SocketSelectingDataList.at(Index).SendBuffer.get()), static_cast<int>(SocketSelectingDataList.at(Index).SendLen), 0) == SOCKET_ERROR)
+					if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(SocketSelectingDataList.at(Index).SendBuffer.get()), static_cast<const int>(SocketSelectingDataList.at(Index).SendLen), 0) == SOCKET_ERROR)
 					{
 						ErrorCodeList.at(Index) = WSAGetLastError();
 
@@ -2902,7 +2903,7 @@ StopLoop:
 						}
 
 					//Receive process
-						RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen), static_cast<int>(SocketSelectingDataList.at(Index).RecvSize - SocketSelectingDataList.at(Index).RecvLen), 0);
+						RecvLen = recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen), static_cast<const int>(SocketSelectingDataList.at(Index).RecvSize - SocketSelectingDataList.at(Index).RecvLen), 0);
 						if (RecvLen == SOCKET_ERROR)
 						{
 							ErrorCodeList.at(Index) = WSAGetLastError();
@@ -2933,7 +2934,7 @@ StopLoop:
 							break;
 						}
 						else {
-							SocketSelectingDataList.at(Index).RecvLen += static_cast<size_t>(RecvLen);
+							SocketSelectingDataList.at(Index).RecvLen += static_cast<const size_t>(RecvLen);
 						}
 					}
 				}
@@ -2965,6 +2966,8 @@ void RegisterPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
+	const std::string * const DomainString_Original, 
+	const std::string * const DomainString_Request, 
 	size_t *EDNS_Length)
 {
 //Socket data check
@@ -3008,12 +3011,12 @@ void RegisterPortToList(
 			if (SocketDataItem.AddrLen == sizeof(sockaddr_in6))
 			{
 				SocketDataTemp.SockAddr.ss_family = AF_INET6;
-				reinterpret_cast<sockaddr_in6 *>(&SocketDataTemp.SockAddr)->sin6_port = reinterpret_cast<sockaddr_in6 *>(&SocketDataItem.SockAddr)->sin6_port;
+				reinterpret_cast<sockaddr_in6 *>(&SocketDataTemp.SockAddr)->sin6_port = reinterpret_cast<const sockaddr_in6 *>(&SocketDataItem.SockAddr)->sin6_port;
 			}
 			else if (SocketDataItem.AddrLen == sizeof(sockaddr_in))
 			{
 				SocketDataTemp.SockAddr.ss_family = AF_INET;
-				reinterpret_cast<sockaddr_in *>(&SocketDataTemp.SockAddr)->sin_port = reinterpret_cast<sockaddr_in *>(&SocketDataItem.SockAddr)->sin_port;
+				reinterpret_cast<sockaddr_in *>(&SocketDataTemp.SockAddr)->sin_port = reinterpret_cast<const sockaddr_in *>(&SocketDataItem.SockAddr)->sin_port;
 			}
 			else {
 				SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -3072,6 +3075,10 @@ void RegisterPortToList(
 		}
 
 	//Register to global list.
+		if (DomainString_Original != nullptr)
+			OutputPacketListTemp.DomainString_Original = *DomainString_Original;
+		if (DomainString_Request != nullptr)
+			OutputPacketListTemp.DomainString_Request = *DomainString_Request;
 		OutputPacketList.push_back(OutputPacketListTemp);
 	}
 

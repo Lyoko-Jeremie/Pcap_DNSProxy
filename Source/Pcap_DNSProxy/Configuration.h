@@ -253,6 +253,14 @@ bool ReadSupport_HopLimitsData(
 	const size_t FileIndex, 
 	const size_t Line);
 #endif
+bool ReadSupport_AddressPrefixData(
+	const uint16_t Protocol, 
+	std::string OriginalData, 
+	const size_t DataOffset, 
+	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
+	const std::vector<FILE_DATA> &FileList, 
+	const size_t FileIndex, 
+	const size_t Line);
 #if defined(ENABLE_LIBSODIUM)
 void ReadSupport_DNSCurveDatabaseData(
 	std::string Data, 
@@ -296,14 +304,6 @@ bool ReadIPFilter_BlacklistData(
 	const size_t Line);
 bool ReadIPFilter_LocalRoutingData(
 	std::string Data, 
-	const size_t FileIndex, 
-	const size_t Line);
-bool ReadIPFilter_AddressPrefixData(
-	const uint16_t Protocol, 
-	std::string OriginalData, 
-	const size_t DataOffset, 
-	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
-	const std::vector<FILE_DATA> &FileList, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadIPFilter_MainData(

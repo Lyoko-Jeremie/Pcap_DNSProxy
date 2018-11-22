@@ -135,56 +135,54 @@ The installation process is relatively long and more complex operation, please g
 -------------------------------------------------------------------------------
 
 
-Reboot service method:
-* Systemd section:
-  1. Open the terminal and use su to get the root permission
-  2. Use systemctl restart Pcap_DNSProxy to restart the service directly
-  3. Can also be the first systemctl stop Pcap_DNSProxy stop service, wait a while and then systemctl start Pcap_DNSProxy start service
-* SysV section:
-  1. Open the terminal and use su to get the root permission
-  2. Use service PcapDNSProxyService restart to restart the service directly
-  3. You can also service PcapDNSProxyService stop stop service, wait for some time and then service PcapDNSProxyService start start service
+Restart service method:
+* Systemd:
+  1. Open the terminal and use "su" to get root permission.
+  2. Use "systemctl restart Pcap_DNSProxy" to restart the service.
+  3. Another way: Use "systemctl stop Pcap_DNSProxy" to stop service, wait a moment and then use "systemctl start Pcap_DNSProxy" to start service.
+* SysV:
+  1. Open the terminal and use "su" to get root permission.
+  2. Use "service PcapDNSProxyService restart" to restart the service.
+  3. Another way: Use "service PcapDNSProxyService stop" to stop service, wait a moment and then use "service PcapDNSProxyService start" to start service.
 
 
 How to update if configuration version not changed:
-* Systemd section:
-  1. Open the terminal, use su to get the root permission and enter the Release directory
-  2. Execute the service uninstall script using ./Linux_Uninstall.Systemd.sh
-  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  4. Redeploy Pcap_DNSProxy by installation method
-    * Restore the backup configuration file to the Release directory before proceeding to step 4
-    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
-* SysV section:
-  1. Open the terminal, use su to get the root permission and enter the Release directory
-  2. Execute the service uninstall script using ./Linux_Uninstall.SysV.sh
-  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  4. Redeploy Pcap_DNSProxy by installation method
-    * Restore the backup configuration file to the Release directory before proceeding to step 4
-    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
+* Systemd:
+  1. Open the terminal and use "su" to get root permission and enter the Release directory.
+  2. Use "systemctl stop Pcap_DNSProxy" to stop service.
+  3. Remove all executable files in the folder.
+  4. Decompress all executable files of latest Pcap_DNSProxy to the same folder.
+  5. Use "systemctl start Pcap_DNSProxy" to start service.
+* SysV:
+  1. Open the terminal and use "su" to get root permission and enter the Release directory.
+  2. Use "service PcapDNSProxyService stop" to stop service.
+  3. Remove all executable files in the folder.
+  4. Decompress all executable files of latest Pcap_DNSProxy to the same folder.
+  5. Use "service PcapDNSProxyService start" to start service.
 
 
 How to update if configuration version changed:
-* Systemd section:
-  1. Open the terminal, use su to get the root permission and enter the Release directory
-  2. Execute the service uninstall script using ./Linux_Uninstall.Systemd.sh
-  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  4. Redeploy Pcap_DNSProxy by installation method
-    * Restore the backup configuration file to the Release directory before proceeding to step 4
-    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
-* SysV section:
-  1. Open the terminal, use su to get the root permission and enter the Release directory
-  2. Execute the service uninstall script using ./Linux_Uninstall.SysV.sh
-  3. Back up all profiles and delete all Pcap_DNSProxy dependencies
-  4. Redeploy Pcap_DNSProxy by installation method
-    * Restore the backup configuration file to the Release directory before proceeding to step 4
-    * Config.conf file is recommended to be reset once in accordance with the backup profile, such as direct coverage may lead to no new features
+* Systemd:
+  1. Open the terminal and use "su" to get root permission and enter the Release directory.
+  2. Run "./Linux_Uninstall.Systemd.sh".
+  3. Do BACKUP to profiles and delete all Pcap_DNSProxy files.
+  4. Redeploy Pcap_DNSProxy via installation method.
+    * Restore backup file to Release directory before proceeding to step 4.
+    * Config.conf file is recommended to be reset once in accordance with the backup profile.
+* SysV:
+  1. Open the terminal and use "su" to get root permission and enter the Release directory.
+  2. Run "./Linux_Uninstall.SysV.sh".
+  3. Do BACKUP to profiles and delete all Pcap_DNSProxy files.
+  4. Redeploy Pcap_DNSProxy via installation method.
+    * Restore backup file to Release directory before proceeding to step 4.
+    * Config.conf file is recommended to be reset once in accordance with the backup profile.
 
 
 Uninstall method:
-* This is for reference only if different Linux distributions are handled differently for system services and daemons
-1. Restore the system network settings
-2. Go to the Release directory as root and execute ./Linux_Uninstall.Systemd.sh or ./Linux_Uninstall.SysV.sh
-3. Delete all Pcap_DNSProxy related files
+* Different Linux distributions are handled differently for system services and daemons, please read their documents.
+1. Restore system network settings.
+2. Go to Release directory as root and run "./Linux_Uninstall.Systemd.sh" or "./Linux_Uninstall.SysV.sh".
+3. Delete all Pcap_DNSProxy files.
 
 
 -------------------------------------------------------------------------------

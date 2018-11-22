@@ -371,6 +371,8 @@ typedef struct _dns_packet_data_
 	size_t                               Records_AdditionalCount;
 	std::vector<size_t>                  Records_Location;
 	std::vector<size_t>                  Records_Length;
+	std::string                          DomainString_Original;
+	std::string                          DomainString_Request;
 	size_t                               EDNS_Location;
 	size_t                               EDNS_Length;
 }DNSPacketData, DNS_PACKET_DATA;
@@ -990,6 +992,8 @@ public:
 	uint16_t                             Protocol_Network;
 	uint16_t                             Protocol_Transport;
 	uint64_t                             ClearPortTime;
+	std::string                          DomainString_Original;
+	std::string                          DomainString_Request;
 	size_t                               EDNS_Length;
 
 //Redefine operator functions

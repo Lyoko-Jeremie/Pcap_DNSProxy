@@ -335,8 +335,8 @@
 //////////////////////////////////////////////////
 // Platform check
 // 
-//Pcap_DNSProxy now support Windows, Linux and macOS.
-#if !(defined(PLATFORM_WIN) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//Pcap_DNSProxy now support FreeBSD, Linux, macOS, and Windows.
+#if !(defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS) || defined(PLATFORM_WIN))
 	#error "This platform is unsupported."
 #endif
 
@@ -345,7 +345,7 @@
 // Base headers
 // 
 //Linux and macOS compatible definitions(Part 1)
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
 
@@ -432,9 +432,7 @@
 	#pragma comment(lib, "secur32.lib")    //Security Support Provider Interface support
 #endif
 #if defined(PLATFORM_WIN64)
-//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_x64.lib")
 	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Core_x64.lib")
-//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Extra_x64.lib")
 #if defined(ENABLE_LIBSODIUM)
 	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x64.lib")
 #endif
@@ -443,9 +441,7 @@
 	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x64.lib")
 #endif
 #elif defined(PLATFORM_WIN32)
-//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_x86.lib")
 	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Core_x86.lib")
-//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Extra_x86.lib")
 #if defined(ENABLE_LIBSODIUM)
 	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
 #endif
@@ -464,12 +460,12 @@
 	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Winsock definitions
-	#define WINSOCK_VERSION_LOW_BYTE   2                           //Low byte of Winsock version 2.2
-	#define WINSOCK_VERSION_HIGH_BYTE  2                           //High byte of Winsock version 2.2
+	#define WINSOCK_VERSION_LOW_BYTE   2                            //Low byte of Winsock version 2.2
+	#define WINSOCK_VERSION_HIGH_BYTE  2                            //High byte of Winsock version 2.2
 
 //Windows compatible definitions
 	typedef SSIZE_T                    ssize_t;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#include <cerrno>                      //Error report support
 	#include <climits>                     //Data limits support
 	#include <csignal>                     //Signals support
@@ -531,9 +527,7 @@
 	#include "../Dependency/LibEvent/Include_macOS/event2/event.h"
 	#include "../Dependency/LibEvent/Include_macOS/event2/buffer.h"
 	#include "../Dependency/LibEvent/Include_macOS/event2/bufferevent.h"
-//	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_macOS.a")
 	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_Core_macOS.a")
-//	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_Extra_macOS.a")
 #else
 	#include <event2/event.h>
 	#include <event2/buffer.h>

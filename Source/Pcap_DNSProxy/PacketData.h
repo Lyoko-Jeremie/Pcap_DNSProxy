@@ -38,6 +38,6 @@ extern std::unordered_multimap<std::string, std::list<DNS_CACHE_DATA>::iterator>
 extern std::mutex DNSCacheListLock;
 
 //Functions
-void AutoRemoveExpired_DNS_Cache(
+void RemoveExpiredDomainCache(
 	void);
 #endif

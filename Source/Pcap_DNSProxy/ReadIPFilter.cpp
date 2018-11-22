@@ -216,7 +216,7 @@ bool ReadIPFilter_BlacklistData(
 	std::array<uint8_t, ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES> AddrBuffer{};
 	std::vector<std::string> ListData;
 	ReadSupport_GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
-	ssize_t Result = 0;
+	ssize_t ResultValue = 0;
 	uint16_t PreviousType = 0;
 
 //Mark all data in list.
@@ -242,16 +242,16 @@ bool ReadIPFilter_BlacklistData(
 			//Range check
 				if (StringIter.length() + 1U <= StringIter.find(ASCII_MINUS))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
 			//Convert address(Begin).
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
@@ -261,9 +261,9 @@ bool ReadIPFilter_BlacklistData(
 			//Convert address(End).
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
@@ -271,7 +271,7 @@ bool ReadIPFilter_BlacklistData(
 				}
 
 			//Check address range.
-				if (AddressesComparing(AF_INET6, &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr) == ADDRESS_COMPARE_TYPE::GREATER)
+				if (AddressesComparing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &reinterpret_cast<const sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr) == ADDRESS_COMPARE_TYPE::GREATER)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -282,9 +282,9 @@ bool ReadIPFilter_BlacklistData(
 			//Convert address.
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
@@ -297,7 +297,7 @@ bool ReadIPFilter_BlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
-				reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr = reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr;
+				reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr = reinterpret_cast<const sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
@@ -325,16 +325,16 @@ bool ReadIPFilter_BlacklistData(
 			//Range check
 				if (StringIter.length() + 1U <= StringIter.find(ASCII_MINUS))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
 			//Convert address(Begin).
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
@@ -344,9 +344,9 @@ bool ReadIPFilter_BlacklistData(
 			//Convert address(End).
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
@@ -354,7 +354,7 @@ bool ReadIPFilter_BlacklistData(
 				}
 
 			//Check address range.
-				if (AddressesComparing(AF_INET, &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr) == ADDRESS_COMPARE_TYPE::GREATER)
+				if (AddressesComparing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &reinterpret_cast<const sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr) == ADDRESS_COMPARE_TYPE::GREATER)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -365,9 +365,9 @@ bool ReadIPFilter_BlacklistData(
 			//Convert address.
 				AddrBuffer.fill(0);
 				memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &ResultValue))
 				{
-					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", ResultValue, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
@@ -380,7 +380,7 @@ bool ReadIPFilter_BlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 				AddressRangeTableTemp.End.ss_family = AF_INET;
-				reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr = reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr;
+				reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr = reinterpret_cast<const sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
@@ -501,22 +501,22 @@ bool ReadIPFilter_LocalRoutingData(
 				{
 					if (LocalRoutingItem.Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						const auto AddressRoutingItem = LocalRoutingItem.AddressRoutingList_IPv6.find(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
+						const auto AddressRoutingItem = LocalRoutingItem.AddressRoutingList_IPv6.find(hton64(*reinterpret_cast<const uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
 						if (AddressRoutingItem != LocalRoutingItem.AddressRoutingList_IPv6.end())
 						{
-							if (AddressRoutingItem->second.find(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == AddressRoutingItem->second.end())
-								AddressRoutingItem->second.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+							if (AddressRoutingItem->second.find(hton64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == AddressRoutingItem->second.end())
+								AddressRoutingItem->second.insert(hton64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 						}
 						else {
 							AddrBackSet.clear();
 							if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
 								AddrBackSet.insert(0);
-								LocalRoutingItem.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+								LocalRoutingItem.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<const uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 							}
 							else {
-								AddrBackSet.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-								LocalRoutingItem.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)), AddrBackSet));
+								AddrBackSet.insert(hton64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+								LocalRoutingItem.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<const uint64_t *>(&BinaryAddr)), AddrBackSet));
 							}
 						}
 
@@ -530,12 +530,13 @@ bool ReadIPFilter_LocalRoutingData(
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
 					AddrBackSet.insert(0);
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<const uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 				}
 				else {
-					AddrBackSet.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)), AddrBackSet));
+					AddrBackSet.insert(hton64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::unordered_set<uint64_t>>(hton64(*reinterpret_cast<const uint64_t *>(&BinaryAddr)), AddrBackSet));
 				}
+
 				IPFilterFileSetItem.LocalRoutingList.push_back(AddressRoutingTableTemp);
 				break;
 			}
@@ -581,8 +582,8 @@ bool ReadIPFilter_LocalRoutingData(
 				{
 					if (LocalRoutingItem.Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						if (LocalRoutingItem.AddressRoutingList_IPv4.find(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == LocalRoutingItem.AddressRoutingList_IPv4.end())
-							LocalRoutingItem.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+						if (LocalRoutingItem.AddressRoutingList_IPv4.find(hton32(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == LocalRoutingItem.AddressRoutingList_IPv4.end())
+							LocalRoutingItem.AddressRoutingList_IPv4.insert(hton32(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 
 						return true;
 					}
@@ -590,117 +591,11 @@ bool ReadIPFilter_LocalRoutingData(
 
 			//Jump here to register to global list.
 			AddListData_IPv4:
-				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(hton32(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 				IPFilterFileSetItem.LocalRoutingList.push_back(AddressRoutingTableTemp);
 				break;
 			}
 		}
-	}
-
-	return true;
-}
-
-//Read Address Prefix Block data
-bool ReadIPFilter_AddressPrefixData(
-	const uint16_t Protocol, 
-	std::string OriginalData, 
-	const size_t DataOffset, 
-	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
-	const std::vector<FILE_DATA> &FileList, 
-	const size_t FileIndex, 
-	const size_t Line)
-{
-	std::string Data(OriginalData, DataOffset);
-
-//Check data format.
-	if (Data.find("/") == std::string::npos || Data.rfind("/") < ADDRESS_STRING_IPV6_MINSIZE || Data.at(Data.length() - 1U) == ASCII_SLASH)
-	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Address Prefix Block format error", 0, FileList.at(FileIndex).FileName.c_str(), Line);
-		return false;
-	}
-	for (const auto &StringIter:Data)
-	{
-		if (StringIter < ASCII_PERIOD || (StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
-			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || StringIter > ASCII_LOWERCASE_F)
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Address Prefix Block format error", 0, FileList.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-	}
-
-//Initialization
-	std::array<uint8_t, ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES> AddrBuffer{};
-	memcpy_s(AddrBuffer.data(), ADDRESS_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
-	Data.erase(0, Data.find("/") + 1U);
-	ssize_t SignedResult = 0;
-	size_t UnsignedResult = 0;
-
-//IPv6
-	if (Protocol == AF_INET6)
-	{
-	//Prefix check and convert address.
-		if (Data.find(ASCII_MINUS) != std::string::npos || 
-			!AddressStringToBinary(AF_INET6, AddrBuffer.data(), &reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr, &SignedResult))
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-
-	//Mark network prefix.
-		_set_errno(0);
-		UnsignedResult = strtoul(Data.c_str(), nullptr, 0);
-		if (UnsignedResult == 0 || UnsignedResult > sizeof(in6_addr) * BYTES_TO_BITS)
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 prefix error", errno, FileList.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-		else {
-			AddressPrefix->second = UnsignedResult;
-
-		//Mark prefix block.
-			if (AddressPrefix->second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
-			{
-				*reinterpret_cast<uint64_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second))); //Mark high 64 bits.
-				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U) = 0; //Remove low 64 bits.
-			}
-			else {
-				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressPrefix->second))); //Mark low 64 bits.
-			}
-		}
-
-		AddressPrefix->first.ss_family = AF_INET6;
-	}
-//IPv4
-	else if (Protocol == AF_INET)
-	{
-	//Prefix check and convert address.
-		if (Data.find(ASCII_MINUS) != std::string::npos || 
-			!AddressStringToBinary(AF_INET, AddrBuffer.data(), &reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr, &SignedResult))
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-
-	//Mark network prefix.
-		_set_errno(0);
-		UnsignedResult = strtoul(Data.c_str(), nullptr, 0);
-		if (UnsignedResult == 0 || UnsignedResult > sizeof(in_addr) * BYTES_TO_BITS)
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 prefix error", errno, FileList.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-		else {
-			AddressPrefix->second = UnsignedResult;
-
-		//Mark prefix block.
-			reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr.s_addr = htonl(ntohl(reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->second)));
-		}
-
-		AddressPrefix->first.ss_family = AF_INET;
-	}
-	else {
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data format error", 0, FileList.at(FileIndex).FileName.c_str(), Line);
-		return false;
 	}
 
 	return true;
@@ -883,7 +778,7 @@ bool ReadIPFilter_MainData(
 		}
 
 	//Check address range.
-		if (AddressesComparing(AF_INET6, &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr) == ADDRESS_COMPARE_TYPE::GREATER)
+		if (AddressesComparing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr, &reinterpret_cast<const sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr) == ADDRESS_COMPARE_TYPE::GREATER)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -910,7 +805,7 @@ bool ReadIPFilter_MainData(
 		}
 
 	//Check address range.
-		if (AddressesComparing(AF_INET, &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr) == ADDRESS_COMPARE_TYPE::GREATER)
+		if (AddressesComparing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr, &reinterpret_cast<const sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr) == ADDRESS_COMPARE_TYPE::GREATER)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
