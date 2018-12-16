@@ -222,7 +222,7 @@ bool ReadIPFilter_BlacklistData(
 //Mark all data in list.
 	for (const auto &StringIter:ListData)
 	{
-	//AAAA record(IPv6)
+	//AAAA record
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
@@ -305,7 +305,7 @@ bool ReadIPFilter_BlacklistData(
 			memset(&AddressRangeTableTemp.End, 0, sizeof(AddressRangeTableTemp.End));
 			AddressRangeTableTemp.Level = 0;
 		}
-	//A record(IPv4)
+	//A record
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check

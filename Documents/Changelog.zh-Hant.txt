@@ -1,16 +1,23 @@
-﻿Pcap_DNSProxy 0.4.9.10-0.4.9.12 更新日誌(2018-11-22)：
+﻿Pcap_DNSProxy 0.4.9.10-0.4.9.12 更新日誌(2018-12-16)：
 
+* 添加實驗性 FreeBSD 平臺支援 [Meowthink]
 * 添加 --log-file 參數，可在啟動時指定日誌檔的儲存位置 [LGA1150/Syrone Wong]
+* 添加編譯和運行時對庫版本的檢測 [Syrone Wong/wangmice]
+  * LibEvent 最低版本要求為 2.1.8
+  * LibSodium 最低版本要求為 1.0.16
+  * OpenSSL 最低版本要求為 1.0.2
 * 重寫 Domain Test 和 ICMP Test 模組
-* OpenSSL 更新到 1.1.1 (macOS)
+* OpenSSL 更新到 1.1.1a (macOS)
 * Xcode 更新到 10.0 (macOS)
 * 參數 --config-file 改名為 --config-path
 * 調整日誌檔的初始輸出為 stderr (OpenWrt) [Syrone Wong]
 * 修正網域名稱解析大小寫相關問題 [muink/WeirdoShaw]
 * 修正 Address Hosts 相關問題 [LGA1150]
 * 修正 Domain Test 和 ICMP Test 模組的資料包序號、網路請求策略和時間間隔的問題 [LisonFan]
+* 修正 EDNS Label 過濾演算法的問題 [Justsoos]
 * 修正 Hop Limits Fluctuation 參數範圍不准確的問題
 * 修正腳本 echo 參數的問題 (Linux/macOS) [YKilin]
+* 注意：對 Windows XP/2003 的支援可能在未來一段時間完全終止，敬請留意！
 * Release Hash:
   * SHA-3(256):
     * Windows/Pcap_DNSProxy.exe: D6CF2AD8C6E79DBB5C621350AB4EEE4D1B9543CA2D1B0201B72C2B081779F793

@@ -49,7 +49,7 @@ void DNSCurveInit(
 //DNSCurve signature request TCP Mode
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TRANSPORT::FORCE_TCP || DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TRANSPORT::TCP)
 	{
-	//Main(IPv6)
+	//IPv6 Main
 		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6) && //IPv6
@@ -61,7 +61,7 @@ void DNSCurveInit(
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
-	//Main(IPv4)
+	//IPv4 Main
 		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4) && //IPv4
@@ -73,7 +73,7 @@ void DNSCurveInit(
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
-	//Alternate(IPv6)
+	//IPv6 Alternate
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6) && //IPv6
@@ -85,7 +85,7 @@ void DNSCurveInit(
 			Thread_DNSCurve_SignatureRequest_TCP.detach();
 		}
 
-	//Alternate(IPv4)
+	//IPv4 Alternate
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4) && //IPv4
@@ -103,7 +103,7 @@ void DNSCurveInit(
 		return;
 
 //DNSCurve signature request UDP Mode
-//Main(IPv6)
+//IPv6 Main
 	if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6) && //IPv6
@@ -115,7 +115,7 @@ void DNSCurveInit(
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
-//Main(IPv4)
+//IPv4 Main
 	if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //IPv4
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4) && //Auto select
@@ -127,7 +127,7 @@ void DNSCurveInit(
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
-//Alternate(IPv6)
+//IPv6 Alternate
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6) && //IPv6
@@ -139,7 +139,7 @@ void DNSCurveInit(
 		Thread_DNSCurve_SignatureRequest_UDP.detach();
 	}
 
-//Alternate(IPv4)
+//IPv4 Alternate
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4) && //IPv4

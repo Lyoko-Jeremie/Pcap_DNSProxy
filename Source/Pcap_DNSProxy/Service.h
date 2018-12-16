@@ -36,7 +36,7 @@ static auto IsServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 #endif
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t LastFlushCacheTime = 0;
 #endif
 

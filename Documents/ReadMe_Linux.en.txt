@@ -44,7 +44,6 @@ The installation process is relatively long and more complex operation, please g
     * The included Linux_Install.Systemd.sh script applies to systems that use Systemd Init by default
       * Linux Debian 8.x official release and updated version of the system content, the test can be used directly
     * The included Linux_Install.SysV.sh script applies to systems that are preset to use System V Init
-      * Linux Debian 6.x - 7.x official release version of the system content, the test can be used directly
     * For more details, see the description of the other Linux distributions below, and the official instructions for the Linux distributions used
   * When using Systemd Init:
     * Into the Release directory and edit the Pcap_DNSProxy.service file, save after editing:
@@ -62,38 +61,6 @@ The installation process is relatively long and more complex operation, please g
       * The PATH entry is the absolute path of the program
     * Under the root permission ./Linux_Install.SysV.sh Execute the service installation script, the script's actions:
       * Set the service control script to basically read and write executable permissions
-      * Install the service control script into the /etc/init.d directory
-      * Try to start the PcapDNSProxyService service and display the status of the service after the operation is performed
-      * Each time the system starts each time it will automatically run the script to start the service
-    * Can be directly input sh PcapDNSProxyService without parameters query usage
-      * Start - start the service
-      * Stop - stop service
-      * Force-reload/restart - restart service
-      * Status - service status, if the PID is empty, the service is not started
-
-3. Configure the system daemon service
-  * Due to the different Linux distributions, the system services and daemons are handled differently. This step is for reference only.
-    * The included Linux_Install.Systemd.sh script applies to systems that use Systemd Init by default
-      * Linux Debian 8.x official release and the updated version of the system environment, the test can be used directly
-    * The included Linux_Install.SysV.sh script applies to systems that use System V Init by default
-      * Linux Debian 6.x - 7.x official release system environment, the test can be used directly
-    * For more details, see the description of other Linux distributions below, and the official instructions for the Linux distributions
-  * When using Systemd Init:
-    * Into the Release directory and edit the Pcap_DNSProxy.service file, save after editing:
-      * WorkingDirectory= item is the absolute path to the directory where the program is located
-      * ExecStart= item is the absolute path of the directory where the program is located and the name of the program is added at the end
-    * Under the root privileges ./Linux_Install.Systemd.sh Execute the service installation script, the operation of the script:
-      * Change the owner of the Pcap_DNSProxy.service service control script to root
-      * Install the service control script into the/etc/systemd/system directory
-      * Try to start the Pcap_DNSProxy service and display the status of the service after the operation is performed
-      * Each time the system starts will automatically start the service
-    * For more information on Systemd service control, see the documentation for the official Linux documentation
-  * When using System V Init:
-    * Into the Release directory and edit the PcapDNSProxyService file, save after editing:
-      The NAME entry is the name of the program
-      * The PATH entry is the absolute path to the program
-    * Under the root privileges. /Linux_Install.SysV.sh Execute the service installation script, the script's actions:
-      * Change the owner of the PcapDNSProxyService service control script to root
       * Install the service control script into the /etc/init.d directory
       * Try to start the PcapDNSProxyService service and display the status of the service after the operation is performed
       * Each time the system starts each time it will automatically run the script to start the service
@@ -222,7 +189,6 @@ Description of other Linux distributions:
 
 * Linux Debian series:
   * Official release version 8.x and later versions require the use of Systemd to manage system services
-  * The official release version 6.x - 7.x version requires the use of the insserv management system service
 * Linux Red Hat and openSUSE series:
   * Use chkconfig to manage system services
   * See https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

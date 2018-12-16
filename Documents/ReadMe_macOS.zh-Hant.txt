@@ -70,22 +70,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 有關 OpenSSL 庫的特別說明：
+預設情況下 OpenSSL 庫沒有附帶任何的可根信任證書庫，首次使用時需要使用者自行添加：
 
-* 安裝新版本 OpenSSL 庫後，在開啟 TLS/SSL 功能進行編譯時如果出現 undef: OPENSSL.. 錯誤：
-  * 原因是 macOS 自帶的 OpenSSL 系列版本非常老舊(0.9.8)不支援新版本特性，連結器在連結時使用了系統自帶庫導致錯誤
-  * 此時先查看編譯過程的記錄，將 Found OpenSSL 指示的 CMake 找到的 OpenSSL 庫檔目錄記下，並確認所使用的版本
-    * 可編輯 Pcap_DNSProxy 目錄下的 CMakeLists.txt 檔：
-    * 編輯時請務必注意引號的問題，必須使用 ASCII 的標準引號
-    * 尋找 find_package(OpenSSL REQUIRED) 語句，並另開一行
-    * 在新開的一行填入 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L剛才記下的目錄") 優先指定連結器所查找的庫檔
-    * 例如 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
-    * 保存檔並重新運行 ./CMake_Build.sh 即可
-* 預設情況下 OpenSSL 庫沒有附帶任何的可根信任證書庫，首次使用時需要使用者自行添加：
-  * 打開公用程式 - 鑰匙串訪問 - 系統根憑證，選中清單中所有的證書以 cert.pem 的 PEM 格式匯出到任何位置
-  * 打開終端，使用 sudo -i 獲得 root 許可權並進入剛才匯出位置的目錄內
-  * 使用 mv cert.pem 證書目標目錄/cert.pem 移動該系統根憑證儲存檔到 OpenSSL 的證書目錄中
-  * 此處的證書目標目錄，位於上文提到的 Found OpenSSL 指示的 CMake 找到的 OpenSSL 庫部署目錄附近，該目錄內應該存在名為 certs 的子目錄
-  * 例如 mv cert.pem /usr/local/ssl
+* 打開公用程式 - 鑰匙串訪問 - 系統根憑證，選中清單中所有的證書以 cert.pem 的 PEM 格式匯出到任何位置
+* 打開終端，使用 sudo -i 獲得 root 許可權並進入剛才匯出位置的目錄內
+* 使用 mv cert.pem 證書目標目錄/cert.pem 移動該系統根憑證儲存檔到 OpenSSL 的證書目錄中
+* 此處的證書目標目錄，位於上文提到的 Found OpenSSL 指示的 CMake 找到的 OpenSSL 庫部署目錄附近，該目錄內應該存在名為 certs 的子目錄
+* 例如 mv cert.pem /usr/local/ssl
 
 
 -------------------------------------------------------------------------------

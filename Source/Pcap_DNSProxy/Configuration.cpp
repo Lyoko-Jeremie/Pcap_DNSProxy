@@ -474,14 +474,14 @@ bool ReadParameter(
 
 	//Create file list.
 		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_WCS;
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		const char *ConfigFileNameList_MBS[] = CONFIG_FILE_NAME_LIST_MBS;
 	#endif
 		for (FileIndex = 0;FileIndex < sizeof(WCS_ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->front();
 			FileDataTemp.FileName.append(WCS_ConfigFileNameList[FileIndex]);
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->front();
 			FileDataTemp.FileName_MBS.append(ConfigFileNameList_MBS[FileIndex]);
 		#endif
@@ -495,7 +495,7 @@ bool ReadParameter(
 		{
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileHandle = fopen(FileList_Config.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
@@ -562,7 +562,7 @@ bool ReadParameter(
 		//Read configuration file.
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileHandle = fopen(FileList_Config.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
@@ -612,7 +612,7 @@ bool ReadParameter(
 				{
 					FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(FileIndex);
 					FileDataTemp.FileName.append(*DNSCurveParameter.DatabaseName);
-				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(FileIndex);
 					FileDataTemp.FileName_MBS.append(*DNSCurveParameter.DatabaseName_MBS);
 				#endif
@@ -624,7 +624,7 @@ bool ReadParameter(
 			else {
 				delete DNSCurveParameter.DatabaseName;
 				DNSCurveParameter.DatabaseName = nullptr;
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				delete DNSCurveParameter.DatabaseName_MBS;
 				DNSCurveParameter.DatabaseName_MBS = nullptr;
 			#endif
@@ -666,7 +666,7 @@ bool ReadParameter(
 			//Read DNSCurve database file.
 			#if defined(PLATFORM_WIN)
 				if (_wfopen_s(&FileHandle, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).FileName_MBS.c_str(), "rb");
 				if (FileHandle == nullptr)
 			#endif
@@ -770,7 +770,7 @@ void ReadIPFilter(
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_IPFilter->at(FileIndex));
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(Index);
 			FileDataTemp.FileName_MBS.append(GlobalRunningStatus.FileList_IPFilter_MBS->at(FileIndex));
 		#endif
@@ -805,7 +805,7 @@ void ReadIPFilter(
 		//Open file handle.
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileHandle = fopen(FileList_IPFilter.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
@@ -880,7 +880,7 @@ void ReadHosts(
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_Hosts->at(FileIndex));
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileDataTemp.FileName_MBS = GlobalRunningStatus.Path_Global_MBS->at(Index);
 			FileDataTemp.FileName_MBS.append(GlobalRunningStatus.FileList_Hosts_MBS->at(FileIndex));
 		#endif
@@ -915,7 +915,7 @@ void ReadHosts(
 		//Open file handle.
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileHandle = fopen(FileList_Hosts.at(FileIndex).FileName_MBS.c_str(), "rb");
 			if (FileHandle == nullptr)
 		#endif
@@ -989,7 +989,7 @@ bool ReadSupport_FileAttributesLoop(
 	LARGE_INTEGER FileSizeData;
 	memset(&FileAttributeData, 0, sizeof(FileAttributeData));
 	memset(&FileSizeData, 0, sizeof(FileSizeData));
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
 #endif
@@ -1000,7 +1000,7 @@ bool ReadSupport_FileAttributesLoop(
 			FileListItem.FileName.c_str(), 
 			GetFileExInfoStandard, 
 			&FileAttributeData) == 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (stat(FileListItem.FileName_MBS.c_str(), &FileStatData) != 0)
 #endif
 	{
@@ -1025,7 +1025,7 @@ bool ReadSupport_FileAttributesLoop(
 	FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 	FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
 	if (FileSizeData.QuadPart < 0 || static_cast<const uint64_t>(FileSizeData.QuadPart) >= FILE_READING_MAXSIZE)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (FileStatData.st_size >= static_cast<const off_t>(FILE_READING_MAXSIZE))
 #endif
 	{
@@ -1063,7 +1063,7 @@ bool ReadSupport_FileAttributesLoop(
 	FileSizeData.HighPart = FileAttributeData.ftLastWriteTime.dwHighDateTime;
 	FileSizeData.LowPart = FileAttributeData.ftLastWriteTime.dwLowDateTime;
 	if (FileListItem.ModificationTime > 0 && FileSizeData.QuadPart == FileListItem.ModificationTime)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (FileListItem.ModificationTime > 0 && FileStatData.st_mtime == FileListItem.ModificationTime)
 #endif
 	{
@@ -1076,7 +1076,7 @@ bool ReadSupport_FileAttributesLoop(
 	else {
 	#if defined(PLATFORM_WIN)
 		FileListItem.ModificationTime = FileSizeData.QuadPart;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		FileListItem.ModificationTime = FileStatData.st_mtime;
 	#endif
 	}

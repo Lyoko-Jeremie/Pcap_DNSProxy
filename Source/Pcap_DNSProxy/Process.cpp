@@ -515,7 +515,7 @@ size_t CheckHostsProcess(
 //RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
 	if (CompareStringReversed("tsohlacol.", InsensitiveReverseDomain))
 	{
-	//AAAA record(IPv6)
+	//AAAA record
 		if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_AAAA)
 		{
 		//Store EDNS Label temporary.
@@ -561,7 +561,7 @@ size_t CheckHostsProcess(
 			DNS_Header->Authority = 0;
 			return DataLength;
 		}
-	//A record(IPv4)
+	//A record
 		else if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_A)
 		{
 		//Store EDNS Label temporary.
@@ -623,8 +623,8 @@ size_t CheckHostsProcess(
 // Caching DNS servers SHOULD NOT recognize example names as special and SHOULD resolve them normally.
 
 //PTR Records
-//LLMNR protocol of macOS powered by mDNS with PTR records
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+//macOS: LLMNR protocol is powered by mDNS with PTR records.
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 	if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_PTR && Parameter.LocalServer_Length + PacketStructure->Length <= ResultSize)
 	{
 		auto Is_PTR_ResponseSend = false;
@@ -729,7 +729,7 @@ size_t CheckHostsProcess(
 */
 		)
 	{
-	//AAAA record(IPv6)
+	//AAAA record
 		if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_AAAA)
 		{
 		//Store EDNS Label temporary.
@@ -763,7 +763,7 @@ size_t CheckHostsProcess(
 				return DataLength;
 			}
 		}
-	//A record(IPv4)
+	//A record
 		else if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_A)
 		{
 		//Store EDNS Label temporary.
@@ -879,7 +879,7 @@ size_t CheckHostsProcess(
 			//Initialization
 				size_t RandomValue = 0, Index = 0;
 
-			//AAAA record(IPv6)
+			//AAAA record
 				if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_AAAA && HostsTableItem.RecordTypeList.front() == hton16(DNS_TYPE_AAAA))
 				{
 				//Store EDNS Label temporary.
@@ -946,7 +946,7 @@ size_t CheckHostsProcess(
 					DNS_Header->Authority = 0;
 					return DataLength;
 				}
-			//A record(IPv4)
+			//A record
 				else if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_A && HostsTableItem.RecordTypeList.front() == hton16(DNS_TYPE_A))
 				{
 				//Store EDNS Label temporary.
@@ -1601,10 +1601,10 @@ void UDP_RequestProcess(
 
 //Multiple request process
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, 0, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.first.DomainString_Original, &MonitorQueryData.first.DomainString_Request, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
+		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, 0, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.first.DomainString_Original, &MonitorQueryData.first.DomainString_Request, &MonitorQueryData.second /* , &MonitorQueryData.first.EDNS_Length */ );
 //Normal request process
 	else 
-		UDP_RequestSingle(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.first.DomainString_Original, &MonitorQueryData.first.DomainString_Request, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
+		UDP_RequestSingle(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.first.DomainString_Original, &MonitorQueryData.first.DomainString_Request, &MonitorQueryData.second /* , &MonitorQueryData.first.EDNS_Length */ );
 
 //Fin TCP request connection.
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))

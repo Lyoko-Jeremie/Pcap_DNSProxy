@@ -1,4 +1,4 @@
-﻿Frequently asked questions
+﻿Frequently Asked Questions
 
 This document contains a set of common methods for dealing with problems, please refer the documents to find out the solution before asking, thanks a lot.
 

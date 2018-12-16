@@ -36,7 +36,7 @@ bool FileNameInit(
 	const std::wstring &OriginalPath, 
 	const bool IsStartupLoad, 
 	const bool IsRewriteLogFile);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool ReadCommand(
 	int argc, 
 	char *argv[]);

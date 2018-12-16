@@ -89,8 +89,9 @@ bool Capture_MatchPortToSend(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	const uint16_t Port, 
-	const bool IsNeedTruncated, 
-	const size_t EDNS_Length_Output);
+	const uint16_t Port
+//	const bool IsNeedTruncated, 
+//	const size_t EDNS_Length_Output
+);
 #endif
 #endif

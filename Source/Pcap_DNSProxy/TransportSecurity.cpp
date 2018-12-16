@@ -687,7 +687,7 @@ bool SSPI_ShutdownConnection(
 
 	return true;
 }
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //OpenSSL print error messages process
 bool OpenSSL_PrintError(
 	const uint8_t *OpenSSL_ErrorMessage, 
@@ -752,18 +752,7 @@ bool OpenSSL_CTX_Initializtion(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX)
 {
 //TLS version selection(Part 1)
-#if OPENSSL_VERSION_NUMBER <= OPENSSL_VERSION_1_0_0 //OpenSSL version below 1.0.1
-	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
-	{
-		if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0) //OpenSSL version below 1.0.1 only support TLS version 1.0
-			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
-		else //Auto-select
-			OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
-	}
-	else { //DTLS is not supported below 1.0.2
-		return false;
-	}
-#elif OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version between 1.0.1 and 1.1.0
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version between 1.0.2 and 1.1.0
 	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
 	{
 	//No TLS 1.3 and above support below 1.1.1
@@ -776,7 +765,6 @@ bool OpenSSL_CTX_Initializtion(
 		else //Auto select
 			OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
 	}
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version between 1.0.2 and 1.1.0
 	else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
 	{
 	//No DTLS 1.3 and above support below 1.1.1
@@ -788,8 +776,7 @@ bool OpenSSL_CTX_Initializtion(
 		else //Auto select
 			OpenSSL_CTX.MethodContext = SSL_CTX_new(DTLS_method());
 	}
-#endif
-	else { //DTLS is not supported below 1.0.2
+	else {
 		return false;
 	}
 #else //OpenSSL version 1.1.0 and above
@@ -906,14 +893,10 @@ bool OpenSSL_CTX_Initializtion(
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_SINGLE_DH_USE); //Always create a new key when using temporary/ephemeral DH parameters.
 
 //Set ciphers suites(TLS/DTLS 1.2 and below).
-#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version below 1.0.1
-	ResultValue = SSL_CTX_set_cipher_list(OpenSSL_CTX.MethodContext, OPENSSL_CIPHER_LIST_COMPATIBILITY);
-#else //OpenSSL version 1.0.1 and above
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0 || Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
 		ResultValue = SSL_CTX_set_cipher_list(OpenSSL_CTX.MethodContext, OPENSSL_CIPHER_LIST_COMPATIBILITY);
 	else //Auto select and new TLS version
 		ResultValue = SSL_CTX_set_cipher_list(OpenSSL_CTX.MethodContext, OPENSSL_CIPHER_LIST_STRONG);
-#endif
 	if (ResultValue == OPENSSL_RETURN_FAILURE)
 	{
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set strong ciphers ");
@@ -931,7 +914,6 @@ bool OpenSSL_CTX_Initializtion(
 #endif
 
 //TLS ALPN extension settings
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version 1.0.2 and above
 	if (Parameter.HTTP_CONNECT_TLS_ALPN)
 	{
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
@@ -949,7 +931,6 @@ bool OpenSSL_CTX_Initializtion(
 			return false;
 		}
 	}
-#endif
 
 //TLS certificate store location and verification settings
 	if (Parameter.HTTP_CONNECT_TLS_Validation)
@@ -1016,8 +997,7 @@ bool OpenSSL_BIO_Initializtion(
 	if (Parameter.HTTP_CONNECT_TLS_SNI_MBS != nullptr && !Parameter.HTTP_CONNECT_TLS_SNI_MBS->empty())
 		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.HTTP_CONNECT_TLS_SNI_MBS->c_str());
 
-//Built-in functionality for hostname checking and validation OpenSSL 1.0.2 and above
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version 1.0.2 and above
+//Built-in functionality for hostname checking and validation
 	if (Parameter.HTTP_CONNECT_TLS_Validation && Parameter.HTTP_CONNECT_TLS_SNI_MBS != nullptr && !Parameter.HTTP_CONNECT_TLS_SNI_MBS->empty())
 	{
 	//Get certificate paremeter.
@@ -1038,7 +1018,6 @@ bool OpenSSL_BIO_Initializtion(
 			return false;
 		}
 	}
-#endif
 
 	return true;
 }

@@ -1283,7 +1283,7 @@ size_t CheckResponse_CNAME(
 				else if (HostsTableItem.RecordTypeList.empty())
 					continue;
 
-			//AAAA record(IPv6)
+			//AAAA record
 				if (ntoh16(DNS_Query->Type) == DNS_TYPE_AAAA && HostsTableItem.RecordTypeList.front() == hton16(DNS_TYPE_AAAA))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
@@ -1335,7 +1335,7 @@ size_t CheckResponse_CNAME(
 					IncreaseCount = Index;
 					return DataLength;
 				}
-			//A record(IPv4)
+			//A record
 				else if (ntoh16(DNS_Query->Type) == DNS_TYPE_A && HostsTableItem.RecordTypeList.front() == hton16(DNS_TYPE_A))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
@@ -1600,7 +1600,7 @@ size_t CheckResponseData(
 		if (ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 		{
 	#endif
-		//AAAA record(IPv6)
+		//AAAA record
 			if (ntoh16(DNS_Record_Standard->Type) == DNS_TYPE_AAAA && ntoh16(DNS_Record_Standard->Length) == sizeof(in6_addr))
 			{
 			//Check Answer resource records.
@@ -1634,7 +1634,7 @@ size_t CheckResponseData(
 			//Set address result found flag.
 				IsFound_AddressRecord = true;
 			}
-		//A record(IPv4)
+		//A record
 			else if (ntoh16(DNS_Record_Standard->Type) == DNS_TYPE_A && ntoh16(DNS_Record_Standard->Length) == sizeof(in_addr))
 			{
 			//Check Answer resource records.

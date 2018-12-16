@@ -1,16 +1,23 @@
-﻿Pcap_DNSProxy 0.4.9.10-0.4.9.12 changelog(2018-11-22):
+﻿Pcap_DNSProxy 0.4.9.10-0.4.9.12 changelog(2018-12-16):
 
+* Add experimental FreeBSD platform support. [Meowthink]
 * Add --log-file command, which can set location of log file. [LGA1150/Syrone Wong]
+* Add compiling and runtime library version check. [Syrone Wong/wangmice]
+  * LibEvent requires 2.1.8.
+  * LibSodium requires 1.0.16.
+  * OpenSSL requires 1.0.2.
 * Rebuild Domain Test and ICMP Test module.
 * Change set path command from --config-file to --config-path.
-* OpenSSL upgrade to 1.1.1. (macOS)
+* OpenSSL upgrade to 1.1.1a. (macOS)
 * Project IDE Xcode upgrade to version 10.0. (macOS)
 * Change default log output to stderr. (OpenWrt) [Syrone Wong]
 * Fix case sensitive bug of domain request. [muink/WeirdoShaw]
 * Fix Address Hosts network prefix bug. [LGA1150]
 * Fix packet sequence, network operation and interval time problems in Domain Test and ICMP Test module. [LisonFan]
+* Fix EDNS Label filtering algorithm. [Justsoos]
 * Fix range mismatch of Hop Limits Fluctuation parameter.
 * Fix echo parameter problem in shell. (Linux/macOS) [YKilin]
+* Notice: We are planning to stop Windows XP/2003 support, please upgrade your system if you are still using them.
 * Release Hash:
   * SHA-3(256):
     * Windows/Pcap_DNSProxy.exe: D6CF2AD8C6E79DBB5C621350AB4EEE4D1B9543CA2D1B0201B72C2B081779F793

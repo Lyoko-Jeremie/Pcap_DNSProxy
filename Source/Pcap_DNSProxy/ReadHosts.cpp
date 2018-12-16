@@ -695,7 +695,7 @@ bool ReadHosts_AddressData(
 	{
 		AddressTargetPrefix.second = 0;
 
-	//AAAA record(IPv6)
+	//AAAA record
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
@@ -741,7 +741,7 @@ bool ReadHosts_AddressData(
 				}
 			}
 		}
-	//A record(IPv4)
+	//A record
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check
@@ -803,7 +803,7 @@ bool ReadHosts_AddressData(
 //Mark all data in list.
 	for (auto &StringIter:SourceListData)
 	{
-	//AAAA record(IPv6)
+	//AAAA record
 		if (StringIter.find(ASCII_COLON) != std::string::npos && PreviousType == AF_INET6)
 		{
 			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
@@ -861,7 +861,7 @@ bool ReadHosts_AddressData(
 		//Add to list.
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
-	//A record(IPv4)
+	//A record
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos && PreviousType == AF_INET)
 		{
 			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
@@ -1092,7 +1092,7 @@ bool ReadHosts_MainData(
 	{
 		HostsTableTemp.PermissionType = HOSTS_TYPE::BANNED;
 	}
-	else if (HostsListDataItem->find(ASCII_COLON) != std::string::npos) //AAAA record(IPv6)
+	else if (HostsListDataItem->find(ASCII_COLON) != std::string::npos) //AAAA record
 	{
 		if (HostsListData.size() > DNS_RECORD_COUNT_AAAA_MAX)
 		{
@@ -1103,7 +1103,7 @@ bool ReadHosts_MainData(
 			HostsTableTemp.RecordTypeList.push_back(hton16(DNS_TYPE_AAAA));
 		}
 	}
-	else if (HostsListDataItem->find(ASCII_PERIOD) != std::string::npos) //A record(IPv4)
+	else if (HostsListDataItem->find(ASCII_PERIOD) != std::string::npos) //A record
 	{
 		if (HostsListData.size() > DNS_RECORD_COUNT_A_MAX)
 		{
@@ -1131,7 +1131,7 @@ bool ReadHosts_MainData(
 		{
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
-		//AAAA record(IPv6)
+		//AAAA record
 			if (HostsTableTemp.RecordTypeList.front() == hton16(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &ResultValue))
@@ -1140,7 +1140,7 @@ bool ReadHosts_MainData(
 					return false;
 				}
 			}
-		//A record(IPv4)
+		//A record
 			else if (HostsTableTemp.RecordTypeList.front() == hton16(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &ResultValue))
@@ -1163,7 +1163,7 @@ bool ReadHosts_MainData(
 		{
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
-		//AAAA record(IPv6)
+		//AAAA record
 			if (HostsTableTemp.RecordTypeList.front() == hton16(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &ResultValue))
@@ -1172,7 +1172,7 @@ bool ReadHosts_MainData(
 					return false;
 				}
 			}
-		//A record(IPv4)
+		//A record
 			else if (HostsTableTemp.RecordTypeList.front() == hton16(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &ResultValue))

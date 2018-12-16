@@ -163,6 +163,7 @@ BOOL WINAPI SignalHandler(
 	_fcloseall();
 
 //Exit process.
+	Sleep(STANDARD_TIMEOUT);
 //	exit(EXIT_SUCCESS);
 	return FALSE;
 }
@@ -640,7 +641,7 @@ bool WINAPI FlushDomainCache_MailslotSender(
 
 	return true;
 }
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Process already exists check
 bool CheckProcessExists(
 	void)
@@ -691,7 +692,7 @@ void SignalHandler(
 	PrintToScreen(true, false, L"[Notice] Get closing signal.\n");
 
 //Close all file handles.
-#if (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
+#if (defined(PLATFORM_FREEBSD) || (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT)))
 	fcloseall();
 #endif
 
@@ -944,7 +945,7 @@ void FlushDomainCache_Main(
 	DNSCacheListMutex.unlock();
 
 //Flush system domain cache interval time check
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (LastFlushCacheTime == 0 || LastFlushCacheTime >= GetCurrentSystemTime() + FLUSH_DOMAIN_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
 		LastFlushCacheTime = GetCurrentSystemTime();
 	else 
@@ -956,7 +957,7 @@ void FlushDomainCache_Main(
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns 2>nul"); //All Windows version
 	fwprintf_s(stderr, L"\n");
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 #if defined(PLATFORM_OPENWRT)
 	auto ResultValue = system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage domain cache on OpenWrt
 #else

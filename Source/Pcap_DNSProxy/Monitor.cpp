@@ -81,15 +81,15 @@ void MonitorLauncher(
 		Thread_CaptureInitialization.detach();
 	#endif
 
-	//Get Hop Limits with normal DNS request(IPv6).
+	//Get Hop Limits with normal DNS request.
+	//IPv6
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
 			std::thread Thread_TestDoamin_IPv6(std::bind(TestRequest_Domain, static_cast<const uint16_t>(AF_INET6)));
 			Thread_TestDoamin_IPv6.detach();
 		}
-
-	//Get TTL with normal DNS request(IPv4).
+	//IPv4
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
@@ -97,15 +97,15 @@ void MonitorLauncher(
 			Thread_TestDoamin_IPv4.detach();
 		}
 
-	//Get Hop Limits with ICMPv6 echo(IPv6).
+	//Get Hop Limits with ICMPv6 and ICMP echo.
+	//IPv6
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
 			std::thread Thread_ICMPv6(std::bind(TestRequest_ICMP, static_cast<const uint16_t>(AF_INET6)));
 			Thread_ICMPv6.detach();
 		}
-
-	//Get TTL with ICMP echo(IPv4).
+	//IPv4
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
@@ -136,7 +136,7 @@ void MonitorLauncher(
 	#if defined(PLATFORM_WIN)
 		std::thread Thread_FlushDomainCache_MailslotListener(std::bind(FlushDomainCache_MailslotListener));
 		Thread_FlushDomainCache_MailslotListener.detach();
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		std::thread Thread_FlushDomainCache_PipeListener(std::bind(FlushDomainCache_PipeListener));
 		Thread_FlushDomainCache_PipeListener.detach();
 	#endif
@@ -174,7 +174,7 @@ bool MonitorInit(
 				LocalSocketData.SockAddr.ss_family = AF_INET6;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in6);
 
-			//Listen Address available(IPv6)
+			//Listen Address available
 				if (Parameter.ListenAddress_IPv6 != nullptr)
 				{
 					for (const auto &ListenAddressItem:*Parameter.ListenAddress_IPv6)
@@ -276,7 +276,7 @@ bool MonitorInit(
 				LocalSocketData.SockAddr.ss_family = AF_INET6;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in6);
 
-			//Listen Address available(IPv6)
+			//Listen Address available
 				if (Parameter.ListenAddress_IPv6 != nullptr)
 				{
 					for (const auto &ListenAddressItem:*Parameter.ListenAddress_IPv6)
@@ -381,7 +381,7 @@ bool MonitorInit(
 				LocalSocketData.SockAddr.ss_family = AF_INET;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in);
 
-			//Listen Address available(IPv4)
+			//Listen Address available
 				if (Parameter.ListenAddress_IPv4 != nullptr)
 				{
 					for (const auto &ListenAddressItem:*Parameter.ListenAddress_IPv4)
@@ -483,7 +483,7 @@ bool MonitorInit(
 				LocalSocketData.SockAddr.ss_family = AF_INET;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in);
 
-			//Listen Address available(IPv4)
+			//Listen Address available
 				if (Parameter.ListenAddress_IPv4 != nullptr)
 				{
 					for (const auto &ListenAddressItem:*Parameter.ListenAddress_IPv4)
@@ -674,7 +674,7 @@ bool ListenMonitor_BindSocket(
 		if (
 		#if defined(PLATFORM_WIN)
 			!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::REUSE, true, nullptr) || 
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			(LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::REUSE, true, nullptr)) || 
 		#endif
 			!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
@@ -707,7 +707,7 @@ bool ListenMonitor_BindSocket(
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::UDP_BLOCK_RESET, true, nullptr) || 
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::REUSE, true, nullptr) || 
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		(LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::REUSE, true, nullptr)) || 
 	#endif
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr))
@@ -786,11 +786,11 @@ bool ListenMonitor_UDP(
 	//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
 	//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
 	//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
-	//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
-	//Linux/macOS: An fd_set is a fixed size buffer.
-	//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+	//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+	//Linux and macOS: An fd_set is a fixed size buffer.
+	//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
 		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
 		#endif
 			)
@@ -807,7 +807,7 @@ bool ListenMonitor_UDP(
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		ssize_t SelectResult = select(0, &ReadFDS, nullptr, nullptr, nullptr);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		ssize_t SelectResult = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
 	#endif
 		if (SelectResult > 0)
@@ -886,7 +886,7 @@ bool ListenMonitor_UDP(
 		//Block error messages when monitor is terminated.
 		#if defined(PLATFORM_WIN)
 			if (WSAGetLastError() != WSAENOTSOCK)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (errno != WSAENOTSOCK && errno != EBADF)
 		#endif
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -951,11 +951,11 @@ bool ListenMonitor_TCP(
 	//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
 	//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
 	//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
-	//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
-	//Linux/macOS: An fd_set is a fixed size buffer.
-	//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+	//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+	//Linux and macOS: An fd_set is a fixed size buffer.
+	//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
 		if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			|| LocalSocketData.Socket + 1U >= FD_SETSIZE
 		#endif
 			)
@@ -973,7 +973,7 @@ bool ListenMonitor_TCP(
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		ssize_t SelectResult = select(0, &ReadFDS, nullptr, nullptr, nullptr);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		ssize_t SelectResult = select(LocalSocketData.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
 	#endif
 		if (SelectResult > 0)
@@ -1036,7 +1036,7 @@ bool ListenMonitor_TCP(
 		//Block error messages when monitor is terminated.
 		#if defined(PLATFORM_WIN)
 			if (WSAGetLastError() != WSAENOTSOCK)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (errno != WSAENOTSOCK && errno != EBADF)
 		#endif
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -1062,11 +1062,11 @@ bool TCP_AcceptProcess(
 //Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
 //Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
 //Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
-//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
-//Linux/macOS: An fd_set is a fixed size buffer.
-//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux and macOS: An fd_set is a fixed size buffer.
+//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
 	if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
 	#endif
 		)
@@ -1090,7 +1090,7 @@ bool TCP_AcceptProcess(
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	Timeout = Parameter.SocketTimeout_Reliable_Once;
 #endif
 	FD_ZERO(&ReadFDS);
@@ -1100,7 +1100,7 @@ bool TCP_AcceptProcess(
 //Only receive 2 times data sending operations from sender when accepting, reject all connections which have more than 2 times sending operations.
 #if defined(PLATFORM_WIN)
 	RecvLenFirst = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	RecvLenFirst = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 #endif
 	if (RecvLenFirst > 0 && 
@@ -1144,7 +1144,7 @@ bool TCP_AcceptProcess(
 	{
 	//Select file descriptor set size and maximum socket index check(Part 2)
 		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
 		#endif
 			)
@@ -1159,7 +1159,7 @@ bool TCP_AcceptProcess(
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Timeout = Parameter.SocketTimeout_Reliable_Once;
 	#endif
 		FD_ZERO(&ReadFDS);
@@ -1170,7 +1170,7 @@ bool TCP_AcceptProcess(
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		RecvLenSecond = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		RecvLenSecond = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
 		if (RecvLenSecond > 0 && 
@@ -1257,7 +1257,7 @@ bool TCP_AcceptProcess(
 	shutdown(MonitorQueryData.second.Socket, SD_SEND);
 #if defined(PLATFORM_WIN)
 	Sleep(Parameter.SocketTimeout_Reliable_Once);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	usleep(Parameter.SocketTimeout_Reliable_Once.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Once.tv_usec);
 #endif
 	SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1351,7 +1351,7 @@ addrinfo *GetLocalAddressList(
 	return AddrResult;
 }
 
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Get address from best network interface
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
@@ -1427,6 +1427,7 @@ bool GetBestInterfaceAddress(
 void GetGatewayInformation(
 	const uint16_t Protocol)
 {
+//IPv6
 	if (Protocol == AF_INET6)
 	{
 	//Gateway status from configure.
@@ -1479,7 +1480,7 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//Multiple list(IPv6)
+	//Multiple list
 		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -1493,7 +1494,7 @@ void GetGatewayInformation(
 				}
 			}
 		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	//Gateway status from system network stack.
 		if ((Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			!GetBestInterfaceAddress(AF_INET6, &Parameter.Target_Server_Main_IPv6.AddressData.Storage)) || 
@@ -1515,7 +1516,7 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//Multiple list(IPv6)
+	//Multiple list
 		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -1531,6 +1532,7 @@ void GetGatewayInformation(
 
 		GlobalRunningStatus.GatewayAvailable_IPv6 = true;
 	}
+//IPv4
 	else if (Protocol == AF_INET)
 	{
 	//Gateway status from configure.
@@ -1583,7 +1585,7 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//Multiple list(IPv4)
+	//Multiple list
 		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -1597,7 +1599,7 @@ void GetGatewayInformation(
 				}
 			}
 		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	//Gateway status from system network stack.
 		if ((Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			!GetBestInterfaceAddress(AF_INET, &Parameter.Target_Server_Main_IPv4.AddressData.Storage)) || 
@@ -1619,7 +1621,7 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//Multiple list(IPv4)
+	//Multiple list
 		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -1644,13 +1646,13 @@ void NetworkInformationMonitor(
 	void)
 {
 //Initialization
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 	std::array<uint8_t, ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES> AddrBuffer{};
 	std::string DomainString;
 #if defined(PLATFORM_WIN)
 	std::array<uint8_t, DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES> HostName{};
 	addrinfo *LocalAddressList = nullptr, *LocalAddressItem = nullptr;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressItem = nullptr;
 	auto IsErrorFirstPrint = true;
 #endif
@@ -1666,19 +1668,20 @@ void NetworkInformationMonitor(
 //Start listening Monitor.
 	for (;;)
 	{
-	//Get local machine addresses(IPv6).
+	//Get local machine addresses.
+	//IPv6
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK::BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK::IPV6)
 		{
 		#if defined(PLATFORM_WIN)
 			HostName.fill(0);
 			LocalAddressList = GetLocalAddressList(AF_INET6, HostName.data());
 			if (LocalAddressList == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 		#endif
 			{
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Get local machine address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 				{
@@ -1693,7 +1696,7 @@ void NetworkInformationMonitor(
 				LocalAddressMutexIPv6.lock();
 				memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] = 0;
-			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 				GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6]->clear();
 				GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6]->shrink_to_fit();
 			#endif
@@ -1716,7 +1719,7 @@ void NetworkInformationMonitor(
 				{
 					if (LocalAddressItem->ai_family == AF_INET6 && LocalAddressItem->ai_addrlen == sizeof(sockaddr_in6) && 
 						LocalAddressItem->ai_addr->sa_family == AF_INET6)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				for (InterfaceAddressItem = InterfaceAddressList;InterfaceAddressItem != nullptr;InterfaceAddressItem = InterfaceAddressItem->ifa_next)
 				{
 					if (InterfaceAddressItem->ifa_addr != nullptr && InterfaceAddressItem->ifa_addr->sa_family == AF_INET6)
@@ -1736,14 +1739,14 @@ void NetworkInformationMonitor(
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = hton16(sizeof(reinterpret_cast<const dns_record_aaaa *>(DNS_Record)->Address));
 						#if defined(PLATFORM_WIN)
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = reinterpret_cast<const sockaddr_in6 *>(LocalAddressItem->ai_addr)->sin6_addr;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = reinterpret_cast<const sockaddr_in6 *>(InterfaceAddressItem->ifa_addr)->sin6_addr;
 						#endif
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] += sizeof(dns_record_aaaa);
 							++DNS_Header->Answer;
 						}
 
-					#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+					#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 					//Convert from binary to string.
 						DomainString.clear();
 						for (ssize_t Index = sizeof(in6_addr) / sizeof(uint8_t) - 1U;Index >= 0;--Index)
@@ -1752,7 +1755,7 @@ void NetworkInformationMonitor(
 
 						#if defined(PLATFORM_WIN)
 							if (reinterpret_cast<const sockaddr_in6 *>(LocalAddressItem->ai_addr)->sin6_addr.s6_addr[Index] == 0)
-						#elif defined(PLATFORM_LINUX)
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 							if (reinterpret_cast<const sockaddr_in6 *>(InterfaceAddressItem->ifa_addr)->sin6_addr.s6_addr[Index] == 0)
 						#endif
 							{
@@ -1760,13 +1763,13 @@ void NetworkInformationMonitor(
 							}
 						#if defined(PLATFORM_WIN)
 							else if (reinterpret_cast<const sockaddr_in6 *>(LocalAddressItem->ai_addr)->sin6_addr.s6_addr[Index] < 0x10)
-						#elif defined(PLATFORM_LINUX)
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 							else if (reinterpret_cast<const sockaddr_in6 *>(InterfaceAddressItem->ifa_addr)->sin6_addr.s6_addr[Index] < 0x10)
 						#endif
 							{
 							#if defined(PLATFORM_WIN)
 								if (snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<const sockaddr_in6 *>(LocalAddressItem->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
-							#elif defined(PLATFORM_LINUX)
+							#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 								if (snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<const sockaddr_in6 *>(InterfaceAddressItem->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#endif
 									strnlen_s(reinterpret_cast<const char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE) != 1U)
@@ -1781,7 +1784,7 @@ void NetworkInformationMonitor(
 							else {
 							#if defined(PLATFORM_WIN)
 								if (snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<const sockaddr_in6 *>(LocalAddressItem->ai_addr)->sin6_addr.s6_addr[Index]) < 0 || 
-							#elif defined(PLATFORM_LINUX)
+							#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 								if (snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%x", reinterpret_cast<const sockaddr_in6 *>(InterfaceAddressItem->ifa_addr)->sin6_addr.s6_addr[Index]) < 0 || 
 							#endif
 									strnlen_s(reinterpret_cast<const char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE) != 2U)
@@ -1822,26 +1825,25 @@ void NetworkInformationMonitor(
 			#if defined(PLATFORM_WIN)
 				freeaddrinfo(LocalAddressList);
 				LocalAddressList = nullptr;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
 			#endif
 			}
 		}
-
-	//Get local machine addresses(IPv4).
+	//IPv4
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK::BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK::IPV4)
 		{
 		#if defined(PLATFORM_WIN)
 			HostName.fill(0);
 			LocalAddressList = GetLocalAddressList(AF_INET, HostName.data());
 			if (LocalAddressList == nullptr)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 		#endif
 			{
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Get local machine address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 				{
@@ -1856,7 +1858,7 @@ void NetworkInformationMonitor(
 				LocalAddressMutexIPv4.lock();
 				memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] = 0;
-			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 				GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4]->clear();
 				GlobalRunningStatus.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4]->shrink_to_fit();
 			#endif
@@ -1879,7 +1881,7 @@ void NetworkInformationMonitor(
 				{
 					if (LocalAddressItem->ai_family == AF_INET && LocalAddressItem->ai_addrlen == sizeof(sockaddr_in) && 
 						LocalAddressItem->ai_addr->sa_family == AF_INET)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				for (InterfaceAddressItem = InterfaceAddressList;InterfaceAddressItem != nullptr;InterfaceAddressItem = InterfaceAddressItem->ifa_next)
 				{
 					if (InterfaceAddressItem->ifa_addr != nullptr && InterfaceAddressItem->ifa_addr->sa_family == AF_INET)
@@ -1899,20 +1901,20 @@ void NetworkInformationMonitor(
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Length = hton16(sizeof(reinterpret_cast<const dns_record_a *>(DNS_Record)->Address));
 						#if defined(PLATFORM_WIN)
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = reinterpret_cast<const sockaddr_in *>(LocalAddressItem->ai_addr)->sin_addr;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = reinterpret_cast<const sockaddr_in *>(InterfaceAddressItem->ifa_addr)->sin_addr;
 						#endif
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] += sizeof(dns_record_a);
 							++DNS_Header->Answer;
 						}
 
-					#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+					#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 					//Convert from binary to DNS PTR response.
 						AddrBuffer.fill(0);
 						DomainString.clear();
 					#if defined(PLATFORM_WIN)
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(LocalAddressItem->ai_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
-					#elif defined(PLATFORM_LINUX)
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(InterfaceAddressItem->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 3U));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer.data()));
@@ -1920,7 +1922,7 @@ void NetworkInformationMonitor(
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(LocalAddressItem->ai_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
-					#elif defined(PLATFORM_LINUX)
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(InterfaceAddressItem->ifa_addr)->sin_addr)) + sizeof(uint8_t) * 2U));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer.data()));
@@ -1928,7 +1930,7 @@ void NetworkInformationMonitor(
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(LocalAddressItem->ai_addr)->sin_addr)) + sizeof(uint8_t)));
-					#elif defined(PLATFORM_LINUX)
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *((reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(InterfaceAddressItem->ifa_addr)->sin_addr)) + sizeof(uint8_t)));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer.data()));
@@ -1936,7 +1938,7 @@ void NetworkInformationMonitor(
 						DomainString.append(".");
 					#if defined(PLATFORM_WIN)
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *(reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(LocalAddressItem->ai_addr)->sin_addr)));
-					#elif defined(PLATFORM_LINUX)
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 						snprintf(reinterpret_cast<char *>(AddrBuffer.data()), ADDRESS_STRING_MAXSIZE, "%u", *(reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in *>(InterfaceAddressItem->ifa_addr)->sin_addr)));
 					#endif
 						DomainString.append(reinterpret_cast<const char *>(AddrBuffer.data()));
@@ -1964,7 +1966,7 @@ void NetworkInformationMonitor(
 			#if defined(PLATFORM_WIN)
 				freeaddrinfo(LocalAddressList);
 				LocalAddressList = nullptr;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
 			#endif
@@ -1978,12 +1980,12 @@ void NetworkInformationMonitor(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!GlobalRunningStatus.GatewayAvailable_IPv6)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!(IsErrorFirstPrint || GlobalRunningStatus.GatewayAvailable_IPv6))
 		#endif
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"No any available gateways to external network", 0, nullptr, 0);
 
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			IsErrorFirstPrint = false;
 		#endif
 		}
@@ -1998,7 +2000,7 @@ void NetworkInformationMonitor(
 			freeaddrinfo(LocalAddressList);
 			LocalAddressList = nullptr;
 		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (InterfaceAddressList != nullptr)
 		{
 			freeifaddrs(InterfaceAddressList);

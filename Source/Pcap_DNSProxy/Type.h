@@ -237,14 +237,10 @@ typedef enum class _tls_version_selection
 }TLS_VERSION_SELECTION;
 #if defined(PLATFORM_WIN)
 	#define SSPI_SECURE_BUFFER_NUM                    4U
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define OPENSSL_RETURN_FAILURE                    0
 	#define OPENSSL_RETURN_SUCCESS                    1
 	#define OPENSSL_SET_NON_BLOCKING                  1
-	#define OPENSSL_VERSION_1_0_1                     0x10001000L
-	#define OPENSSL_VERSION_1_0_2                     0x10002000L
-	#define OPENSSL_VERSION_1_1_0                     0x10100000L
-	#define OPENSSL_VERSION_1_1_1                     0x10101000L
 	#define OPENSSL_STATIC_BUFFER_SIZE                256U
 	#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!aNULL:!kRSA:!PSK:!SRP:!SM2:!SM3:!SM4:!SSLv2:!SSLv3:!MD5:!RC4")
 	#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!aNULL:!kRSA:!PSK:!SRP:!SM2:!SM3:!SM4:!SSLv2:!SSLv3:!MD5:!RC4:!SHA1")
@@ -259,7 +255,7 @@ typedef enum class _tls_version_selection
 typedef struct _file_data_
 {
 	std::wstring                         FileName;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          FileName_MBS;
 #endif
 	time_t                               ModificationTime;
@@ -477,7 +473,7 @@ public:
 	DWORD                                PacketHopLimits_IPv6_End;
 	DWORD                                PacketHopLimits_IPv4_Begin;
 	DWORD                                PacketHopLimits_IPv4_End;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	int                                  PacketHopLimits_IPv6_Begin;
 	int                                  PacketHopLimits_IPv6_End;
 	int                                  PacketHopLimits_IPv4_Begin;
@@ -491,7 +487,7 @@ public:
 	DWORD                                SocketTimeout_Reliable_Serial;
 	DWORD                                SocketTimeout_Unreliable_Once;
 	DWORD                                SocketTimeout_Unreliable_Serial;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	timeval                              SocketTimeout_Reliable_Once;
 	timeval                              SocketTimeout_Reliable_Serial;
 	timeval                              SocketTimeout_Unreliable_Once;
@@ -545,7 +541,7 @@ public:
 	std::string                          *Local_FQDN_String;
 	uint8_t                              *Local_FQDN_Response;
 	size_t                               Local_FQDN_Length;
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 	uint8_t                              *LocalServer_Response;
 	size_t                               LocalServer_Length;
 #endif
@@ -578,7 +574,7 @@ public:
 	bool                                 HTTP_CONNECT_TLS_Validation;
 	std::wstring                         *HTTP_CONNECT_TLS_SNI;
 	std::string                          *HTTP_CONNECT_TLS_SNI_MBS;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
 #endif
@@ -634,7 +630,7 @@ public:
 	HANDLE                               Initialized_MutexHandle;
 	SECURITY_ATTRIBUTES                  Initialized_MutexSecurityAttributes;
 	SECURITY_DESCRIPTOR                  Initialized_MutexSecurityDescriptor;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(ENABLE_TLS)
 	bool                                 IsInitialized_OpenSSL;
 #endif
@@ -645,7 +641,7 @@ public:
 	time_t                               StartupTime;
 #if defined(PLATFORM_WIN)
 	bool                                 IsConsole;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	bool                                 IsDaemon;
 #endif
 	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
@@ -664,7 +660,7 @@ public:
 	std::wstring                         *Path_ErrorLog;
 	std::vector<std::wstring>            *FileList_Hosts;
 	std::vector<std::wstring>            *FileList_IPFilter;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::vector<std::string>             *Path_Global_MBS;
 	std::string                          *Path_ErrorLog_MBS;
 	std::vector<std::string>             *FileList_Hosts_MBS;
@@ -679,7 +675,7 @@ public:
 //Local address status
 	uint8_t                              *LocalAddress_Response[NETWORK_LAYER_PARTNUM];
 	size_t                               LocalAddress_Length[NETWORK_LAYER_PARTNUM];
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 	std::vector<std::string>             *LocalAddress_PointerResponse[NETWORK_LAYER_PARTNUM];
 #endif
 
@@ -994,7 +990,7 @@ public:
 	uint64_t                             ClearPortTime;
 	std::string                          DomainString_Original;
 	std::string                          DomainString_Request;
-	size_t                               EDNS_Length;
+//	size_t                               EDNS_Length;
 
 //Redefine operator functions
 //	OutputPacketTable() = default;
@@ -1020,7 +1016,7 @@ public:
 #if defined(PLATFORM_WIN)
 	DWORD                                   DNSCurve_SocketTimeout_Reliable;
 	DWORD                                   DNSCurve_SocketTimeout_Unreliable;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	timeval                                 DNSCurve_SocketTimeout_Reliable;
 	timeval                                 DNSCurve_SocketTimeout_Unreliable;
 #endif
@@ -1030,7 +1026,7 @@ public:
 	size_t                                  KeyRecheckTime;
 //[DNSCurve Database] block
 	std::wstring                            *DatabaseName;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                             *DatabaseName_MBS;
 #endif
 	std::string                             *Database_Target_Server_Main_IPv6;
@@ -1120,7 +1116,7 @@ public:
 	~SSPIHandleTable(
 		void);
 }SSPI_HANDLE_TABLE;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //OpenSSL Context class
 typedef class OpenSSLContextTable
 {

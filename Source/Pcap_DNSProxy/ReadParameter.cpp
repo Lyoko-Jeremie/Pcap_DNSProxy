@@ -86,14 +86,14 @@ bool Parameter_CheckSetting(
 //[Local DNS] block
 	if (IsFirstRead)
 	{
-	//Move Alternate to Main(IPv6).
+	//Move Alternate to Main.
+	//IPv6
 		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Alternate_IPv6.Storage.ss_family != 0)
 		{
 			Parameter.Target_Server_Local_Main_IPv6 = Parameter.Target_Server_Local_Alternate_IPv6;
 			memset(&Parameter.Target_Server_Local_Alternate_IPv6, 0, sizeof(Parameter.Target_Server_Local_Alternate_IPv6));
 		}
-
-	//Move Alternate to Main(IPv4).
+	//IPv4
 		if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Alternate_IPv4.Storage.ss_family != 0)
 		{
 			Parameter.Target_Server_Local_Main_IPv4 = Parameter.Target_Server_Local_Alternate_IPv4;
@@ -128,13 +128,14 @@ bool Parameter_CheckSetting(
 		}
 	}
 
-	//Local Protocol(IPv6)
+	//Local Protocol
+	//IPv6
 	if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 	}
-	//Local Protocol(IPv4)
+	//IPv4
 	else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -144,21 +145,22 @@ bool Parameter_CheckSetting(
 	if (IsFirstRead)
 	{
 //[Addresses] block
-	//Listen Address list check(IPv6)
+	//Listen Address list check
+	//IPv6
 		if (Parameter.ListenAddress_IPv6->empty())
 		{
 			delete Parameter.ListenAddress_IPv6;
 			Parameter.ListenAddress_IPv6 = nullptr;
 		}
-
-	//Listen Address list check(IPv4)
+	//IPv4
 		if (Parameter.ListenAddress_IPv4->empty())
 		{
 			delete Parameter.ListenAddress_IPv4;
 			Parameter.ListenAddress_IPv4 = nullptr;
 		}
 
-	//EDNS Client Subnet Address check(IPv6)
+	//EDNS Client Subnet Address check
+	//IPv6
 		if (Parameter.LocalMachineSubnet_IPv6->first.ss_family == 0)
 		{
 			delete Parameter.LocalMachineSubnet_IPv6;
@@ -180,8 +182,7 @@ bool Parameter_CheckSetting(
 			Parameter.EDNS_Switch_TCP = true;
 			Parameter.EDNS_Switch_UDP = true;
 		}
-
-	//EDNS Client Subnet Address check(IPv4)
+	//IPv4
 		if (Parameter.LocalMachineSubnet_IPv4->first.ss_family == 0)
 		{
 			delete Parameter.LocalMachineSubnet_IPv4;
@@ -278,13 +279,14 @@ bool Parameter_CheckSetting(
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
-	//Protocol(IPv6)
+	//Protocol
+	//IPv6
 		else if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
 		}
-	//Protocol(IPv4)
+	//IPv4
 		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -348,7 +350,8 @@ bool Parameter_CheckSetting(
 			return false;
 		}
 
-	//Hop Limits and TTL check in multiple list(IPv6)
+	//Hop Limits and TTL check in multiple list
+	//IPv6
 		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
 			for (const auto &DNSServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -362,8 +365,7 @@ bool Parameter_CheckSetting(
 				}
 			}
 		}
-
-	//Hop Limits and TTL check in multiple list(IPv4)
+	//IPv4
 		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
 			for (const auto &DNSServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -537,8 +539,8 @@ bool Parameter_CheckSetting(
 		}
 
 	//Set Local DNS server PTR response.
-	//LLMNR protocol in macOS is powered by mDNS with DNS PTR records.
-	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+	//macOS: LLMNR protocol is powered by mDNS with DNS PTR records.
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 		if (Parameter.LocalServer_Length == 0)
 		{
 		//Make DNS PTR response packet.
@@ -571,13 +573,14 @@ bool Parameter_CheckSetting(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SOCKS, L"SOCKS address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-		//SOCKS Protocl(IPv6)
+		//SOCKS Protocl
+		//IPv6
 			else if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
 			}
-		//SOCKS Protocol(IPv4)
+		//IPv4
 			else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -664,13 +667,15 @@ bool Parameter_CheckSetting(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-		//HTTP Protocol(IPv6)
+		//HTTP Protocol
+		//IPv6
 			else if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
 			}
-		//HTTP Protocol(IPv4)
+		//HTTP Protocol
+		//IPv4
 			else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV4)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -743,13 +748,13 @@ bool Parameter_CheckSetting(
 			{
 				delete Parameter.HTTP_CONNECT_TLS_SNI;
 				delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
 			#endif
 				Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
 				Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 
@@ -762,8 +767,8 @@ bool Parameter_CheckSetting(
 			#endif
 			}
 			else {
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			//HTTP CONNECT IPv4/IPv6 address check
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			//HTTP CONNECT IPv6/IPv4 address check
 				if (Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->empty() && Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->empty())
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -835,7 +840,7 @@ bool Parameter_CheckSetting(
 	#if defined(ENABLE_TLS)
 		delete Parameter.HTTP_CONNECT_TLS_SNI;
 		delete Parameter.HTTP_CONNECT_TLS_SNI_MBS;
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
 	#endif
@@ -847,7 +852,7 @@ bool Parameter_CheckSetting(
 	#if defined(ENABLE_TLS)
 		Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
 		Parameter.HTTP_CONNECT_TLS_SNI_MBS = nullptr;
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 		Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 
@@ -868,14 +873,14 @@ bool Parameter_CheckSetting(
 	//DNSCurve Protocol check
 		if (IsFirstRead)
 		{
-		//Move Alternate to Main(IPv6).
+		//Move Alternate to Main.
+		//IPv6
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
 				memset(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, 0, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
 			}
-
-		//Move Alternate to Main(IPv4).
+		//IPv4
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
@@ -889,13 +894,14 @@ bool Parameter_CheckSetting(
 				return false;
 			}
 
-		//DNSCurve Protocol(IPv6)
+		//DNSCurve Protocol
+		//IPv6
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 			}
-		//DNSCurve Protocol(IPv4)
+		//IPv4
 			else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -969,7 +975,7 @@ bool Parameter_CheckSetting(
 			}
 		}
 
-	//Main(IPv6)
+	//IPv6 Main
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0)
 		{
 		//Empty Server Fingerprint
@@ -1022,7 +1028,7 @@ bool Parameter_CheckSetting(
 			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = nullptr;
 		}
 
-	//Alternate(IPv6)
+	//IPv6 Alternate
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
 		//Empty Server Fingerprint
@@ -1075,7 +1081,7 @@ bool Parameter_CheckSetting(
 			DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
 		}
 
-	//Main(IPv4)
+	//IPv4 Main
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0)
 		{
 		//Empty Server Fingerprint
@@ -1128,7 +1134,7 @@ bool Parameter_CheckSetting(
 			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = nullptr;
 		}
 
-	//Alternate(IPv4)
+	//IPv4 Alternate
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 		{
 		//Empty Server Fingerprint
@@ -1204,22 +1210,22 @@ bool Parameter_CheckSetting(
 				}
 			}
 
-		//Main(IPv6)
+		//IPv6 Main
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 				CheckEmptyBuffer(DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					memcpy_s(DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
-		//Alternate(IPv6)
+		//IPv6 Alternate
 			if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 				CheckEmptyBuffer(DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					memcpy_s(DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
-		//Main(IPv4)
+		//IPv4 Main
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 				CheckEmptyBuffer(DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					memcpy_s(DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
-		//Alternate(IPv4)
+		//IPv4 Alternate
 			if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 				CheckEmptyBuffer(DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					memcpy_s(DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
@@ -1901,7 +1907,7 @@ bool ReadParameterData_Base(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadSupport_PathFileName(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadSupport_PathFileName(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, GlobalRunningStatus.Path_Global_MBS, FileIndex, Line))
 		#endif
 				return false;
@@ -1913,7 +1919,7 @@ bool ReadParameterData_Base(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadSupport_PathFileName(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadSupport_PathFileName(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, GlobalRunningStatus.FileList_Hosts_MBS, FileIndex, Line))
 		#endif
 				return false;
@@ -1925,7 +1931,7 @@ bool ReadParameterData_Base(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadSupport_PathFileName(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadSupport_PathFileName(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, GlobalRunningStatus.FileList_IPFilter_MBS, FileIndex, Line))
 		#endif
 				return false;
@@ -2815,7 +2821,7 @@ bool ReadParameterData_Values(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->PacketHopLimits_IPv4_Begin = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->PacketHopLimits_IPv4_Begin = static_cast<const int>(UnsignedResult);
 			#endif
 			else 
@@ -2833,7 +2839,7 @@ bool ReadParameterData_Values(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->PacketHopLimits_IPv4_End = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->PacketHopLimits_IPv4_End = static_cast<const int>(UnsignedResult);
 			#endif
 			else 
@@ -2858,7 +2864,7 @@ bool ReadParameterData_Values(
 				if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 				#if defined(PLATFORM_WIN)
 					ParameterPointer->PacketHopLimits_IPv4_Begin = static_cast<const DWORD>(UnsignedResult);
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					ParameterPointer->PacketHopLimits_IPv4_Begin = static_cast<const int>(UnsignedResult);
 				#endif
 				else 
@@ -2924,7 +2930,7 @@ bool ReadParameterData_Values(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->PacketHopLimits_IPv6_Begin = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->PacketHopLimits_IPv6_Begin = static_cast<const int>(UnsignedResult);
 			#endif
 			else 
@@ -2942,7 +2948,7 @@ bool ReadParameterData_Values(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->PacketHopLimits_IPv6_End = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->PacketHopLimits_IPv6_End = static_cast<const int>(UnsignedResult);
 			#endif
 			else 
@@ -2966,7 +2972,7 @@ bool ReadParameterData_Values(
 				if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 				#if defined(PLATFORM_WIN)
 					ParameterPointer->PacketHopLimits_IPv6_Begin = static_cast<const DWORD>(UnsignedResult);
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					ParameterPointer->PacketHopLimits_IPv6_Begin = static_cast<const int>(UnsignedResult);
 				#endif
 				else 
@@ -3013,7 +3019,7 @@ bool ReadParameterData_Values(
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Reliable_Once = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->SocketTimeout_Reliable_Once.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPointer->SocketTimeout_Reliable_Once.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -3036,7 +3042,7 @@ bool ReadParameterData_Values(
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Reliable_Serial = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->SocketTimeout_Reliable_Serial.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPointer->SocketTimeout_Reliable_Serial.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -3059,7 +3065,7 @@ bool ReadParameterData_Values(
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Unreliable_Once = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->SocketTimeout_Unreliable_Once.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPointer->SocketTimeout_Unreliable_Once.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -3082,7 +3088,7 @@ bool ReadParameterData_Values(
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Unreliable_Serial = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPointer->SocketTimeout_Unreliable_Serial.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPointer->SocketTimeout_Unreliable_Serial.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -3786,7 +3792,7 @@ bool ReadParameterData_Proxy(
 			else {
 				Parameter.HTTP_CONNECT_Address_IPv4 = DNSServerDataTemp.front().AddressData;
 			#if defined(ENABLE_TLS)
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->clear();
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->append(Data, strlen("HTTPCONNECTIPv4Address="), Data.length() - strlen("HTTPCONNECTIPv4Address="));
 			#endif
@@ -3805,7 +3811,7 @@ bool ReadParameterData_Proxy(
 			else {
 				Parameter.HTTP_CONNECT_Address_IPv6 = DNSServerDataTemp.front().AddressData;
 			#if defined(ENABLE_TLS)
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->clear();
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->append(Data, strlen("HTTPCONNECTIPv6Address="), Data.length() - strlen("HTTPCONNECTIPv6Address="));
 			#endif
@@ -4113,7 +4119,7 @@ bool ReadParameterData_DNSCurve_Main(
 			{
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Reliable = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Reliable.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Reliable.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -4136,7 +4142,7 @@ bool ReadParameterData_DNSCurve_Main(
 			{
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Unreliable = static_cast<const DWORD>(UnsignedResult);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Unreliable.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Unreliable.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			#endif
@@ -4213,7 +4219,7 @@ bool ReadParameterData_DNSCurve_Database(
 				goto PrintDataFormatError;
 
 		//Mark database name.
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			DNSCurveParameter.DatabaseName_MBS->append(Data, strlen("DNSCurve Database Name = "), Data.length() - strlen("DNSCurve Database Name = "));
 		#endif
 
@@ -4576,7 +4582,7 @@ bool ReadSupport_PathFileName(
 	const size_t DataOffset, 
 	const bool IsPath, 
 	std::vector<std::wstring> * const ListData, 
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::vector<std::string> * const ListData_MBS, 
 #endif
 	const size_t FileIndex, 
@@ -4604,7 +4610,7 @@ bool ReadSupport_PathFileName(
 			{
 				StringIter.append("\\");
 			}
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (StringIter.find("//") != std::string::npos)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -4635,7 +4641,7 @@ bool ReadSupport_PathFileName(
 			}
 		#endif
 
-		//Register to global list.
+		//Register to global list(WCS).
 			for (auto InnerStringIter = GlobalRunningStatus.Path_Global->begin();InnerStringIter < GlobalRunningStatus.Path_Global->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == WCS_NameString)
@@ -4649,7 +4655,8 @@ bool ReadSupport_PathFileName(
 				}
 			}
 
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		//Register to global list(MBS).
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			for (auto InnerStringIter = GlobalRunningStatus.Path_Global_MBS->begin();InnerStringIter < GlobalRunningStatus.Path_Global_MBS->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == StringIter)
@@ -4677,7 +4684,7 @@ bool ReadSupport_PathFileName(
 				return false;
 			}
 
-		//Register to global list.
+		//Register to global list(WCS).
 			if (ListData->empty())
 			{
 				ListData->push_back(WCS_NameString);
@@ -4697,7 +4704,8 @@ bool ReadSupport_PathFileName(
 				}
 			}
 
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		//Register to global list(MBS).
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (ListData_MBS->empty())
 			{
 				ListData_MBS->push_back(StringIter);

@@ -47,7 +47,7 @@ void AlternateServerSwitcher(
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
 	uint8_t * const HostName);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
 	const sockaddr_storage * const OriginalSockAddr);

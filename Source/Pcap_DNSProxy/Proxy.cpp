@@ -739,7 +739,7 @@ bool SOCKS_AuthenticationExchange(
 		SocketSelectingDataList.front().SendLen = 0;
 	}
 
-//Username/password authentication packet
+//Username and Password authentication packet
 	size_t RecvLen = 0;
 	reinterpret_cast<socks_client_user_authentication *>(SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_USERNAME_PASSWORD_VERSION;
 	RecvLen += sizeof(socks_client_user_authentication);
@@ -752,7 +752,7 @@ bool SOCKS_AuthenticationExchange(
 	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Password, Parameter.SOCKS_PasswordLength);
 	RecvLen += Parameter.SOCKS_PasswordLength;
 
-//Username/password authentication exchange and server reply check
+//Username + Password authentication exchange and server reply check
 	SocketSelectingDataList.front().RecvBuffer.reset();
 	SocketSelectingDataList.front().RecvSize = 0;
 	SocketSelectingDataList.front().RecvLen = 0;
@@ -1986,7 +1986,7 @@ bool HTTP_CONNECT_2_ShutdownConnection(
 	#if defined(ENABLE_TLS)
 	#if defined(PLATFORM_WIN)
 		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN, 0, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN, 0, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
 	#endif
 			return false;
@@ -2036,7 +2036,7 @@ size_t HTTP_CONNECT_TCP_Request(
 	SSPI_HANDLE_TABLE SSPI_Handle;
 	if (Parameter.HTTP_CONNECT_TLS_Handshake)
 		TLS_Context = &SSPI_Handle;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	OPENSSL_CONTEXT_TABLE OpenSSL_CTX;
 	if (Parameter.HTTP_CONNECT_TLS_Handshake)
 		TLS_Context = &OpenSSL_CTX;
@@ -2103,7 +2103,7 @@ size_t HTTP_CONNECT_TCP_Request(
 		if (TLS_Context != nullptr)
 	#if defined(PLATFORM_WIN)
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
 		else 
 	#endif
@@ -2155,7 +2155,7 @@ bool HTTP_CONNECT_Handshake(
 	if (NetworkSpecific == AF_INET6)
 	{
 	#if defined(ENABLE_TLS)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (TLS_Context != nullptr)
 		{
 			if (Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 != nullptr && !Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->empty())
@@ -2177,7 +2177,7 @@ bool HTTP_CONNECT_Handshake(
 			SocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 			SocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	#if defined(ENABLE_TLS)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		}
 	#endif
 	#endif
@@ -2185,7 +2185,7 @@ bool HTTP_CONNECT_Handshake(
 	else if (NetworkSpecific == AF_INET)
 	{
 	#if defined(ENABLE_TLS)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (TLS_Context != nullptr)
 		{
 			if (Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 != nullptr && !Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->empty())
@@ -2207,7 +2207,7 @@ bool HTTP_CONNECT_Handshake(
 			SocketDataList.front().AddrLen = sizeof(sockaddr_in);
 			SocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	#if defined(ENABLE_TLS)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		}
 	#endif
 	#endif
@@ -2218,7 +2218,7 @@ bool HTTP_CONNECT_Handshake(
 
 //Socket attribute settings
 #if defined(ENABLE_TLS)
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (TLS_Context == nullptr)
 	{
 #endif
@@ -2247,7 +2247,7 @@ bool HTTP_CONNECT_Handshake(
 		}
 
 #if defined(ENABLE_TLS)
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	}
 #endif
 #endif
@@ -2269,7 +2269,7 @@ bool HTTP_CONNECT_Handshake(
 
 			return false;
 		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (!OpenSSL_CTX_Initializtion(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context)) || 
 			!OpenSSL_BIO_Initializtion(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context)))
 		{
@@ -2296,7 +2296,7 @@ bool HTTP_CONNECT_Handshake(
 		if (TLS_Context != nullptr)
 	#if defined(PLATFORM_WIN)
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
 		else 
 	#endif
@@ -2456,7 +2456,7 @@ bool HTTP_CONNECT_Exchange(
 		#if defined(PLATFORM_WIN)
 			if ((Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, HTTP1_RESPONSE_MINSIZE, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList)) || 
 				(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, sizeof(http2_frame_hdr), *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList)))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if ((Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, HTTP1_RESPONSE_MINSIZE, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList)) || 
 				(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, sizeof(http2_frame_hdr), *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList)))
 		#endif
@@ -2555,7 +2555,7 @@ size_t HTTP_CONNECT_Transport(
 		if (TLS_Context != nullptr)
 	#if defined(PLATFORM_WIN)
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
 		else 
 	#endif
@@ -2614,7 +2614,7 @@ size_t HTTP_CONNECT_Transport(
 		//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (!TLS_TransportSerial(RequestType, PacketMinSize, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
 		{
 		//HTTP version 2 shutdown connection.

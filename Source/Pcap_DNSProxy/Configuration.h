@@ -224,7 +224,7 @@ bool ReadSupport_PathFileName(
 	const size_t DataOffset, 
 	const bool IsPath, 
 	std::vector<std::wstring> * const ListData, 
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::vector<std::string> * const ListData_MBS, 
 #endif
 	const size_t FileIndex, 

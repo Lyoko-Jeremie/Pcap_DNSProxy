@@ -124,7 +124,7 @@
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
 #define ADDRESS_STRING_IPV6_MINSIZE                   2U                                //The shortest IPv6 address strings(::)
-#define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv6/IPv4) words(64 bytes)
 #define ALTERNATE_SERVER_NUM                          12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define COMMAND_COUNT_MIN                             1                                 //Minimum count of commands
 #define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
@@ -159,7 +159,7 @@
 #if defined(PLATFORM_LINUX)
 	#define ICMP_PADDING_LENGTH_LINUX                     40U
 	#define ICMP_STRING_START_NUM_LINUX                   16U
-#elif defined(PLATFORM_MACOS)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_MACOS))
 	#define ICMP_PADDING_LENGTH_MACOS                     48U
 	#define ICMP_STRING_START_NUM_MACOS                   8U
 #endif
@@ -209,7 +209,7 @@
 #endif
 #if defined(PLATFORM_WIN)
 	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86 and x64 platform and defined in WinSock2.h file.
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define SYSTEM_SOCKET                                 int
 #endif
 
@@ -239,7 +239,7 @@
 #endif
 #define FLUSH_DOMAIN_CACHE_INTERVAL_TIME              5U                          //Time between every flushing domain cache(5 seconds)
 #define LOOP_INTERVAL_TIME_DELAY                      20U                         //Delay mode loop interval time(20 ms)
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
 #endif
 #define LOOP_MAX_LITTLE_TIMES                         4U                          //Little maximum of loop times(4 times)
@@ -277,7 +277,7 @@
 	#define COMMAND_SHORT_PRINT_VERSION                   (L"-v")
 	#define COMMAND_SHORT_SET_PATH                        (L"-c")
 	#define CONFIG_FILE_NAME_LIST_WCS                     {(L"Config.ini"), (L"Config.conf"), (L"Config.cfg"), (L"Config")}
-	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Default ICMP padding data(Windows)
+	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Windows: Default ICMP padding data
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
 #endif
@@ -288,8 +288,8 @@
 	#define MUTEX_EXISTS_NAME                             (L"Global\\Pcap_DNSProxy Process Exists")      //Global mutex exists name
 	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows Administrators group SID header
 	#define SYSTEM_SERVICE_NAME                           (L"PcapDNSProxyService")                       //System service name
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-#if defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
 #endif
 	#define COMMAND_FLUSH_DOMAIN_CACHE                    ("--flush-dns")
@@ -359,7 +359,7 @@
 	#define hton64                                        htonll
 	#define ntoh64                                        ntohll
 #endif
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if BYTE_ORDER == LITTLE_ENDIAN
 	#define hton64(Value)                                 hton64_Force(Value)
 #else //BIG_ENDIAN
@@ -376,7 +376,7 @@
 	#define GetCurrentSystemTime                           GetTickCount64
 #endif
 	#define Sleep(Millisecond)                             Sleep(static_cast<const DWORD>(Millisecond))
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define Sleep(Millisecond)                             usleep(static_cast<const useconds_t>((Millisecond) * MICROSECOND_TO_MILLISECOND))
 	#define usleep(Millisecond)                            usleep(static_cast<const useconds_t>(Millisecond))
 #endif

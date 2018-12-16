@@ -1010,11 +1010,11 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut enabled(Linux/macOS).
+//Linux and macOS: ICMP Timestamp option is defalut enabled.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
-#elif defined(PLATFORM_MACOS)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_MACOS))
 	uint64_t               Timestamp;
 #endif
 }icmp_hdr;
@@ -1045,11 +1045,11 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut enabled(Linux/macOS).
+//Linux and macOS: ICMPv6 Timestamp option is defalut enabled.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
-#elif defined(PLATFORM_MACOS)
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_MACOS))
 	uint64_t               Timestamp;
 #endif
 }icmpv6_hdr;
@@ -3125,7 +3125,7 @@ typedef struct _socks_udp_relay_request_
 	#define HTTP_1_TLS_ALPN_STRING                      ("http/1.1")
 	#define HTTP_2_TLS_ALPN_STRING                      ("h2")
 #endif
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define HTTP_1_TLS_ALPN_STRING                      {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
 	#define HTTP_2_TLS_ALPN_STRING                      {2U, 'h', '2'}
 #endif

@@ -77,7 +77,7 @@ bool PrintError(
 			else 
 				ErrorMessage.append(L"[Network Error] ");
 		}break;
-	//WinPcap/LibPcap Error
+	//WinPcap and LibPcap Error
 	//About WinPcap/LibPcap error codes, please visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
 	#if defined(ENABLE_PCAP)
 		case LOG_ERROR_TYPE::PCAP:
@@ -180,7 +180,7 @@ bool WriteMessageToStream(
 		memset(&TimeStructure, 0, sizeof(TimeStructure));
 	#if defined(PLATFORM_WIN)
 		if (TimeValue <= 0 || localtime_s(&TimeStructure, &TimeValue) != 0)
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (TimeValue <= 0 || localtime_r(&TimeValue, &TimeStructure) == nullptr)
 	#endif
 			return false;
@@ -218,7 +218,7 @@ bool WriteMessageToStream(
 		memset(&TimeStructure, 0, sizeof(TimeStructure));
 	#if defined(PLATFORM_WIN)
 		if (localtime_s(&TimeStructure, &TimeValue) != 0)
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (localtime_r(&TimeValue, &TimeStructure) == nullptr)
 	#endif
 			return false;
@@ -281,7 +281,7 @@ bool WriteMessageToStream(
 	if (*GlobalRunningStatus.Path_ErrorLog == L"stderr" || *GlobalRunningStatus.Path_ErrorLog == L"stdout"
 	#if defined(PLATFORM_WIN)
 		|| GlobalRunningStatus.IsConsole
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 		|| !GlobalRunningStatus.IsDaemon
 	#endif
 		)
@@ -330,7 +330,7 @@ bool WriteMessageToStream(
 				return false;
 		}
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
 	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
@@ -347,7 +347,7 @@ bool WriteMessageToStream(
 #if defined(PLATFORM_WIN)
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	auto FileHandle = fopen(GlobalRunningStatus.Path_ErrorLog_MBS->c_str(), "a");
 	if (FileHandle != nullptr)
 #endif
@@ -471,7 +471,7 @@ void ErrorCodeToMessage(
 	//Free pointer.
 		LocalFree(InnerMessage);
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::wstring InnerMessage;
 	const auto ErrorMessage = strerror(static_cast<const int>(ErrorCode));
 	if (ErrorMessage == nullptr || !MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(ErrorMessage), strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))

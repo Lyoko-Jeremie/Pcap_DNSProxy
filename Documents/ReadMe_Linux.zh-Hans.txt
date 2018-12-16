@@ -44,7 +44,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 附带的 Linux_Install.Systemd.sh 脚本适用于默认使用 Systemd Init 的系统
       * Linux Debian 8.x 官方发行版以及更新版本系统环境，经测试可直接使用
     * 附带的 Linux_Install.SysV.sh 脚本适用于默认使用 System V Init 的系统
-      * Linux Debian 6.x - 7.x 官方发行版系统环境，经测试可直接使用
     * 更多详情可参见下文其它 Linux 发行版服务的说明，以及所使用 Linux 发行版的官方说明
   * 使用 Systemd Init 时：
     * 进入 Release 目录并编辑 Pcap_DNSProxy.service 文件，编辑完成后保存： 
@@ -190,7 +189,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Linux Debian 系列：
   * 官方发行版 8.x 以及更新版本默认需要使用 Systemd 管理系统服务
-  * 官方发行版 6.x - 7.x 版本默认需要使用 insserv 管理系统服务
 * Linux Red Hat 和 openSUSE 系列：
   * 使用 chkconfig 管理系统服务
   * 参见 https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

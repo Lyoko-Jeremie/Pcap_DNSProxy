@@ -106,7 +106,7 @@ All plug-in parameters can also be queried with the -h and --help parameters
 * --log-file stderr/out
     Set output log to stderr or stdout.
 * --disable-daemon
-    Disable daemon mode. (Linux)
+    Disable daemon mode. (FreeBSD/Linux)
 * --first-setup
     Test local firewall. (Windows)
 
@@ -485,20 +485,21 @@ Base - the basic parameter area
   * Unreliable Serial Socket Timeout - Serial Unreliable Protocol Port Timeout: in milliseconds, a minimum of 500 can be left blank, leave the time for 1000
     * Tandem means that this operation requires multiple interactive network transmission to complete, such as SOCKS and HTTP CONNECT agreement
     * Unreliable port refers to UDP/ICMP/ICMPv6 agreement
- * TCP Fast Open - TCP Fast Open feature:
-    * Support for this feature:
-      * Windows platform
-        * 1 to enable/0 to disable.
-        * Server-side support, the client due to different types of I/O problems temporarily unable to support
-        * Requires Windows 10 Version 1607 and later support
-      * Linux platform:
-        * This parameter can be specified to support TCP Fast Open queue length, directly fill in the value of more than 0 is the queue length, turn off to 0
-        * Full support for server and client
-        * IPv4 agreement requires Linux Kernel 3.7 and the latest version of the support, IPv6 agreement requires Linux Kernel 3.16 and the latest version of the kernel support
-      * MacOS platform:
-        * 1 to enable/0 to disable.
-        * Full support for server and client
-        * Requires macOS 10.11 Sierra and later versions support
+ * TCP Fast Open - TCP Fast Open:
+    * Support status:
+      * Windows
+        * Set 1 to enable/0 to disable.
+        * Server-side support, client-side is unsupported.
+        * Require Windows 10 Version 1607 and later version.
+      * FreeBSD/Linux
+        * Set TCP Fast Open queue length, set 0 to disable.
+        * Both server-side and client-side support
+        * FreeBSD: Require 12.0 and later version.
+        * Linux: IPv4 requires Linux Kernel 3.7 and later version, IPv6 requires Linux Kernel 3.16 and later version.
+      * MacOS
+        * Set 1 to enable/0 to disable.
+        * Both server-side and client-side support
+        * Require macOS 10.11 Sierra and later version.
     * Warning: Do not open this feature on an unsupported version, or it may prevent the program from sending or receiving packets normally!
   * Receive Waiting - the packet reception wait time, after the program will try to wait for a period of time to try to receive all the packets and return to the final arrival of the package: the unit is milliseconds, leave it blank or set to 0 to turn off this feature
     * This parameter is closely related to Pcap Reading Timeout, since the packet capture module will return to the program once every other time. When the packet reception wait time is less than the read timeout time, this parameter will not become Meaning, in some cases even slow down the response speed of the function variable name resolution
@@ -599,14 +600,11 @@ Base - the basic parameter area
   * HTTP CONNECT TLS Version - HTTP CONNECT protocol Enable TLS Handshake and Encrypted Transmission Specified version used: Set to 0 to automatically select
     * At this stage can be filled with 1.0 or 1.1 or 1.2
     * Windows XP/2003 and Windows Vista do not support versions higher than 1.0
-    * OpenSSL 1.0.0 and previous versions do not support versions higher than 1.0
   * HTTP CONNECT TLS Validation - HTTP CONNECT protocol When TLS handshaking is enabled Server certificate chain check: 1 to enable/0 to disable.
     * Warning: Turn off this feature will likely cause the encrypted connection to be attacked by the middleman, strongly recommended to open!
-    * Warning: OpenSSL 1.0.2 previous version does not support check the server certificate function variable name match, please pay attention!
   * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT The function used to specify the TLS handshake. Variable Name Server: Please enter the correct function variable name and do not exceed 253 bytes ASCII data, leave it blank Features
   * HTTP CONNECT TLS ALPN - HTTP CONNECT Agreement Whether to enable Application-Layer Protocol Negotiation/ALPN extension when TLS handshaking: 1 to enable/0 to disable.
     * This feature is not supported on Windows 8 and earlier
-    * OpenSSL 1.0.1 and previous versions do not support this feature
     * Warning: Do not open this feature on an unsupported version, or it may prevent the program from sending or receiving packets normally!
   * HTTP CONNECT Version - Version used by the HTTP CONNECT protocol: set to 0 to automatically select
     * At this stage can be filled 1.1 or 2

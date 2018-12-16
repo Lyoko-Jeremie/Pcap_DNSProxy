@@ -44,7 +44,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 附帶的 Linux_Install.Systemd.sh 腳本適用于預設使用 Systemd Init 的系統
       * Linux Debian 8.x 官方發行版本以及更新版本系統內容，經測試可直接使用
     * 附帶的 Linux_Install.SysV.sh 腳本適用于預設使用 System V Init 的系統
-      * Linux Debian 6.x - 7.x 官方發行版本系統內容，經測試可直接使用
     * 更多詳情可參見下文其它 Linux 發行版本服務的說明，以及所使用 Linux 發行版本的官方說明
   * 使用 Systemd Init 時：
     * 進入 Release 目錄並編輯 Pcap_DNSProxy.service 檔，編輯完成後保存：
@@ -70,38 +69,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * stop - 停止服務
       * force-reload/restart - 重啟服務
       * status - 服務狀態，如果 PID 為空則服務未啟動
-
-3.配置系统守护进程服务
-  * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
-    * 附带的 Linux_Install.Systemd.sh 脚本适用于默认使用 Systemd Init 的系统
-      * Linux Debian 8.x 官方发行版以及更新版本系统环境，经测试可直接使用
-    * 附带的 Linux_Install.SysV.sh 脚本适用于默认使用 System V Init 的系统
-      * Linux Debian 6.x - 7.x 官方发行版系统环境，经测试可直接使用
-    * 更多详情可参见下文其它 Linux 发行版服务的说明，以及所使用 Linux 发行版的官方说明
-  * 使用 Systemd Init 时：
-    * 进入 Release 目录并编辑 Pcap_DNSProxy.service 文件，编辑完成后保存： 
-      * WorkingDirectory= 项为程序所在目录的绝对路径
-      * ExecStart= 项为程序所在目录的绝对路径，并在最后加上程序的名称
-    * 在 root 权限下使用 ./Linux_Install.Systemd.sh 执行服务安装脚本，脚本所进行的操作：
-      * 将 Pcap_DNSProxy.service 服务控制脚本的所有者更改为 root
-      * 安装服务控制脚本到 /etc/systemd/system 目录中
-      * 尝试启动 Pcap_DNSProxy 服务，并显示执行操作后服务的状态
-      * 以后每次系统启动都将自动启动服务
-    * 更多 Systemd 服务控制的方法，参见各 Linux 发行版官方文档的说明
-  * 使用 System V Init 时：
-    * 进入 Release 目录并编辑 PcapDNSProxyService 文件，编辑完成后保存：
-      * NAME 项为程序的名称
-      * PATH 项为程序的绝对路径
-    * 在 root 权限下使用 ./Linux_Install.SysV.sh 执行服务安装脚本，脚本所进行的操作：
-      * 将 PcapDNSProxyService 服务控制脚本的所有者更改为 root
-      * 安装服务控制脚本到 /etc/init.d 目录中
-      * 尝试启动 PcapDNSProxyService 服务，并显示执行操作后服务的状态
-      * 以后每次系统启动都将自动运行脚本启动服务
-    * 可直接输入 sh PcapDNSProxyService 不带参数查询用法
-      * start - 启动服务
-      * stop - 停止服务
-      * force-reload/restart - 重启服务
-      * status - 服务状态，如果 PID 为空则服务未启动
 
 4.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
 
@@ -222,7 +189,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Linux Debian 系列：
   * 官方發行版本 8.x 以及更新版本預設需要使用 Systemd 管理系統服務
-  * 官方發行版本 6.x - 7.x 版本預設需要使用 insserv 管理系統服務
 * Linux Red Hat 和 openSUSE 系列：
   * 使用 chkconfig 管理系統服務
   * 參見 https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

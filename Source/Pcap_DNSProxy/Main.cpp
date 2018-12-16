@@ -24,14 +24,17 @@
 int wmain(
 	int argc, 
 	wchar_t *argv[])
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 int main(
 	int argc, 
 	char *argv[])
 #endif
 {
-//Get commands.
-	if (argc < COMMAND_COUNT_MIN)
+//Libraries version check
+	if (!CheckLibraryVersion())
+		return EXIT_FAILURE;
+//Command check
+	else if (argc < COMMAND_COUNT_MIN)
 		return EXIT_FAILURE;
 //Read commands.
 	else if (!ReadCommand(argc, argv))
@@ -52,7 +55,7 @@ int main(
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	errno = 0;
 	if (signal(SIGHUP, SignalHandler) == SIG_ERR || 
 		signal(SIGINT, SignalHandler) == SIG_ERR || 
@@ -108,7 +111,7 @@ int main(
 		if (!MonitorInit())
 			return EXIT_FAILURE;
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (!MonitorInit())
 		return EXIT_FAILURE;
 #endif

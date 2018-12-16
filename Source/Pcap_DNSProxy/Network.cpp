@@ -54,7 +54,7 @@ bool SocketSetting(
 		{
 		#if defined(PLATFORM_WIN)
 			if (Socket != INVALID_SOCKET && Socket != SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (Socket != INVALID_SOCKET)
 		#endif
 			{
@@ -66,13 +66,16 @@ bool SocketSetting(
 	//Socket attribute setting(IPv4 header Do Not Fragment flag)
 		case SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT:
 		{
-		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 			if (Parameter.DoNotFragment_IPv4)
 			{
 			#if defined(PLATFORM_WIN)
 				const DWORD OptionValue = 1U;
 				if (setsockopt(Socket, IPPROTO_IP, IP_DONTFRAGMENT, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif defined(PLATFORM_FREEBSD)
+				const int OptionValue = 1;
+				if (setsockopt(Socket, IPPROTO_IP, IP_DONTFRAG, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
+			#elif defined(PLATFORM_LINUX)
 				const int OptionValue = IP_PMTUDISC_DO;
 				if (setsockopt(Socket, IPPROTO_IP, IP_MTU_DISCOVER, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
@@ -99,7 +102,7 @@ bool SocketSetting(
 				DWORD OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				int OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
@@ -119,7 +122,7 @@ bool SocketSetting(
 			{
 			#if defined(PLATFORM_WIN)
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, reinterpret_cast<const char *>(&Parameter.PacketHopLimits_IPv6_Begin), sizeof(Parameter.PacketHopLimits_IPv6_Begin)) == SOCKET_ERROR)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &Parameter.PacketHopLimits_IPv6_Begin, sizeof(Parameter.PacketHopLimits_IPv6_Begin)) == SOCKET_ERROR)
 			#endif
 				{
@@ -144,7 +147,7 @@ bool SocketSetting(
 				DWORD OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				int OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
@@ -164,7 +167,7 @@ bool SocketSetting(
 			{
 			#if defined(PLATFORM_WIN)
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, reinterpret_cast<const char *>(&Parameter.PacketHopLimits_IPv4_Begin), sizeof(Parameter.PacketHopLimits_IPv4_Begin)) == SOCKET_ERROR)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, &Parameter.PacketHopLimits_IPv4_Begin, sizeof(Parameter.PacketHopLimits_IPv4_Begin)) == SOCKET_ERROR)
 			#endif
 				{
@@ -183,7 +186,7 @@ bool SocketSetting(
 		{
 		#if defined(PLATFORM_WIN)
 			if (Socket == 0 || Socket == INVALID_SOCKET || Socket == SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (Socket == 0 || Socket == INVALID_SOCKET)
 		#endif
 			{
@@ -199,7 +202,7 @@ bool SocketSetting(
 		#if defined(PLATFORM_WIN)
 			unsigned long SocketMode = 1U;
 			if (ioctlsocket(Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			const auto SocketMode = fcntl(Socket, F_GETFL, 0);
 			if (SocketMode == RETURN_ERROR || fcntl(Socket, F_SETFL, SocketMode | O_NONBLOCK) == RETURN_ERROR)
 		#endif
@@ -217,7 +220,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_TYPE::REUSE:
 		{
 		#if defined(PLATFORM_WIN)
-		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
+		//Windows: Preventing other sockets from being forcibly bound to the same address and port.
 			const DWORD OptionValue = 1U;
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -229,10 +232,10 @@ bool SocketSetting(
 
 				return false;
 			}
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			const int OptionValue = 1;
 
-		//Set TIME_WAIT resuing(Linux/macOS).
+		//Linux and macOS: Set TIME_WAIT resuing.
 /*			errno = 0;
 			if (setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -245,7 +248,7 @@ bool SocketSetting(
 				return false;
 			}
 */
-		//Set an IPv6 server socket that must not accept IPv4 connections(Linux/macOS).
+		//Linux and macOS: Set an IPv6 server socket that must not accept IPv4 connections.
 			errno = 0;
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -264,7 +267,7 @@ bool SocketSetting(
 		{
 		#if defined(PLATFORM_WIN)
 			const BOOL OptionValue = TRUE;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			const int OptionValue = 1;
 		#endif
 			if (setsockopt(Socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
@@ -301,9 +304,12 @@ bool SocketSetting(
 					return false;
 				}
 			#endif
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				errno = 0;
-			#if defined(PLATFORM_LINUX)
+			#if defined(PLATFORM_FREEBSD)
+				const int OptionValue = Parameter.TCP_FastOpen;
+				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+			#elif defined(PLATFORM_LINUX)
 				const int OptionValue = Parameter.TCP_FastOpen;
 				if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif defined(PLATFORM_MACOS)
@@ -353,7 +359,7 @@ bool SocketSetting(
 
 				return false;
 			}
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			const int OptionValue = 1;
 			if (setsockopt(Socket, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -377,7 +383,7 @@ bool SocketSetting(
 			const auto OptionValue = *reinterpret_cast<const DWORD *>(DataPointer);
 			if (setsockopt(Socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR || 
 				setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (setsockopt(Socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(DataPointer), sizeof(timeval)) == SOCKET_ERROR || 
 				setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(DataPointer), sizeof(timeval)) == SOCKET_ERROR)
 		#endif
@@ -479,7 +485,7 @@ void WriteCallback_SocketSend(
 //Send request to all servers.
 	const auto ICMPv6_Header = reinterpret_cast<icmpv6_hdr *>(CallbackArgument->SendBuffer);
 	const auto ICMP_Header = reinterpret_cast<icmp_hdr *>(CallbackArgument->SendBuffer);
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	time_t Timestamp = 0;
 #endif
 	for (size_t Index = 0;Index < Parameter.MultipleRequestTimes;++Index)
@@ -492,7 +498,7 @@ void WriteCallback_SocketSend(
 
 	//Get current time.
 	//Timestamp must be generated when sending, not before.
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Timestamp = time(nullptr);
 		if (Timestamp < 0)
 			Timestamp = 0;
@@ -510,7 +516,7 @@ void WriteCallback_SocketSend(
 			}
 
 		//Timestamp and Nonce
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			ICMPv6_Header->Timestamp = static_cast<const uint64_t>(Timestamp);
 		#if defined(PLATFORM_LINUX)
 			GenerateRandomBuffer(&ICMPv6_Header->Nonce, sizeof(ICMPv6_Header->Nonce), nullptr, 0, 0);
@@ -528,7 +534,7 @@ void WriteCallback_SocketSend(
 			}
 
 		//Timestamp and Nonce
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			ICMP_Header->Timestamp = static_cast<const uint64_t>(Timestamp);
 		#if defined(PLATFORM_LINUX)
 			GenerateRandomBuffer(&ICMP_Header->Nonce, sizeof(ICMP_Header->Nonce), nullptr, 0, 0);
@@ -565,7 +571,7 @@ void TimerCallback_SocketSend(
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
 		CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		CallbackArgument->IntervalTimeout.tv_sec = Parameter.FileRefreshTime / SECOND_TO_MILLISECOND;
 	#endif
 
@@ -601,7 +607,7 @@ void TimerCallback_SocketSend(
 				Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0))
 					IsHopLimitExist = false;
 
-		//Multiple list(IPv6)
+		//Multiple list
 			if (IsHopLimitExist && Parameter.Target_Server_IPv6_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -625,7 +631,7 @@ void TimerCallback_SocketSend(
 				Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0))
 					IsHopLimitExist = false;
 
-		//Multiple list(IPv4)
+		//Multiple list
 			if (IsHopLimitExist && Parameter.Target_Server_IPv4_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -665,7 +671,7 @@ void TimerCallback_SocketSend(
 			else {
 			#if defined(PLATFORM_WIN)
 				CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				CallbackArgument->IntervalTimeout.tv_sec = LoopInterval / SECOND_TO_MILLISECOND;
 			#endif
 
@@ -700,7 +706,7 @@ void TimerCallback_SocketSend(
 #if defined(PLATFORM_WIN)
 	CallbackArgument->SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 	CallbackArgument->SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	CallbackArgument->SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 #endif
 
@@ -881,7 +887,7 @@ void TimerCallback_TransmissionOnce(
 	//Set interval timeout.
 	#if defined(PLATFORM_WIN)
 		CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(Parameter.FileRefreshTime) / SECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		CallbackArgument->IntervalTimeout.tv_sec = Parameter.FileRefreshTime / SECOND_TO_MILLISECOND;
 	#endif
 
@@ -917,7 +923,7 @@ void TimerCallback_TransmissionOnce(
 				Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0))
 					IsHopLimitExist = false;
 
-		//Multiple list(IPv6)
+		//Multiple list
 			if (IsHopLimitExist && Parameter.Target_Server_IPv6_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -941,7 +947,7 @@ void TimerCallback_TransmissionOnce(
 				Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0))
 					IsHopLimitExist = false;
 
-		//Multiple list(IPv4)
+		//Multiple list
 			if (IsHopLimitExist && Parameter.Target_Server_IPv4_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -981,7 +987,7 @@ void TimerCallback_TransmissionOnce(
 			else {
 			#if defined(PLATFORM_WIN)
 				CallbackArgument->IntervalTimeout.tv_sec = static_cast<const DWORD>(LoopInterval) / SECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				CallbackArgument->IntervalTimeout.tv_sec = LoopInterval / SECOND_TO_MILLISECOND;
 			#endif
 
@@ -1726,14 +1732,18 @@ size_t SocketConnecting(
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
 	{
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (Parameter.TCP_FastOpen > 0 && OriginalSend != nullptr && SendSize > 0)
 		{
 			errno = 0;
 
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 		//Send request and network stack will connect to server first.
+		#if defined(PLATFORM_FREEBSD)
+			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, 0, SockAddr, AddrLen);
+		#elif defined(PLATFORM_LINUX)
 			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
+		#endif
 			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
 				return EXIT_FAILURE;
 			else if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
@@ -1781,7 +1791,7 @@ size_t SocketConnecting(
 
 			#if defined(PLATFORM_WIN)
 				if (ErrorCode != WSAEWOULDBLOCK)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 			#endif
 				{
@@ -1791,7 +1801,7 @@ size_t SocketConnecting(
 					return EXIT_FAILURE;
 				}
 			}
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		}
 	#endif
 	}
@@ -1804,7 +1814,7 @@ size_t SocketConnecting(
 
 		#if defined(PLATFORM_WIN)
 			if (ErrorCode != WSAEWOULDBLOCK)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 		#endif
 			{
@@ -1839,9 +1849,9 @@ ssize_t SocketSelectingOnce(
 //Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
 //Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
 //Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
-//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
-//Linux/macOS: An fd_set is a fixed size buffer.
-//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux and macOS: An fd_set is a fixed size buffer.
+//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
 	if (SocketDataList.empty())
 	{
 		return EXIT_FAILURE;
@@ -1941,7 +1951,7 @@ ssize_t SocketSelectingOnce(
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 		#endif
 		}
@@ -1950,7 +1960,7 @@ ssize_t SocketSelectingOnce(
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 		#endif
 		}
@@ -1965,7 +1975,7 @@ ssize_t SocketSelectingOnce(
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = Parameter.SocketTimeout_Reliable_Once;
 		#endif
 		}
@@ -1974,7 +1984,7 @@ ssize_t SocketSelectingOnce(
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = Parameter.SocketTimeout_Unreliable_Once;
 		#endif
 		}
@@ -2029,7 +2039,7 @@ ssize_t SocketSelectingOnce(
 		//Socket data check, select file descriptor set size and maximum socket index check(Part 2)
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			{
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (SocketDataList.at(Index).Socket + 1U >= FD_SETSIZE)
 				{
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -2079,7 +2089,7 @@ ssize_t SocketSelectingOnce(
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		ssize_t SelectResult = select(0, &ReadFDS, &WriteFDS, nullptr, &Timeout);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		ssize_t SelectResult = select(MaxSocket + 1U, &ReadFDS, &WriteFDS, nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -2182,7 +2192,7 @@ ssize_t SocketSelectingOnce(
 
 						#if defined(PLATFORM_WIN)
 							if (InnerErrorCode == WSAEWOULDBLOCK)
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
 						#endif
 							{
@@ -2255,7 +2265,7 @@ ssize_t SocketSelectingOnce(
 
 						#if defined(PLATFORM_WIN)
 							if (InnerErrorCode == WSAEWOULDBLOCK)
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
 						#endif
 							{
@@ -2437,7 +2447,7 @@ ssize_t SelectingResultOnce(
 						{
 						#if defined(PLATFORM_WIN)
 							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
 						#endif
 						}
@@ -2445,7 +2455,7 @@ ssize_t SelectingResultOnce(
 						{
 						#if defined(PLATFORM_WIN)
 							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
 						#endif
 						}
@@ -2536,7 +2546,7 @@ ssize_t SelectingResultOnce(
 						{
 						#if defined(PLATFORM_WIN)
 							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
 						#endif
 						}
@@ -2544,7 +2554,7 @@ ssize_t SelectingResultOnce(
 						{
 						#if defined(PLATFORM_WIN)
 							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
 						#endif
 						}
@@ -2585,9 +2595,9 @@ size_t SocketSelectingSerial(
 //Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
 //Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
 //Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
-//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
-//Linux/macOS: An fd_set is a fixed size buffer.
-//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux and macOS: An fd_set is a fixed size buffer.
+//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
 	if (SocketDataList.empty())
 	{
 		return EXIT_FAILURE;
@@ -2631,7 +2641,7 @@ size_t SocketSelectingSerial(
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Serial / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Timeout = Parameter.SocketTimeout_Reliable_Serial;
 	#endif
 	}
@@ -2640,7 +2650,7 @@ size_t SocketSelectingSerial(
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		Timeout = Parameter.SocketTimeout_Unreliable_Serial;
 	#endif
 	}
@@ -2671,7 +2681,7 @@ size_t SocketSelectingSerial(
 				SocketSelectingDataList.at(Index).SendBuffer && SocketSelectingDataList.at(Index).SendLen > 0 && 
 				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCodeList.at(Index) == 0)
 			{
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (SocketDataList.at(Index).Socket + 1U >= FD_SETSIZE)
 				{
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -2693,7 +2703,7 @@ size_t SocketSelectingSerial(
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, nullptr, &WriteFDS, nullptr, &Timeout);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		SelectResult = select(MaxSocket + 1U, nullptr, &WriteFDS, nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -2739,7 +2749,7 @@ size_t SocketSelectingSerial(
 					//Send in progress.
 					#if defined(PLATFORM_WIN)
 						if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
-					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 					#endif
 						{
@@ -2821,7 +2831,7 @@ StopLoop:
 				!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly && 
 				ErrorCodeList.at(Index) == 0)
 			{
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (SocketDataList.at(Index).Socket + 1U >= FD_SETSIZE)
 				{
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -2843,7 +2853,7 @@ StopLoop:
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		SelectResult = select(MaxSocket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -2911,7 +2921,7 @@ StopLoop:
 						//Receive in progress.
 						#if defined(PLATFORM_WIN)
 							if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
-						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 						#endif
 							{
@@ -2967,8 +2977,9 @@ void RegisterPortToList(
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	const std::string * const DomainString_Original, 
-	const std::string * const DomainString_Request, 
-	size_t *EDNS_Length)
+	const std::string * const DomainString_Request
+//	size_t *EDNS_Length
+)
 {
 //Socket data check
 	if (SocketDataList.empty())
@@ -2984,8 +2995,10 @@ void RegisterPortToList(
 
 	//Register system connection data.
 		OutputPacketListTemp.SocketData_Input = *LocalSocketData;
+/* EDNS Label operations are different between DNS servers.
 		if (Parameter.PacketCheck_DNS && EDNS_Length != nullptr)
 			OutputPacketListTemp.EDNS_Length = *EDNS_Length;
+*/
 
 	//Register sending connection data.
 		for (auto &SocketDataItem:SocketDataList)
@@ -3032,7 +3045,7 @@ void RegisterPortToList(
 		{
 		#if defined(PLATFORM_WIN)
 			OutputPacketListTemp.ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			OutputPacketListTemp.ClearPortTime = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
 		#endif
 		}
@@ -3040,7 +3053,7 @@ void RegisterPortToList(
 		{
 		#if defined(PLATFORM_WIN)
 			OutputPacketListTemp.ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			OutputPacketListTemp.ClearPortTime = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
 		#endif
 		}
@@ -3094,7 +3107,7 @@ void RegisterPortToList(
 //	else if (Protocol == IPPROTO_UDP)
 	else 
 		Sleep(Parameter.SocketTimeout_Unreliable_Once);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (Protocol == IPPROTO_TCP)
 		usleep(Parameter.SocketTimeout_Reliable_Once.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Once.tv_usec);
 //	else if (Protocol == IPPROTO_UDP)

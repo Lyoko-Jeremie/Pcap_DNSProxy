@@ -344,7 +344,7 @@
 //////////////////////////////////////////////////
 // Base headers
 // 
-//Linux and macOS compatible definitions(Part 1)
+//Compatible definitions(Part 1)
 #if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
@@ -367,12 +367,12 @@
 #include <unordered_set>           //Unordered_set and unordered_multiset container support
 
 #if defined(PLATFORM_WIN)
-//LibEvent header, always enabled(Windows)
+//LibEvent header, always enabled
 	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\event.h"
 	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\buffer.h"
 	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\bufferevent.h"
 
-//LibSodium header, always enabled(Windows)
+//LibSodium header, always enabled
 #ifndef ENABLE_LIBSODIUM
 	#define ENABLE_LIBSODIUM
 #endif
@@ -383,7 +383,7 @@
 	#include "..\\Dependency\\LibSodium\\Include_Windows\\sodium.h"
 #endif
 
-//WinPcap header, always enabled(Windows)
+//WinPcap header, always enabled
 #ifndef ENABLE_PCAP
 	#define ENABLE_PCAP
 #endif
@@ -417,7 +417,7 @@
 
 //Part 5 including files(MUST be including after Part 4)
 #ifndef ENABLE_TLS
-	#define ENABLE_TLS                 //SSPI, always enabled(Windows)
+	#define ENABLE_TLS                 //SSPI, always enabled
 #endif
 #if defined(ENABLE_TLS)
 	#define SECURITY_WIN32
@@ -476,13 +476,6 @@
 	#include <cwchar>                      //Wide characters support
 
 //Portable Operating System Interface/POSIX and Unix system header
-#if defined(PLATFORM_LINUX)
-	#include <endian.h>                    //Endian support
-#elif defined(PLATFORM_MACOS)
-	#define __LITTLE_ENDIAN                1234                         //Little Endian
-	#define __BIG_ENDIAN                   4321                         //Big Endian
-	#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
-#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
 	#include <netdb.h>                     //Network database operations support
@@ -495,9 +488,20 @@
 	#include <sys/stat.h>                  //Getting information about files attributes support
 	#include <sys/time.h>                  //Date and time support
 	#include <sys/types.h>                 //Types support
+#if defined(PLATFORM_FREEBSD)
+	#include <netinet/in.h>                //Internet Protocol family support
+	#include <sys/endian.h>                //Endian support
+	#include <sys/socket.h>                //Main sockets header support
+#elif defined(PLATFORM_LINUX)
+	#include <endian.h>                    //Endian support
+#elif defined(PLATFORM_MACOS)
+	#define __LITTLE_ENDIAN                1234                         //Little Endian
+	#define __BIG_ENDIAN                   4321                         //Big Endian
+	#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
+#endif
 
 //Dependency header
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 //LibEvent part
 	#include <event2/event.h>
 	#include <event2/buffer.h>
@@ -586,25 +590,24 @@
 #endif
 #endif
 
-//TCP Fast Open additional support
-//Active when no native support in system.
-#if defined(PLATFORM_LINUX)
+//Conditional define for TCP Fast Open
+#if defined(PLATFORM_FREEBSD)
+#ifndef TCP_FASTOPEN
+	#define TCP_FASTOPEN                   1025
+#endif
+#elif defined(PLATFORM_LINUX)
 #ifndef _KERNEL_FASTOPEN
 	#define _KERNEL_FASTOPEN
-
-//Conditional define for TCP_FASTOPEN
 #ifndef TCP_FASTOPEN
 	#define TCP_FASTOPEN                   23
 #endif
-
-//Conditional define for MSG_FASTOPEN
 #ifndef MSG_FASTOPEN
 	#define MSG_FASTOPEN                   0x20000000
 #endif
 #endif
 #endif
 
-//Linux and macOS compatible definitions(Part 2)
+//Compatible definitions(Part 2)
 #ifndef INVALID_SOCKET
 	#define INVALID_SOCKET           (-1)
 #endif
@@ -631,5 +634,56 @@
 	#define memmove_s(Destination, DestinationSize, Source, Size)             memmove((Destination), (Source), (Size))
 	#define strncpy_s(Destination, DestinationSize, Source, Size)             strncpy((Destination), (Source), (Size))
 	#define wcsncpy_s(Destination, DestinationSize, Source, Size)             wcsncpy((Destination), (Source), (Size))
+#endif
+
+
+//////////////////////////////////////////////////
+// Library version check
+// 
+//LibEvent, require 2.1.8-stable and above.
+#define VERSION_REQUIRE_LIBEVENT          0x02010800
+#if LIBEVENT_VERSION_NUMBER < VERSION_REQUIRE_LIBEVENT
+	#error "The version of LibEvent is too old."
+#endif
+
+//LibSodium, require level 10 + 1 and above.
+#if defined(ENABLE_LIBSODIUM)
+#define VERSION_REQUIRE_LIBSODIUM_MAJOR   10
+#define VERSION_REQUIRE_LIBSODIUM_MINOR   1
+#if !(SODIUM_LIBRARY_VERSION_MAJOR >= VERSION_REQUIRE_LIBSODIUM_MAJOR && SODIUM_LIBRARY_VERSION_MINOR >= VERSION_REQUIRE_LIBSODIUM_MINOR)
+	#error "The version of LibSodium is too old."
+#endif
+#endif
+
+//WinPcap or LibPcap
+#if defined(ENABLE_PCAP)
+#if defined(PLATFORM_WIN)
+//Windows: Require level 2 + 4 and above.
+#define VERSION_REQUIRE_PCAP_MAJOR        2
+#define VERSION_REQUIRE_PCAP_MINOR        4
+#if !(PCAP_VERSION_MAJOR >= VERSION_REQUIRE_PCAP_MAJOR && PCAP_VERSION_MINOR >= VERSION_REQUIRE_PCAP_MINOR)
+	#error "The version of WinPcap is too old."
+#endif
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//FreeBSD, Linux and macOS: Require level 2 + 4 and above.
+#define VERSION_REQUIRE_PCAP_MAJOR        2
+#define VERSION_REQUIRE_PCAP_MINOR        4
+#if !(PCAP_VERSION_MAJOR >= VERSION_REQUIRE_PCAP_MAJOR && PCAP_VERSION_MINOR >= VERSION_REQUIRE_PCAP_MINOR)
+	#error "The version of LibPcap is too old."
+#endif
+#endif
+#endif
+
+//OpenSSL, require 1.0.2 and above.
+#if defined(ENABLE_TLS)
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#define OPENSSL_VERSION_1_0_2             0x10002000L
+	#define OPENSSL_VERSION_1_1_0             0x10100000L
+	#define OPENSSL_VERSION_1_1_1             0x10101000L
+	#define VERSION_REQUIRE_OPENSSL           OPENSSL_VERSION_1_0_2
+#if OPENSSL_VERSION_NUMBER < VERSION_REQUIRE_OPENSSL
+	#error "The version of OpenSSL is too old."
+#endif
+#endif
 #endif
 #endif

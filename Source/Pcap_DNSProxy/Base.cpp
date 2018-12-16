@@ -19,6 +19,46 @@
 
 #include "Base.h"
 
+//Check runtime library version
+bool CheckLibraryVersion(
+	void)
+{
+//LibEvent
+	if (event_get_version_number() < VERSION_REQUIRE_LIBEVENT)
+	{
+		PrintToScreen(true, false, L"[System Error] The version of LibEvent is too old.\n");
+		return false;
+	}
+
+//LibSodium
+#if defined(ENABLE_LIBSODIUM)
+	if (!(sodium_library_version_major() >= VERSION_REQUIRE_LIBSODIUM_MAJOR && sodium_library_version_minor() >= VERSION_REQUIRE_LIBSODIUM_MINOR))
+	{
+		PrintToScreen(true, false, L"[System Error] The version of LibSodium is too old.\n");
+		return false;
+	}
+#endif
+
+//WinPcap or LibPcap
+//No more WinPcap and LibPcap library linking version check.
+
+//OpenSSL
+#if defined(ENABLE_TLS)
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//No more OpenSSL library linking version check in below 1.1.0.
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0
+	if (OpenSSL_version_num() < VERSION_REQUIRE_OPENSSL)
+	{
+		PrintToScreen(true, false, L"[System Error] The version of OpenSSL is too old.\n");
+		return false;
+	}
+#endif
+#endif
+#endif
+
+	return true;
+}
+
 //Check empty buffer
 bool CheckEmptyBuffer(
 	const void * const Buffer, 
@@ -68,7 +108,7 @@ bool MBS_To_WCS_String(
 			MBSTOWCS_NULL_TERMINATE, 
 			TargetBuffer.get(), 
 			static_cast<const int>(DataLength + NULL_TERMINATE_LENGTH)) == 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
 #endif
 	{
@@ -113,7 +153,7 @@ bool WCS_To_MBS_String(
 			static_cast<const int>(DataLength + NULL_TERMINATE_LENGTH), 
 			nullptr, 
 			nullptr) == 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
 #endif
 	{
@@ -667,7 +707,7 @@ void GenerateRandomBuffer(
 	return;
 }
 
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Increase time with milliseconds
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 

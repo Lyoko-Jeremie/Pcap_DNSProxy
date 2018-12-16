@@ -26,6 +26,8 @@
 // Main functions
 // 
 //Base.cpp
+bool CheckLibraryVersion(
+	void);
 bool CheckEmptyBuffer(
 	const void * const Buffer, 
 	const size_t Length);
@@ -88,7 +90,7 @@ void GenerateRandomBuffer(
 	const void *Distribution, 
 	const uint64_t Lower, 
 	const uint64_t Upper);
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 
 	const timeval IncreaseTime);
@@ -292,8 +294,9 @@ void RegisterPortToList(
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	const std::string * const DomainString_Original, 
-	const std::string * const DomainString_Request, 
-	size_t *EDNS_Length);
+	const std::string * const DomainString_Request
+//	size_t *EDNS_Length
+);
 
 //PacketData.h
 uint16_t GetChecksum_Internet(
@@ -533,8 +536,9 @@ size_t UDP_RequestSingle(
 	const uint16_t QueryType, 
 	const std::string * const DomainString_Original, 
 	const std::string * const DomainString_Request, 
-	const SOCKET_DATA * const LocalSocketData, 
-	size_t *EDNS_Length);
+	const SOCKET_DATA * const LocalSocketData
+//	size_t *EDNS_Length
+);
 size_t UDP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol_Network, 
@@ -544,8 +548,9 @@ size_t UDP_RequestMultiple(
 	const uint16_t QueryType, 
 	const std::string * const DomainString_Original, 
 	const std::string * const DomainString_Request, 
-	const SOCKET_DATA * const LocalSocketData, 
-	size_t *EDNS_Length);
+	const SOCKET_DATA * const LocalSocketData
+//	size_t *EDNS_Length
+);
 #endif
 size_t UDP_CompleteRequestSingle(
 	const REQUEST_PROCESS_TYPE RequestType, 
@@ -578,7 +583,7 @@ bool FlushDomainCache_MailslotListener(
 	void);
 bool WINAPI FlushDomainCache_MailslotSender(
 	const wchar_t * const Domain);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 void SignalHandler(
 	const int Signal);
 bool FlushDomainCache_PipeListener(
@@ -610,7 +615,7 @@ bool SSPI_ShutdownConnection(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 void OpenSSL_LibraryInit(
 	bool IsLoad);
 bool OpenSSL_CTX_Initializtion(

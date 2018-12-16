@@ -93,7 +93,7 @@ bool ReadCommand(
 		PrintToScreen(true, false, L"[System Error] Path initialization error.\n");
 		return false;
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	auto FilePath = getcwd(nullptr, 0);
 	if (FilePath == nullptr)
 	{
@@ -166,7 +166,7 @@ bool ReadCommand(
 	//Case insensitive
 	#if defined(PLATFORM_WIN)
 		std::wstring Commands(argv[Index]), InsensitiveString(argv[Index]);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		std::string Commands(argv[Index]), InsensitiveString(argv[Index]);
 	#endif
 		CaseConvert(InsensitiveString, false);
@@ -196,7 +196,7 @@ bool ReadCommand(
 				{
 					Commands.append(L"\\");
 				}
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (Commands.length() >= PATH_MAX || Commands.find("//") != std::string::npos)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
@@ -247,7 +247,7 @@ bool ReadCommand(
 		#endif
 			PrintToScreen(false, false, L"   --config-path Path:    Set path of configuration file.\n");
 			PrintToScreen(false, false, L"   --keypair-generator:   Generate a DNSCurve(DNSCrypt) keypair.\n");
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 			PrintToScreen(false, false, L"   --disable-daemon:      Disable daemon mode.\n");
 		#endif
 
@@ -274,7 +274,7 @@ bool ReadCommand(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 					return false;
 				}
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (Commands.length() >= PATH_MAX + NAME_MAX || Commands.find("//") != std::string::npos)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
@@ -285,7 +285,7 @@ bool ReadCommand(
 			//Mark log path and name.
 			#if defined(PLATFORM_WIN)
 				*GlobalRunningStatus.Path_ErrorLog = Commands;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				*GlobalRunningStatus.Path_ErrorLog_MBS = Commands;
 				std::wstring StringTemp;
 				if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(Commands.c_str()), PATH_MAX + NAME_MAX + NULL_TERMINATE_LENGTH, StringTemp))
@@ -319,7 +319,7 @@ bool ReadCommand(
 			#if defined(PLATFORM_WIN)
 				if (wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) == 0 || 
 					wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) + wcslen(FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL) + wcslen(L": ") >= FILE_BUFFER_SIZE)
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (strnlen(argv[2U], FILE_BUFFER_SIZE) == 0 || 
 					strnlen(argv[2U], FILE_BUFFER_SIZE) + strlen(FLUSH_DOMAIN_PIPE_MESSAGE_ALL) + strlen(": ") >= FILE_BUFFER_SIZE)
 			#endif
@@ -329,7 +329,7 @@ bool ReadCommand(
 				else {
 				#if defined(PLATFORM_WIN)
 					FlushDomainCache_MailslotSender(argv[2U]);
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					FlushDomainCache_PipeSender(reinterpret_cast<const uint8_t *>(argv[2U]));
 				#endif
 				}
@@ -338,7 +338,7 @@ bool ReadCommand(
 			else {
 			#if defined(PLATFORM_WIN)
 				FlushDomainCache_MailslotSender(nullptr);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				FlushDomainCache_PipeSender(nullptr);
 			#endif
 			}
@@ -353,7 +353,7 @@ bool ReadCommand(
 			FILE *FileHandle = nullptr;
 		#if defined(PLATFORM_WIN)
 			_wfopen_s(&FileHandle, DNSCURVE_KEY_PAIR_FILE_NAME, L"w+,ccs=UTF-8");
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			FileHandle = fopen(DNSCURVE_KEY_PAIR_FILE_NAME, "w+");
 		#endif
 
@@ -476,7 +476,7 @@ bool ReadCommand(
 
 		//OpenSSL version
 		#if defined(ENABLE_TLS)
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
 			VersionString = const_cast<char *>(OpenSSL_version(OPENSSL_VERSION));
 		#else //OpenSSL version below 1.1.0
@@ -491,7 +491,7 @@ bool ReadCommand(
 
 			return false;
 		}
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	//Set system daemon.
 		else if (InsensitiveString == COMMAND_DISABLE_DAEMON)
 		{
@@ -513,7 +513,7 @@ bool ReadCommand(
 	}
 
 //Set system daemon.
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	if (GlobalRunningStatus.IsDaemon && daemon(0, 0) == RETURN_ERROR)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set system daemon error", 0, nullptr, 0);
@@ -530,7 +530,7 @@ bool FileNameInit(
 	const std::wstring &OriginalPath, 
 	const bool IsStartupLoad, 
 	const bool IsRewriteLogFile)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool FileNameInit(
 	const std::string &OriginalPath, 
 	const bool IsStartupLoad, 
@@ -556,7 +556,7 @@ bool FileNameInit(
 			++Index;
 		}
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Path process
 //The path is location path with slash not including module name at the end of this process, like "/xxx/".
 	GlobalRunningStatus.Path_Global_MBS->clear();
@@ -579,7 +579,7 @@ bool FileNameInit(
 	//Set log file to program location.
 		*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
 		GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME_WCS);
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		*GlobalRunningStatus.Path_ErrorLog_MBS = GlobalRunningStatus.Path_Global_MBS->front();
 		GlobalRunningStatus.Path_ErrorLog_MBS->append(ERROR_LOG_FILE_NAME_MBS);
 	#endif
@@ -590,7 +590,7 @@ bool FileNameInit(
 	//Set log file to program location.
 		*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
 		GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME_WCS);
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		*GlobalRunningStatus.Path_ErrorLog_MBS = GlobalRunningStatus.Path_Global_MBS->front();
 		GlobalRunningStatus.Path_ErrorLog_MBS->append(ERROR_LOG_FILE_NAME_MBS);
 	#endif

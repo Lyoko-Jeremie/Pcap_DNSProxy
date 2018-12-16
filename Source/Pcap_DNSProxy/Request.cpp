@@ -134,7 +134,7 @@ bool LoadBufferEvent_DomainTest(
 			#if defined(PLATFORM_WIN)
 				SocketTimeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 				SocketTimeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				SocketTimeout = Parameter.SocketTimeout_Reliable_Once;
 			#endif
 
@@ -164,7 +164,7 @@ bool LoadBufferEvent_DomainTest(
 				}
 			}
 
-		//Multiple list(IPv6)
+		//Multiple list
 			if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -185,7 +185,7 @@ bool LoadBufferEvent_DomainTest(
 					#if defined(PLATFORM_WIN)
 						SocketTimeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 						SocketTimeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						SocketTimeout = Parameter.SocketTimeout_Reliable_Once;
 					#endif
 
@@ -230,7 +230,7 @@ bool LoadBufferEvent_DomainTest(
 			#if defined(PLATFORM_WIN)
 				SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 				SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 			#endif
 
@@ -260,7 +260,7 @@ bool LoadBufferEvent_DomainTest(
 				}
 			}
 
-		//Multiple list(IPv6)
+		//Multiple list
 			if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -280,7 +280,7 @@ bool LoadBufferEvent_DomainTest(
 					#if defined(PLATFORM_WIN)
 						SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 						SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 					#endif
 
@@ -329,7 +329,7 @@ bool LoadBufferEvent_DomainTest(
 			#if defined(PLATFORM_WIN)
 				SocketTimeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 				SocketTimeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				SocketTimeout = Parameter.SocketTimeout_Reliable_Once;
 			#endif
 
@@ -359,7 +359,7 @@ bool LoadBufferEvent_DomainTest(
 				}
 			}
 
-		//Multiple list(IPv4)
+		//Multiple list
 			if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -380,7 +380,7 @@ bool LoadBufferEvent_DomainTest(
 					#if defined(PLATFORM_WIN)
 						SocketTimeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 						SocketTimeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						SocketTimeout = Parameter.SocketTimeout_Reliable_Once;
 					#endif
 
@@ -427,7 +427,7 @@ bool LoadBufferEvent_DomainTest(
 			#if defined(PLATFORM_WIN)
 				SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 				SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 			#endif
 
@@ -457,7 +457,7 @@ bool LoadBufferEvent_DomainTest(
 				}
 			}
 
-		//Multiple list(IPv4)
+		//Multiple list
 			if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 			{
 				for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -478,7 +478,7 @@ bool LoadBufferEvent_DomainTest(
 					#if defined(PLATFORM_WIN)
 						SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 						SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 					#endif
 
@@ -641,7 +641,7 @@ bool LoadBufferEvent_DomainTest(
 		#if defined(PLATFORM_WIN)
 			EventArgument_Domain->SocketTimeout->at(Index).tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 			EventArgument_Domain->SocketTimeout->at(Index).tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			EventArgument_Domain->SocketTimeout->at(Index) = Parameter.SocketTimeout_Reliable_Once;
 		#endif
 
@@ -657,7 +657,7 @@ bool LoadBufferEvent_DomainTest(
 		#if defined(PLATFORM_WIN)
 			EventArgument_Domain->SocketTimeout->at(Index).tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 			EventArgument_Domain->SocketTimeout->at(Index).tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			EventArgument_Domain->SocketTimeout->at(Index) = Parameter.SocketTimeout_Unreliable_Once;
 		#endif
 
@@ -703,7 +703,7 @@ bool LoadBufferEvent_DomainTest(
 	return true;
 }
 
-//Get Hop Limits(IPv6) and TTL(IPv4) via normal DNS request
+//Get Hop Limits and TTL via normal DNS request
 bool TestRequest_Domain(
 	const uint16_t Protocol)
 {
@@ -835,7 +835,7 @@ bool TestRequest_ICMP(
 		ErrorCode = 0;
 		if (
 		//Main
-		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 			!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6, 0, &Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 		#elif defined(PLATFORM_MACOS)
 			!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6, 0, &Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
@@ -845,7 +845,7 @@ bool TestRequest_ICMP(
 //			!SocketSetting(SocketValue_ICMP.ValueSet.back().Socket, SOCKET_SETTING_TYPE::CHECKSUM_IPV6, true, &OptionValue) //ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
 		//Alternate
 			(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
-		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 			(!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6, 0, &Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 		#elif defined(PLATFORM_MACOS)
 			(!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6, 0, &Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
@@ -859,14 +859,14 @@ bool TestRequest_ICMP(
 			return false;
 		}
 
-	//Multiple list(IPv6)
+	//Multiple list
 		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
 			{
 				ErrorCode = 0;
 				if (
-				#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+				#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 					!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6, 0, &DNS_ServerDataItem.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 				#elif defined(PLATFORM_MACOS)
 					!SocketValue_ICMP.SocketValueInit(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6, 0, &DNS_ServerDataItem.AddressData.IPv6.sin6_addr, &ErrorCode) || 
@@ -904,7 +904,7 @@ bool TestRequest_ICMP(
 		ErrorCode = 0;
 		if (
 		//Main
-		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 			!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, &Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
 		#elif defined(PLATFORM_MACOS)
 			!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_DGRAM, IPPROTO_ICMP, 0, &Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
@@ -914,7 +914,7 @@ bool TestRequest_ICMP(
 			!SocketSetting(SocketValue_ICMP.ValueSet.back().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr) || 
 		//Alternate
 			(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
-		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 			(!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, &Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
 		#elif defined(PLATFORM_MACOS)
 			(!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_DGRAM, IPPROTO_ICMP, 0, &Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
@@ -927,14 +927,14 @@ bool TestRequest_ICMP(
 			return false;
 		}
 
-	//Multiple list(IPv4)
+	//Multiple list
 		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
 			for (const auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
 			{
 				ErrorCode = 0;
 				if (
-				#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+				#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_WIN))
 					!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_RAW, IPPROTO_ICMP, 0, &DNS_ServerDataItem.AddressData.IPv4.sin_addr, &ErrorCode) || 
 				#elif defined(PLATFORM_MACOS)
 					!SocketValue_ICMP.SocketValueInit(AF_INET, SOCK_DGRAM, IPPROTO_ICMP, 0, &DNS_ServerDataItem.AddressData.IPv4.sin_addr, &ErrorCode) || 
@@ -966,7 +966,7 @@ bool TestRequest_ICMP(
 #if defined(PLATFORM_WIN)
 	EventArgument_ICMP.SocketTimeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 	EventArgument_ICMP.SocketTimeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	EventArgument_ICMP.SocketTimeout = Parameter.SocketTimeout_Unreliable_Once;
 #endif
 	EventArgument_ICMP.IntervalTimeout.tv_sec = SENDING_INTERVAL_TIME / SECOND_TO_MILLISECOND;
@@ -1183,8 +1183,9 @@ size_t UDP_RequestSingle(
 	const uint16_t QueryType, 
 	const std::string * const DomainString_Original, 
 	const std::string * const DomainString_Request, 
-	const SOCKET_DATA * const LocalSocketData, 
-	size_t *EDNS_Length)
+	const SOCKET_DATA * const LocalSocketData
+//	size_t *EDNS_Length
+)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1220,7 +1221,7 @@ size_t UDP_RequestSingle(
 	}
 
 //Mark port to list.
-	RegisterPortToList(Protocol, LocalSocketData, UDPSocketDataList, DomainString_Original, DomainString_Request, EDNS_Length);
+	RegisterPortToList(Protocol, LocalSocketData, UDPSocketDataList, DomainString_Original, DomainString_Request /* , EDNS_Length */ );
 	return EXIT_SUCCESS;
 }
 
@@ -1234,8 +1235,9 @@ size_t UDP_RequestMultiple(
 	const uint16_t QueryType, 
 	const std::string * const DomainString_Original, 
 	const std::string * const DomainString_Request, 
-	const SOCKET_DATA * const LocalSocketData, 
-	size_t *EDNS_Length)
+	const SOCKET_DATA * const LocalSocketData
+//	size_t *EDNS_Length
+)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
@@ -1253,7 +1255,7 @@ size_t UDP_RequestMultiple(
 	}
 
 //Mark port to list.
-	RegisterPortToList(Protocol_Transport, LocalSocketData, UDPSocketDataList, DomainString_Original, DomainString_Request, EDNS_Length);
+	RegisterPortToList(Protocol_Transport, LocalSocketData, UDPSocketDataList, DomainString_Original, DomainString_Request /* , EDNS_Length */ );
 	return EXIT_SUCCESS;
 }
 #endif

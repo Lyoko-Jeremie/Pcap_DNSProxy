@@ -551,7 +551,7 @@ size_t Add_EDNS_LabelToPacket(
 
 		const auto EDNS_Subnet_Header = reinterpret_cast<edns_client_subnet *>(Buffer + DataLength);
 
-	//AAAA record(IPv6)
+	//AAAA record
 		if (ntoh16(DNS_Query->Type) == DNS_TYPE_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalMachineSubnet_IPv6 != nullptr))
@@ -598,7 +598,7 @@ size_t Add_EDNS_LabelToPacket(
 			EDNS_Header->DataLength = hton16(static_cast<const uint16_t>(sizeof(edns_client_subnet) + PrefixBytes));
 			DataLength += PrefixBytes;
 		}
-	//A record(IPv4)
+	//A record
 		else if (ntoh16(DNS_Query->Type) == DNS_TYPE_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalMachineSubnet_IPv4 != nullptr))
@@ -750,7 +750,7 @@ bool Add_EDNS_LabelToPacket(
 		const auto EDNS_ClientSubnetHeader = reinterpret_cast<edns_client_subnet *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length);
 		auto IsFunctionRelay = false, IsGlobalRelay = false;
 
-	//AAAA record(IPv6)
+	//AAAA record
 		if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_AAAA)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
@@ -801,7 +801,7 @@ bool Add_EDNS_LabelToPacket(
 				PacketStructure->EDNS_Length += sizeof(edns_client_subnet) + PrefixBytes;
 			}
 		}
-	//A record(IPv4)
+	//A record
 		else if (ntoh16(PacketStructure->QueryType) == DNS_TYPE_A)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)

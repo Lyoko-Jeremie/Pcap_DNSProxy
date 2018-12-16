@@ -193,7 +193,7 @@ bool Capture_FilterRulesInit(
 			IsRepeatItem = false;
 		}
 
-	//Multiple list(IPv6)
+	//Multiple list
 		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
 			for (auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv6_Multiple)
@@ -246,7 +246,7 @@ bool Capture_FilterRulesInit(
 			IsRepeatItem = false;
 		}
 
-	//Multiple list(IPv4)
+	//Multiple list
 		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
 			for (auto &DNS_ServerDataItem:*Parameter.Target_Server_IPv4_Multiple)
@@ -347,7 +347,7 @@ bool Capture_MainProcess(
 		DriveInterface->addresses == nullptr || 
 		DriveInterface->addresses->netmask == nullptr || 
 		DriveInterface->flags == PCAP_IF_LOOPBACK)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	else if (DriveInterface->name == nullptr || 
 		DriveInterface->addresses == nullptr || 
 		DriveInterface->flags == PCAP_IF_LOOPBACK)
@@ -410,7 +410,7 @@ bool Capture_MainProcess(
 		static_cast<const int>(Parameter.PcapReadingTimeout), 
 		nullptr, 
 		reinterpret_cast<char *>(Buffer.get()));
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	DeviceTable.DeviceHandle = pcap_open_live(
 		DriveInterface->name, 
 		static_cast<const int>(Parameter.LargeBufferSize), 
@@ -456,7 +456,7 @@ bool Capture_MainProcess(
 			PcapFilterRules.c_str(), 
 			PCAP_COMPILE_OPTIMIZE, 
 			0) == PCAP_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (pcap_compile(
 			DeviceTable.DeviceHandle, 
 			&DeviceTable.BPF_Code, 
@@ -721,11 +721,11 @@ bool Capture_AnalyzeNetworkLayer(
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
-				//Main(IPv6)
+				//Main
 					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber != nullptr && 
 					memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
-				//Alternate(IPv6)
+				//Alternate
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr && 
 					memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
@@ -781,7 +781,8 @@ bool Capture_AnalyzeNetworkLayer(
 					{
 						const_cast<dns_hdr *>(reinterpret_cast<const dns_hdr *>(Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr)))->Flags = hton16(ntoh16(reinterpret_cast<const dns_hdr *>(Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr))->Flags) | DNS_FLAG_GET_BIT_TC);
 					}
-				//Calculate EDNS Label options length
+				//Calculate EDNS Label options length.
+/* EDNS Label operations are different between DNS servers.
 					else if (Parameter.PacketCheck_DNS)
 					{
 						if (PacketEDNS_Length >= sizeof(edns_header))
@@ -789,9 +790,10 @@ bool Capture_AnalyzeNetworkLayer(
 						else 
 							PacketEDNS_Length = 0;
 					}
+*/
 
 				//Match port in global list.
-					Capture_MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, BufferSize - sizeof(ipv6_hdr) - static_cast<const size_t>(PayloadOffset) - sizeof(udp_hdr), UDP_Header->DestinationPort, IsNeedTruncated, PacketEDNS_Length);
+					Capture_MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + static_cast<const size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, BufferSize - sizeof(ipv6_hdr) - static_cast<const size_t>(PayloadOffset) - sizeof(udp_hdr), UDP_Header->DestinationPort /* , IsNeedTruncated, PacketEDNS_Length */ );
 					return true;
 				}
 			}
@@ -885,11 +887,11 @@ bool Capture_AnalyzeNetworkLayer(
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
-				//Main(IPv4)
+				//Main
 					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr && 
 					memcmp(Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
-				//Alternate(IPv4)
+				//Alternate
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr && 
 					memcmp(Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
@@ -946,6 +948,7 @@ bool Capture_AnalyzeNetworkLayer(
 						const_cast<dns_hdr *>(reinterpret_cast<const dns_hdr *>(Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr)))->Flags = hton16(ntoh16(reinterpret_cast<const dns_hdr *>(Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr))->Flags) | DNS_FLAG_GET_BIT_TC);
 					}
 				//Calculate EDNS Label options length.
+/* EDNS Label operations are different between DNS servers.
 					else if (Parameter.PacketCheck_DNS)
 					{
 						if (PacketEDNS_Length >= sizeof(edns_header))
@@ -953,9 +956,10 @@ bool Capture_AnalyzeNetworkLayer(
 						else 
 							PacketEDNS_Length = 0;
 					}
+*/
 
 				//Match port in global list.
-					Capture_MatchPortToSend(AF_INET, Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, BufferSize - static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET - sizeof(udp_hdr), UDP_Header->DestinationPort, IsNeedTruncated, PacketEDNS_Length);
+					Capture_MatchPortToSend(AF_INET, Buffer + static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, BufferSize - static_cast<const size_t>(IPv4_Header->IHL) * IPV4_IHL_BYTES_SET - sizeof(udp_hdr), UDP_Header->DestinationPort /* , IsNeedTruncated, PacketEDNS_Length */ );
 					return true;
 				}
 			}
@@ -1286,9 +1290,9 @@ bool Capture_PacketStatusCheck(
 		{
 		//Version
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Version = reinterpret_cast<const ipv4_hdr *>(Buffer)->Version;
-		//IHL/Internet Header Length
+		//IHL(Internet Header Length) check
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL = reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL;
-		//DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification
+		//DSCP(Differentiated Services Code Point) and ECN(Explicit Congestion Notification) check
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN = reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN;
 		//Identification
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID = reinterpret_cast<const ipv4_hdr *>(Buffer)->ID;
@@ -1344,9 +1348,9 @@ bool Capture_PacketStatusCheck(
 			if (
 			//Version check
 				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Version != reinterpret_cast<const ipv4_hdr *>(Buffer)->Version || 
-			//IHL/Internet Header Length check
+			//IHL(Internet Header Length) check
 				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL != reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL || 
-			//DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification check
+			//DSCP(Differentiated Services Code Point) and ECN(Explicit Congestion Notification_ check
 				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN != reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN || 
 			//Identification check
 				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID == 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID > 0) || 
@@ -1369,9 +1373,10 @@ bool Capture_MatchPortToSend(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	const uint16_t Port, 
-	const bool IsNeedTruncated, 
-	const size_t EDNS_Length_Output)
+	const uint16_t Port
+//	const bool IsNeedTruncated, 
+//	const size_t EDNS_Length_Output
+)
 {
 //Initialization
 	SOCKET_DATA SocketData_Input;
@@ -1403,11 +1408,13 @@ bool Capture_MatchPortToSend(
 				}
 				else {
 				//EDNS options check
+/* EDNS Label operations are different between DNS servers.
 				//EDNS Label options are exist in input packet rather than output packet.
 					if (!IsNeedTruncated && Parameter.PacketCheck_DNS && 
 						PortItem.EDNS_Length >= sizeof(edns_header) && PortItem.EDNS_Length - sizeof(edns_header) != 0 && 
 						EDNS_Length_Output == 0)
 							return false;
+*/
 
 				//Copy socket data from global list.
 					SocketData_Input = PortItem.SocketData_Input;
@@ -1445,11 +1452,13 @@ StopLoop:
 				if (PortItem.ReceiveIndex == ReceiveIndex)
 				{
 				//EDNS options check
+/* EDNS Label operations are different between DNS servers.
 				//EDNS Label options are exist in input packet rather than output packet.
 					if (!IsNeedTruncated && Parameter.PacketCheck_DNS && 
 						PortItem.EDNS_Length >= sizeof(edns_header) && PortItem.EDNS_Length - sizeof(edns_header) != 0 && 
 						EDNS_Length_Output == 0)
 							return false;
+*/
 
 				//Copy socket data from global list.
 					SocketData_Input = PortItem.SocketData_Input;

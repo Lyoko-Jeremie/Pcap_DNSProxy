@@ -106,7 +106,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * --log-file stderr/out
     啟動時指定日誌檔按 stderr 或 stdout 方式輸出
 * --disable-daemon
-    關閉守護進程模式 (Linux)
+    關閉守護進程模式 (FreeBSD/Linux)
 * --first-setup
     進行本地防火牆測試 (Windows)
 
@@ -487,15 +487,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不可靠埠指 UDP/ICMP/ICMPv6 協定
   * TCP Fast Open - TCP 快速打開功能：
     * 本功能的支援情況：
-      * Windows 平臺
+      * Windows
         * 開啟為 1 /關閉為 0
         * 伺服器端支援，用戶端由於不同類型 I/O 的問題暫時無法進行支援
         * 需要 Windows 10 Version 1607 以及更新版本的支援
-      * Linux 平臺：
+      * FreeBSD/Linux
         * 此參數可同時指定支援 TCP Fast Open 監聽佇列長度，直接填入大於 0 的值即為佇列長度，關閉為 0
         * 伺服器端和用戶端完全支援
-        * IPv4 協定需要 Linux Kernel 3.7 以及更新版本的支援，IPv6 協定需要 Linux Kernel 3.16 以及更新版本的內核支援
-      * macOS 平臺：
+        * FreeBSD: 需要 12.0 以及更新版本的支援
+        * Linux: IPv4 協定需要 Linux Kernel 3.7 以及更新版本的支援，IPv6 協定需要 Linux Kernel 3.16 以及更新版本的內核支援
+      * macOS
         * 開啟為 1 /關閉為 0
         * 伺服器端和用戶端完全支援
         * 需要 macOS 10.11 Sierra 以及更新版本的支援
@@ -599,14 +600,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP CONNECT TLS Version - HTTP CONNECT 協定啟用 TLS 握手和加密傳輸時所指定使用的版本：設置為 0 則自動選擇
     * 現階段可填入 1.0 或 1.1 或 1.2
     * Windows XP/2003 和 Windows Vista 不支援高於 1.0 的版本
-    * OpenSSL 1.0.0 以及之前的版本不支援高於 1.0 的版本
   * HTTP CONNECT TLS Validation - HTTP CONNECT 協定啟用 TLS 握手時伺服器憑證鏈檢查：開啟為 1 /關閉為 0
     * 警告：關閉此功能將可能導致加密連接被中間人攻擊，強烈建議開啟！
-    * 警告：OpenSSL 1.0.2 之前的版本不支援檢查伺服器憑證的網域名稱匹配情況，敬請留意！
   * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的網域名稱伺服器：請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料，留空則不啟用此功能
   * HTTP CONNECT TLS ALPN - HTTP CONNECT 協定 TLS 握手時是否啟用 Application-Layer Protocol Negotiation/ALPN 擴展功能：開啟為 1 /關閉為 0
     * Windows 8 以及之前的版本不支援本功能
-    * OpenSSL 1.0.1 以及之前的版本不支援本功能
     * 警告：切勿在不受支援的版本上開啟本功能，否則可能導致程式無法正常收發資料包！
   * HTTP CONNECT Version - HTTP CONNECT 協定所使用的版本：設置為 0 則自動選擇
     * 現階段可填入 1.1 或 2

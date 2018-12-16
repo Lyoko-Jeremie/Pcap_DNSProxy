@@ -27,7 +27,7 @@
 extern CONFIGURATION_TABLE Parameter;
 
 //Local variables
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 static unsigned char HTTP_1_ALPN_List[] = HTTP_1_TLS_ALPN_STRING;
 static unsigned char HTTP_2_ALPN_List[] = HTTP_2_TLS_ALPN_STRING;
 #endif
@@ -47,7 +47,7 @@ bool SSPI_EncryptPacket(
 bool SSPI_DecryptPacket(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool OpenSSL_PrintError(
 	const uint8_t *OpenSSL_ErrorMessage, 
 	const wchar_t *ErrorMessage);
