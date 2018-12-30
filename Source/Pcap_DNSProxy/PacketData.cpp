@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1191,7 +1191,7 @@ size_t CheckDomainCache(
 	if (DNSCacheIndexList.find(InsensitiveDomain) != DNSCacheIndexList.end())
 	{
 		const auto CacheMapRange = DNSCacheIndexList.equal_range(InsensitiveDomain);
-		for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+		for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 		{
 		//Single address single cache(Part 2, IPv6)
 			if (CacheMapItem->second->ForAddress.Storage.ss_family == AF_INET6)
@@ -1254,7 +1254,7 @@ void RemoveExpiredDomainCache(
 				if (DNSCacheIndexList.find(DNS_CacheDataItem->Domain) != DNSCacheIndexList.end())
 				{
 					const auto CacheMapRange = DNSCacheIndexList.equal_range(DNS_CacheDataItem->Domain);
-					for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+					for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 					{
 						if (CacheMapItem->second == DNS_CacheDataItem)
 						{
@@ -1284,7 +1284,7 @@ void RemoveExpiredDomainCache(
 				auto DNS_CacheListItem = DNSCacheList.end();
 				--DNS_CacheListItem;
 				const auto CacheMapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
-				for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+				for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 				{
 					if (CacheMapItem->second == DNS_CacheListItem)
 					{
@@ -1310,7 +1310,7 @@ void RemoveExpiredDomainCache(
 				if (DNSCacheIndexList.find(DNS_CacheDataItem->Domain) != DNSCacheIndexList.end())
 				{
 					const auto CacheMapRange = DNSCacheIndexList.equal_range(DNS_CacheDataItem->Domain);
-					for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+					for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 					{
 						if (CacheMapItem->second == DNS_CacheDataItem)
 						{
@@ -1337,7 +1337,7 @@ void RemoveExpiredDomainCache(
 				auto DNS_CacheListItem = DNSCacheList.end();
 				--DNS_CacheListItem;
 				const auto CacheMapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
-				for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+				for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 				{
 					if (CacheMapItem->second == DNS_CacheListItem)
 					{

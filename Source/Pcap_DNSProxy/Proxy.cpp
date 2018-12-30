@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -206,7 +206,7 @@ size_t SOCKS_TCP_Request(
 
 //Socket attribute settings
 	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 		(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 		(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))))
 	{
@@ -370,7 +370,7 @@ size_t SOCKS_UDP_Request(
 
 //Socket attribute settings
 	if (!(Parameter.SOCKS_UDP_NoHandshake || SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr)) || 
-		!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+		!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 		(TCPSocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 		(TCPSocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 		!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))) || 
@@ -753,6 +753,7 @@ bool SOCKS_AuthenticationExchange(
 	RecvLen += Parameter.SOCKS_PasswordLength;
 
 //Username + Password authentication exchange and server reply check
+	SocketSelectingDataList.front().SendLen = RecvLen;
 	SocketSelectingDataList.front().RecvBuffer.reset();
 	SocketSelectingDataList.front().RecvSize = 0;
 	SocketSelectingDataList.front().RecvLen = 0;
@@ -1125,7 +1126,7 @@ size_t HTTP_CONNECT_2_IntegerDecoding(
 	else {
 		size_t IntegerSize = sizeof(uint8_t), Shift = 0;
 		IntegerValue = PrefixSize;
-		for (;;)
+		while (!GlobalRunningStatus.IsNeedExit)
 		{
 			if (IntegerSize >= Length)
 				return 0;
@@ -1610,7 +1611,7 @@ bool HTTP_CONNECT_2_HEADERS_ReadBytes(
 		//Read huffman coding.
 			std::unique_ptr<uint8_t[]> HeaderBuffer(nullptr);
 			size_t HeaderBufferSize = 0, HeaderBufferLen = 0;
-			for (;;)
+			while (!GlobalRunningStatus.IsNeedExit)
 			{
 			//Buffer initializtion
 				auto HuffmanBuffer = std::make_unique<uint8_t[]>(HeaderBufferSize + DEFAULT_LARGE_BUFFER_SIZE);
@@ -2231,7 +2232,7 @@ bool HTTP_CONNECT_Handshake(
 		}
 
 	//Socket attribute settings
-		if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+		if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 			(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 			(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))))
 		{

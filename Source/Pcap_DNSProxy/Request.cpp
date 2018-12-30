@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -115,13 +115,13 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET6, SOCK_STREAM, IPPROTO_TCP, ntoh16(Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_port), &Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr) || 
 			//Alternate
 				(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 				(!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET6, SOCK_STREAM, IPPROTO_TCP, ntoh16(Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_port), &Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))))
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
@@ -172,7 +172,7 @@ bool LoadBufferEvent_DomainTest(
 					ErrorCode = 0;
 					if (!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET6, SOCK_STREAM, IPPROTO_TCP, ntoh16(DNS_ServerDataItem.AddressData.IPv6.sin6_port), &DNS_ServerDataItem.AddressData.IPv6.sin6_addr, &ErrorCode) || 
 						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
@@ -310,13 +310,13 @@ bool LoadBufferEvent_DomainTest(
 			//Main
 				!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET, SOCK_STREAM, IPPROTO_TCP, ntoh16(Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_port), &Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 			//Alternate
 				(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 				(!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET, SOCK_STREAM, IPPROTO_TCP, ntoh16(Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_port), &Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr, &ErrorCode) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 				!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))))
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
@@ -367,7 +367,7 @@ bool LoadBufferEvent_DomainTest(
 					ErrorCode = 0;
 					if (!EventArgument_Domain->SocketValue->SocketValueInit(AF_INET, SOCK_STREAM, IPPROTO_TCP, ntoh16(DNS_ServerDataItem.AddressData.IPv4.sin_port), &DNS_ServerDataItem.AddressData.IPv4.sin_addr, &ErrorCode) || 
 						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 						!SocketSetting(EventArgument_Domain->SocketValue->ValueSet.back().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Domain Test event initialization error", ErrorCode, nullptr, 0);
@@ -776,7 +776,7 @@ bool TestRequest_Domain(
 	}
 
 //Event loop
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Start event loop.
 		event_base_dispatch(EventArgument_Domain.EventBase);
@@ -785,8 +785,9 @@ bool TestRequest_Domain(
 		Sleep(SENDING_INTERVAL_TIME);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Domain Test module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Domain Test module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -1049,7 +1050,7 @@ bool TestRequest_ICMP(
 
 //Event loop
 	EventArgument_ICMP.OnceTimes = 1U;
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Start event loop.
 		event_base_dispatch(EventArgument_ICMP.EventBase);
@@ -1061,8 +1062,9 @@ bool TestRequest_ICMP(
 //Jump here to stop loop.
 StopLoop:
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 #endif

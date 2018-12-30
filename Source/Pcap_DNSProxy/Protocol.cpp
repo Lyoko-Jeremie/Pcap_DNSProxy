@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -411,7 +411,7 @@ bool CheckSpecialAddress(
 		{
 			for (const auto &AddressHostsItem:HostsFileSetItem.AddressHostsList)
 			{
-				if (!AddressHostsItem.Address_Target.empty() && AddressHostsItem.Address_Target.front().first.ss_family == AF_INET6)
+				if (!AddressHostsItem.Address_Target.empty() && AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_SOCKET.ss_family == AF_INET6)
 				{
 					for (const auto &AddressRangeItem:AddressHostsItem.Address_Source)
 					{
@@ -425,12 +425,12 @@ bool CheckSpecialAddress(
 							if (AddressHostsItem.Address_Target.size() > 1U)
 							{
 								GenerateRandomBuffer(&RandomValue, sizeof(RandomValue), nullptr, 0, AddressHostsItem.Address_Target.size() - 1U);
-								if (!AddressPrefixReplacing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressHostsItem.Address_Target.at(RandomValue).first)->sin6_addr, OriginalAddr, AddressHostsItem.Address_Target.front().second))
+								if (!AddressPrefixReplacing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressHostsItem.Address_Target.at(RandomValue).ADDRESS_PREFIX_BLOCK_SOCKET)->sin6_addr, OriginalAddr, AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_VALUE))
 									continue;
 							}
 						//Only one item to rewrite address.
 							else {
-								if (!AddressPrefixReplacing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressHostsItem.Address_Target.front().first)->sin6_addr, OriginalAddr, AddressHostsItem.Address_Target.front().second))
+								if (!AddressPrefixReplacing(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_SOCKET)->sin6_addr, OriginalAddr, AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_VALUE))
 									continue;
 							}
 
@@ -489,7 +489,7 @@ bool CheckSpecialAddress(
 		{
 			for (const auto &AddressHostsItem:HostsFileSetItem.AddressHostsList)
 			{
-				if (!AddressHostsItem.Address_Target.empty() && AddressHostsItem.Address_Target.front().first.ss_family == AF_INET)
+				if (!AddressHostsItem.Address_Target.empty() && AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_SOCKET.ss_family == AF_INET)
 				{
 					for (const auto &AddressRangeItem:AddressHostsItem.Address_Source)
 					{
@@ -503,12 +503,12 @@ bool CheckSpecialAddress(
 							if (AddressHostsItem.Address_Target.size() > 1U)
 							{
 								GenerateRandomBuffer(&RandomValue, sizeof(RandomValue), nullptr, 0, AddressHostsItem.Address_Target.size() - 1U);
-								if (!AddressPrefixReplacing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressHostsItem.Address_Target.at(RandomValue).first)->sin_addr, OriginalAddr, AddressHostsItem.Address_Target.front().second))
+								if (!AddressPrefixReplacing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressHostsItem.Address_Target.at(RandomValue).ADDRESS_PREFIX_BLOCK_SOCKET)->sin_addr, OriginalAddr, AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_VALUE))
 									continue;
 							}
 						//Only one item to rewrite address.
 							else {
-								if (!AddressPrefixReplacing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressHostsItem.Address_Target.front().first)->sin_addr, OriginalAddr, AddressHostsItem.Address_Target.front().second))
+								if (!AddressPrefixReplacing(AF_INET, &reinterpret_cast<const sockaddr_in *>(&AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_SOCKET)->sin_addr, OriginalAddr, AddressHostsItem.Address_Target.front().ADDRESS_PREFIX_BLOCK_VALUE))
 									continue;
 							}
 

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -279,7 +279,7 @@ bool SSPI_HandshakeLoop(
 	size_t RecvLen = 0;
 
 //Handshake loop exchange
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		SSPI_Handle.InputFlags |= ISC_REQ_SEQUENCE_DETECT;
@@ -974,7 +974,7 @@ bool OpenSSL_BIO_Initializtion(
 //Socket attribute settings
 	if (!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
 		!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
-		(OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+		(OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 		(OpenSSL_CTX.Protocol_Network == AF_INET6 && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 		(OpenSSL_CTX.Protocol_Network == AF_INET && (!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 		(OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
@@ -1149,7 +1149,7 @@ bool TLS_TransportSerial(
 	Timeout = 0;
 
 //OpenSSL transpot(Receive process)
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Prepare buffer.
 		if (!SocketSelectingDataList.front().RecvBuffer)

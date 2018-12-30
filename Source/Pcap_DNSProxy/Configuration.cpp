@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -537,7 +537,7 @@ bool ReadParameter(
 	}
 
 //File Monitor
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Jump here to restart.
 	#if defined(ENABLE_LIBSODIUM)
@@ -748,11 +748,14 @@ bool ReadParameter(
 	#if defined(ENABLE_LIBSODIUM)
 		IsDNSCurveFileModified = false;
 	#endif
+
+	//Next loop
 		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -786,7 +789,7 @@ void ReadIPFilter(
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock, std::defer_lock);
 
 //File Monitor
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		IsFileModified = false;
@@ -858,11 +861,14 @@ void ReadIPFilter(
 
 	//Flush domain cache and auto-refresh.
 		FlushDomainCache_Main(nullptr);
+
+	//Next loop
 		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -896,7 +902,7 @@ void ReadHosts(
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock, std::defer_lock);
 
 //File Monitor
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		IsFileModified = false;
@@ -968,11 +974,14 @@ void ReadHosts(
 
 	//Flush domain cache and auto-refresh.
 		FlushDomainCache_Main(nullptr);
+
+	//Next loop
 		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 

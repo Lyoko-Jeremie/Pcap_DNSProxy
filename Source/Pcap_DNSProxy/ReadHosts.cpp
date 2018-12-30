@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -679,8 +679,8 @@ bool ReadHosts_AddressData(
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
 	ADDRESS_PREFIX_BLOCK AddressTargetPrefix;
-	memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
-	AddressTargetPrefix.second = 0;
+	memset(&AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET, 0, sizeof(AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET));
+	AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE = 0;
 	size_t Prefix = 0;
 
 //Get target data.
@@ -693,7 +693,7 @@ bool ReadHosts_AddressData(
 //Mark all data in list.
 	for (auto &StringIter:TargetListData)
 	{
-		AddressTargetPrefix.second = 0;
+		AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE = 0;
 
 	//AAAA record
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
@@ -710,7 +710,7 @@ bool ReadHosts_AddressData(
 			}
 
 		//Reset parameters.
-			memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
+			memset(&AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET, 0, sizeof(AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET));
 
 		//Address prefix format
 			if (StringIter.find(ASCII_SLASH) != std::string::npos)
@@ -721,9 +721,9 @@ bool ReadHosts_AddressData(
 			//Address prefix check
 				if (Prefix == 0)
 				{
-					Prefix = AddressTargetPrefix.second;
+					Prefix = AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE;
 				}
-				else if (Prefix > 0 && Prefix != AddressTargetPrefix.second)
+				else if (Prefix > 0 && Prefix != AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -731,13 +731,13 @@ bool ReadHosts_AddressData(
 			}
 		//Normal format
 			else {
-				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &reinterpret_cast<sockaddr_in6 *>(&AddressTargetPrefix.first)->sin6_addr, &ResultValue))
+				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &reinterpret_cast<sockaddr_in6 *>(&AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET)->sin6_addr, &ResultValue))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", ResultValue, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
-					AddressTargetPrefix.first.ss_family = AF_INET6;
+					AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET.ss_family = AF_INET6;
 				}
 			}
 		}
@@ -756,7 +756,7 @@ bool ReadHosts_AddressData(
 			}
 
 		//Reset parameters.
-			memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
+			memset(&AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET, 0, sizeof(AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET));
 
 		//Address prefix format
 			if (StringIter.find(ASCII_SLASH) != std::string::npos)
@@ -767,9 +767,9 @@ bool ReadHosts_AddressData(
 			//Address prefix check
 				if (Prefix == 0)
 				{
-					Prefix = AddressTargetPrefix.second;
+					Prefix = AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE;
 				}
-				else if (Prefix > 0 && Prefix != AddressTargetPrefix.second)
+				else if (Prefix > 0 && Prefix != AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_VALUE)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -777,13 +777,13 @@ bool ReadHosts_AddressData(
 			}
 		//Normal format
 			else {
-				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &reinterpret_cast<sockaddr_in *>(&AddressTargetPrefix.first)->sin_addr, &ResultValue))
+				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &reinterpret_cast<sockaddr_in *>(&AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET)->sin_addr, &ResultValue))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", ResultValue, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 				else {
-					AddressTargetPrefix.first.ss_family = AF_INET;
+					AddressTargetPrefix.ADDRESS_PREFIX_BLOCK_SOCKET.ss_family = AF_INET;
 				}
 			}
 		}
@@ -1038,8 +1038,8 @@ bool ReadHosts_MainData(
 		else {
 		//Protocol settings
 			ADDRESS_PREFIX_BLOCK AddressPrefix;
-			memset(&AddressPrefix.first, 0, sizeof(AddressPrefix.first));
-			AddressPrefix.second = 0;
+			memset(&AddressPrefix.ADDRESS_PREFIX_BLOCK_SOCKET, 0, sizeof(AddressPrefix.first));
+			AddressPrefix.ADDRESS_PREFIX_BLOCK_VALUE = 0;
 			uint16_t Protocol = 0;
 			if (SourceListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
 				Protocol = AF_INET6;
