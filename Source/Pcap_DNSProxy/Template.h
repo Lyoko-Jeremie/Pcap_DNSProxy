@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Pcap_DNSProxy, a local DNS server based on packet capturing
 // Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -20,12 +20,11 @@
 #ifndef PCAP_DNSPROXY_TEMPLATE_H
 #define PCAP_DNSPROXY_TEMPLATE_H
 
-#include "Type.h"
+#include "Class.h"
 
 //////////////////////////////////////////////////
-// Template definitions
+// Template definition
 // 
-//Blocking queue class
 template<typename Ty, typename Container = std::queue<Ty>> class BlockingQueue
 {
 public:
@@ -43,7 +42,7 @@ private:
 	ConditionVariableType    OriginalConditionVariable;
 
 public:
-//Redefine operator functions
+//Redefine operator function
 	BlockingQueue() = default;
 	BlockingQueue(const BlockingQueue &) = delete;
 	BlockingQueue & operator=(const BlockingQueue &) = delete;
@@ -116,36 +115,36 @@ public:
 template<typename Ty> using BLOCKING_QUEUE = BlockingQueue<Ty>;
 
 #if defined(ENABLE_LIBSODIUM)
-//DNSCurveHeapBufferTable template class
-template<typename Ty> class DNSCurveHeapBufferTable
+//DNSCryptHeapBufferTable template class
+template<typename Ty> class DNSCryptHeapBufferTable
 {
 public:
 	Ty                                   *Buffer;
 	size_t                               BufferSize;
 
 //Redefine operator functions
-//	DNSCurveHeapBufferTable() = default;
-	DNSCurveHeapBufferTable(const DNSCurveHeapBufferTable &) = delete;
-	DNSCurveHeapBufferTable & operator=(const DNSCurveHeapBufferTable &) = delete;
+//	DNSCryptHeapBufferTable() = default;
+	DNSCryptHeapBufferTable(const DNSCryptHeapBufferTable &) = delete;
+	DNSCryptHeapBufferTable & operator=(const DNSCryptHeapBufferTable &) = delete;
 
 //Member functions
-	DNSCurveHeapBufferTable(
+	DNSCryptHeapBufferTable(
 		void);
-	explicit DNSCurveHeapBufferTable(
+	explicit DNSCryptHeapBufferTable(
 		const size_t Size);
-	DNSCurveHeapBufferTable(
+	DNSCryptHeapBufferTable(
 		const size_t Count, 
 		const size_t Size);
 	void Swap(
-		DNSCurveHeapBufferTable &Other);
-	~DNSCurveHeapBufferTable(
+		DNSCryptHeapBufferTable &Other);
+	~DNSCryptHeapBufferTable(
 		void);
 };
-template<typename Ty> using DNSCURVE_HEAP_BUFFER_TABLE = DNSCurveHeapBufferTable<Ty>;
+template<typename Ty> using DNSCRYPT_HEAP_BUFFER_TABLE = DNSCryptHeapBufferTable<Ty>;
 
 //Template functions
-//DNSCurveHeapBufferTable template class constructor
-template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+//DNSCryptHeapBufferTable template class constructor
+template<typename Ty> DNSCryptHeapBufferTable<Ty>::DNSCryptHeapBufferTable(
 	void)
 {
 	Buffer = nullptr;
@@ -154,8 +153,8 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	return;
 }
 
-//DNSCurveHeapBufferTable template class constructor
-template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+//DNSCryptHeapBufferTable template class constructor
+template<typename Ty> DNSCryptHeapBufferTable<Ty>::DNSCryptHeapBufferTable(
 	const size_t Size)
 {
 	Buffer = reinterpret_cast<Ty *>(sodium_malloc(Size));
@@ -171,8 +170,8 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	return;
 }
 
-//DNSCurveHeapBufferTable template class constructor
-template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+//DNSCryptHeapBufferTable template class constructor
+template<typename Ty> DNSCryptHeapBufferTable<Ty>::DNSCryptHeapBufferTable(
 	const size_t Count, 
 	const size_t Size)
 {
@@ -189,9 +188,9 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	return;
 }
 
-//DNSCurveHeapBufferTable template class Swap function
-template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
-	DNSCurveHeapBufferTable &Other)
+//DNSCryptHeapBufferTable template class Swap function
+template<typename Ty> void DNSCryptHeapBufferTable<Ty>::Swap(
+	DNSCryptHeapBufferTable &Other)
 {
 	const auto BufferTemp = Buffer;
 	Buffer = Other.Buffer;
@@ -203,8 +202,8 @@ template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
 	return;
 }
 
-//DNSCurveHeapBufferTable template class destructor
-template<typename Ty> DNSCurveHeapBufferTable<Ty>::~DNSCurveHeapBufferTable(
+//DNSCryptHeapBufferTable template class destructor
+template<typename Ty> DNSCryptHeapBufferTable<Ty>::~DNSCryptHeapBufferTable(
 	void)
 {
 	sodium_free(Buffer);

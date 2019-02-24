@@ -17,18 +17,17 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef PCAP_DNSPROXY_MONITOR_H
-#define PCAP_DNSPROXY_MONITOR_H
+#ifndef PCAP_DNSPROXY_VERSION_H
+#define PCAP_DNSPROXY_VERSION_H
 
-#include "Include.h"
-
-//Global variable
-extern GLOBAL_STATUS GlobalRunningStatus;
-extern CONFIGURATION_TABLE GlobalConfiguration;
-
-//Localization variable
-uint64_t NextAllowedFlushTime = 0;
-
-//Localization function
-
+//////////////////////////////////////////////////
+// Version definition
+// 
+#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2019 Chengr28"   //Copyright message
+#define VERSION_CONFIG_COUNT                          2U                                    //Version count: Major and Minor
+#define VERSION_CONFIG_MAJOR                          0                                     //Version: Major
+#define VERSION_CONFIG_MINOR                          45U                                   //Version: Minor
+#define VERSION_CONFIG_MAXSIZE                        8U                                    //Version size
+#define VERSION_DETACH                                0,4,9,13
+#define VERSION_FULL                                  L"0.4.9.13"
 #endif

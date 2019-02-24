@@ -15,141 +15,122 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Capture.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Configuration.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Initialization.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Main.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Monitor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Network.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketData.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <ResourceCompile Include="Pcap_DNSProxy.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Platform.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PrintLog.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Process.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Proxy.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Service.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Template.h">
+    <ClInclude Include="Structure.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Definition.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Structure.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Request.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DNSCurveRequest.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="TransportSecurity.h">
+    <ClInclude Include="Version.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Type.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Class.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Template.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="Include.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Base.h">
+    <ClInclude Include="Pcap_DNSProxy.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DNSCurveControl.h">
+    <ClInclude Include="Environment.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Constructor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Destructor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadCommand.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadConfiguration.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadSupport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="File.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Service.cpp">
+    <ClCompile Include="Pcap_DNSProxy.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Base.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Capture.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Configuration.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Initialization.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Monitor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Network.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketData.cpp">
+    <ClCompile Include="Environment.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="PrintLog.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Process.cpp">
+    <ClCompile Include="Constructor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Protocol.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Proxy.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadHosts.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadIPFilter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadParameter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Request.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DNSCurveRequest.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="TransportSecurity.cpp">
+    <ClCompile Include="Destructor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ReadCommand.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DNSCurveControl.cpp">
+    <ClCompile Include="Text.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Monitor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadConfiguration.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadSupport.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Service.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="File.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -157,10 +138,5 @@
     <Text Include="CMakeLists.txt">
       <Filter>资源文件</Filter>
     </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Pcap_DNSProxy.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

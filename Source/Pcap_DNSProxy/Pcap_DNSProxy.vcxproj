@@ -5,14 +5,6 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release_XP|Win32">
-      <Configuration>Release_XP</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release_XP|x64">
-      <Configuration>Release_XP</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -47,14 +39,6 @@
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <SpectreMitigation>Spectre</SpectreMitigation>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -70,14 +54,6 @@
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <SpectreMitigation>Spectre</SpectreMitigation>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -89,16 +65,10 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -106,19 +76,9 @@
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|x64'">
-    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <TargetName>$(ProjectName)_XP</TargetName>
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <TargetName>$(ProjectName)_x86</TargetName>
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'">
-    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <TargetName>$(ProjectName)_XP</TargetName>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -139,7 +99,6 @@
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointModel>Strict</FloatingPointModel>
@@ -175,7 +134,6 @@
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointModel>Strict</FloatingPointModel>
@@ -238,47 +196,6 @@
       <PreprocessorDefinitions>WIN32;PLATFORM_WIN;PLATFORM_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|Win32'">
-    <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <CompileAsManaged>false</CompileAsManaged>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>WIN32;PLATFORM_WIN_XP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <LanguageStandard>stdcpp14</LanguageStandard>
-      <FloatingPointModel>Strict</FloatingPointModel>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <SubSystem>Console</SubSystem>
-      <LargeAddressAware>true</LargeAddressAware>
-      <Version>0.5</Version>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <FixedBaseAddress>false</FixedBaseAddress>
-    </Link>
-    <ResourceCompile>
-      <NullTerminateStrings>true</NullTerminateStrings>
-      <PreprocessorDefinitions>WIN32;PLATFORM_WIN_XP;PLATFORM_WIN;PLATFORM_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
@@ -319,99 +236,52 @@
       <PreprocessorDefinitions>WIN32;WIN64;PLATFORM_WIN;PLATFORM_WIN32;PLATFORM_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_XP|x64'">
-    <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <Optimization>Full</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <CompileAsManaged>false</CompileAsManaged>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>WIN32;PLATFORM_WIN_XP;WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <CompileAsWinRT>false</CompileAsWinRT>
-      <LanguageStandard>stdcpp14</LanguageStandard>
-      <FloatingPointModel>Strict</FloatingPointModel>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <LargeAddressAware>true</LargeAddressAware>
-      <Version>0.5</Version>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <FixedBaseAddress>false</FixedBaseAddress>
-      <SubSystem>Console</SubSystem>
-    </Link>
-    <ResourceCompile>
-      <NullTerminateStrings>true</NullTerminateStrings>
-      <PreprocessorDefinitions>WIN32;PLATFORM_WIN_XP;WIN64;PLATFORM_WIN;PLATFORM_WIN32;PLATFORM_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Base.h" />
-    <ClInclude Include="Include.h" />
-    <ClInclude Include="Capture.h" />
-    <ClInclude Include="Configuration.h" />
+    <ResourceCompile Include="Pcap_DNSProxy.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Class.h" />
+    <ClInclude Include="Constructor.h" />
     <ClInclude Include="Definition.h" />
-    <ClInclude Include="DNSCurveControl.h" />
-    <ClInclude Include="DNSCurveRequest.h" />
-    <ClInclude Include="Initialization.h" />
-    <ClInclude Include="Main.h" />
+    <ClInclude Include="Destructor.h" />
+    <ClInclude Include="Environment.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="Include.h" />
     <ClInclude Include="Monitor.h" />
     <ClInclude Include="Network.h" />
-    <ClInclude Include="PacketData.h" />
+    <ClInclude Include="Pcap_DNSProxy.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="PrintLog.h" />
-    <ClInclude Include="Process.h" />
-    <ClInclude Include="Protocol.h" />
-    <ClInclude Include="Proxy.h" />
-    <ClInclude Include="Request.h" />
+    <ClInclude Include="ReadCommand.h" />
+    <ClInclude Include="ReadConfiguration.h" />
+    <ClInclude Include="ReadSupport.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="Structure.h" />
     <ClInclude Include="Template.h" />
-    <ClInclude Include="TransportSecurity.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="Type.h" />
+    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Base.cpp" />
-    <ClCompile Include="Capture.cpp" />
-    <ClCompile Include="Configuration.cpp" />
-    <ClCompile Include="DNSCurveControl.cpp" />
-    <ClCompile Include="DNSCurveRequest.cpp" />
-    <ClCompile Include="Initialization.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Constructor.cpp" />
+    <ClCompile Include="Destructor.cpp" />
+    <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="File.cpp" />
     <ClCompile Include="Monitor.cpp" />
     <ClCompile Include="Network.cpp" />
-    <ClCompile Include="PacketData.cpp" />
+    <ClCompile Include="Pcap_DNSProxy.cpp" />
     <ClCompile Include="PrintLog.cpp" />
-    <ClCompile Include="Process.cpp" />
-    <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="Proxy.cpp" />
     <ClCompile Include="ReadCommand.cpp" />
-    <ClCompile Include="ReadHosts.cpp" />
-    <ClCompile Include="ReadIPFilter.cpp" />
-    <ClCompile Include="ReadParameter.cpp" />
-    <ClCompile Include="Request.cpp" />
+    <ClCompile Include="ReadConfiguration.cpp" />
+    <ClCompile Include="ReadSupport.cpp" />
     <ClCompile Include="Service.cpp" />
-    <ClCompile Include="TransportSecurity.cpp" />
+    <ClCompile Include="Text.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Pcap_DNSProxy.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

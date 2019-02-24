@@ -17,41 +17,23 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef PCAP_DNSPROXY_SERVICE_H
-#define PCAP_DNSPROXY_SERVICE_H
+#ifndef PCAP_DNSPROXY_PCAP_DNSPROXY_H
+#define PCAP_DNSPROXY_PCAP_DNSPROXY_H
 
 #include "Include.h"
 
 //Global variable
 extern GLOBAL_STATUS GlobalRunningStatus;
-
-//Localization variable
-#if defined(PLATFORM_WIN)
-static DWORD ServiceCurrentStatus = 0;
-static auto IsServiceRunning = false;
-SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
-HANDLE ServiceEvent = nullptr;
+extern CONFIGURATION_TABLE GlobalConfiguration, AlternateConfiguration;
 
 //Localization function
-VOID WINAPI ServiceMain(
-	DWORD argc, 
-	LPTSTR * argv);
-DWORD WINAPI ServiceController(
-	const DWORD ControlCode, 
-	const DWORD EventType, 
-	const LPVOID EventData, 
-	const LPVOID Context);
-HANDLE WINAPI ExecuteService(
-	void);
-DWORD WINAPI ServiceProcThread(
-	PVOID ProcParameter);
-bool WINAPI UpdateServiceStatus(
-	const DWORD CurrentState, 
-	const DWORD ExitCode, 
-	const DWORD ServiceSpecificExitCode, 
-	const DWORD CheckPoint, 
-	const DWORD WaitHint);
-void WINAPI TerminateService(
-	void);
+#if defined(PLATFORM_WIN)
+bool LoadPrepareProcess(
+	int argc, 
+	wchar_t * argv[]);
+#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+bool LoadPrepareProcess(
+	int argc, 
+	char * argv[]);
 #endif
 #endif

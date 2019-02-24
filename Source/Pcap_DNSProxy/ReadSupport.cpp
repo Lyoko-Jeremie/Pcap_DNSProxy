@@ -17,18 +17,5 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#ifndef PCAP_DNSPROXY_MONITOR_H
-#define PCAP_DNSPROXY_MONITOR_H
+#include "ReadSupport.h"
 
-#include "Include.h"
-
-//Global variable
-extern GLOBAL_STATUS GlobalRunningStatus;
-extern CONFIGURATION_TABLE GlobalConfiguration;
-
-//Localization variable
-uint64_t NextAllowedFlushTime = 0;
-
-//Localization function
-
-#endif

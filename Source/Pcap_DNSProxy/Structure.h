@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Pcap_DNSProxy, a local DNS server based on packet capturing
 // Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -22,12 +22,15 @@
 
 #include "Platform.h"
 
-//Memory alignment settings(Part 1)
-#pragma pack(push) //Push current alignment to stack.
-#pragma pack(1) //Set alignment to 1 byte boundary.
+//////////////////////////////////////////////////
+// Memory alignment
+// 
+#pragma pack(push)          //Push current alignment to stack.
+#pragma pack(1)             //Set alignment to 1 byte boundary.
+
 
 //////////////////////////////////////////////////
-// Protocol Header structures
+// Packet structure
 // 
 /* Ethernet II Frame header in OSI Layer 2
 * IEEE 802.2/802.3, IEEE Standard for Local and Metropolitan Area Networks(https://standards.ieee.org/about/get/802/802.html)
@@ -1105,7 +1108,7 @@ typedef struct _icmpv6_hdr_
 #define TCP_STATUS_SYN_ACK      0x0012   //TCP status: SYN, ACK
 #define TCP_STATUS_PSH_ACK      0x0018   //TCP status: PSH, ACK
 
-//Port definitions(1 - 1024, well-known ports)
+//System port definition
 //About this list, please visit IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
 #ifndef IPPORT_TCPMUX
 	#define IPPORT_TCPMUX               1U
@@ -1578,15 +1581,15 @@ typedef struct _ipv6_psd_hdr_
 */
 
 //About this list, please visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
-//Port and Flags definitions
+//Port and Flags definition
 #ifndef IPPORT_DNS
-	#define IPPORT_DNS                    53U        //Standard DNS(TCP and UDP) Port
+	#define IPPORT_DNS                   53U          //Standard DNS Port
 #endif
 #ifndef IPPORT_MDNS
-	#define IPPORT_MDNS                   5353U      //Multicast Domain Name System/mDNS Port
+	#define IPPORT_MDNS                  5353U        //Multicast Domain Name System/mDNS Port
 #endif
 #ifndef IPPORT_LLMNR
-	#define IPPORT_LLMNR                  5355U      //Link-Local Multicast Name Resolution/LLMNR Port
+	#define IPPORT_LLMNR                 5355U        //Link-Local Multicast Name Resolution/LLMNR Port
 #endif
 #define DNS_FLAG_REQUEST_STANDARD        0x0100       //Standard request
 #define DNS_FLAG_SQR_NE                  0x8180       //Standard query response and No Error.
@@ -1618,7 +1621,7 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_POINTER_QUERY                0xC00C       //Pointer of first query
 #define DNS_RECORD_TTL_GET_BIT_HIGHEST   0x80000000   //Get highest 1 bit in TTL.
 
-//OPCode definitions
+//OPCode definition
 #ifndef DNS_OPCODE_QUERY
 	#define DNS_OPCODE_QUERY           0                //OPCode Query is 0.
 #endif
@@ -1641,7 +1644,7 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_OPCODE_RESERVED        0xFFFF           //DNS Reserved OPCode is 65535.
 #endif
 
-//Classes definitions
+//Classes definition
 #ifndef DNS_CLASS_RESERVED
 	#define DNS_CLASS_RESERVED      0                //DNS RESERVED Classes is 0.
 #endif
@@ -1667,7 +1670,7 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_CLASS_ANY           0x00FF           //DNS ANY Classes is 255.
 #endif
 
-//RCode definitions
+//RCode definition
 #ifndef DNS_RCODE_NOERROR
 	#define DNS_RCODE_NOERROR       0                //RCode No Error is 0.
 #endif
@@ -1732,7 +1735,7 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_RCODE_PRIVATE_B     0xFFFE           //DNS Reserved Private use RCode is end at 4095.
 #endif
 
-//Record Types definitions
+//Record Types definition
 #ifndef DNS_TYPE_A
 	#define DNS_TYPE_A            0x0001             //DNS Type A is 1.
 #endif
@@ -1854,7 +1857,10 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_TYPE_SINK         0x0028             //DNS Type SINK is 40.
 #endif
 #ifndef DNS_TYPE_OPT
-	#define DNS_TYPE_OPT          0x0029             //DNS Type OPT/EDNS is 41.
+	#define DNS_TYPE_OPT          0x0029             //DNS Type OPT is 41.
+#endif
+#ifndef DNS_TYPE_EDNS
+	#define DNS_TYPE_EDNS         DNS_TYPE_OPT       //DNS Type EDNS is same as OPT.
 #endif
 #ifndef DNS_TYPE_APL
 	#define DNS_TYPE_APL          0x002A             //DNS Type APL is 42.
@@ -2004,7 +2010,10 @@ typedef struct _ipv6_psd_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNS_PACKET_MAXSIZE_TRADITIONAL   512U   //Traditional DNS packet maximum size, in bytes
+#define DNS_PACKET_TRADITIONAL_MAXSIZE        512U                                                                  //Traditional DNS packet maximum size, in bytes
+#define DNS_RCODE_SIZE                        4U                                                                    //Size of traditional RCode, in bytes
+#define DNS_DOMAIN_ACCEPTABLE_MBS_CHARACTER   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-"    //All acceptable character in domain name system(Multiple character version)
+#define DNS_DOMAIN_ACCEPTABLE_WCS_CHARACTER   L"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-"   //All acceptable character in domain name system(Wide character version)
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;
@@ -2389,13 +2398,13 @@ typedef struct _dns_record_srv_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//Code definitions
+//Code definition
 #define EDNS_VERSION_ZERO          0
 #define EDNS_PACKET_MINSIZE        1220U
 #define EDNS_PACKET_MAXSIZE        4096U
 #define EDNS_FLAG_GET_BIT_DO       0x8000        //Get DO bit in Z field.
 
-//EDNS Code definitions
+//EDNS Code definition
 #define EDNS_CODE_LLQ              0x0001        //Long-lived query
 #define EDNS_CODE_UL               0x0002        //Update lease
 #define EDNS_CODE_NSID             0x0003        //Name Server Identifier (RFC 5001)
@@ -2416,13 +2425,13 @@ typedef struct _dns_record_srv_
 #define EDNS_ADDRESS_FAMILY_IPV6   0x0002
 typedef struct _dns_record_opt_
 {
-	uint8_t               Name;
+//	uint8_t               Name;
 	uint16_t              Type;
 	uint16_t              UDP_PayloadSize;
 	uint8_t               Extended_RCode;
 	uint8_t               Version;
 //	union {
-		uint16_t          Z_Field;
+		uint16_t          Flags;
 /* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
@@ -2437,7 +2446,8 @@ typedef struct _dns_record_opt_
 */
 //	};
 	uint16_t              DataLength;
-}dns_record_opt, edns_header;
+//	uint8_t               *Option;
+}dns_record_opt, dns_record_edns;
 
 /* Extension Mechanisms for Domain Name System/EDNS Data Option
                     1                   2                   3
@@ -2797,23 +2807,26 @@ typedef struct _dns_record_caa_
 }dns_record_caa;
 
 
-//Domain Name System Curve/DNSCurve part
+//////////////////////////////////////////////////
+// DNSCrypt protocol structure
+// 
 #if defined(ENABLE_LIBSODIUM)
-// About DNSCurve standards: 
+// About DNSCrypt standards: 
 // DNSCurve: Usable security for DNS(https://dnscurve.org)
-// DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
-#ifndef IPPORT_DNSCURVE
-	#define IPPORT_DNSCURVE                   443U
+// DNSCrypt: A protocol to improve DNS security(https://github.com/dyne/dnscrypt-proxy)
+#ifndef IPPORT_DNSCRYPT
+	#define IPPORT_DNSCRYPT                   443U
 #endif
-#define DNSCURVE_DEFAULT_PORT_STRING      (":443")
-#define DNSCURVE_MAGIC_QUERY_LEN          8U
-#define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
-#define DNSCURVE_PAYLOAD_MULTIPLE_TIME    64U
-#define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
+#define DNSCRYPT_DEFAULT_PORT_STRING      (":443")
+#define DNSCRYPT_MAGIC_QUERY_HEX_LEN      16U
+#define DNSCRYPT_MAGIC_QUERY_LEN          8U
 #define DNSCRYPT_PADDING_SIGN_HEX         0x80
 #define DNSCRYPT_PADDING_SIGN_STRING      ('\x80')
-// Function definitions
+#define DNSCRYPT_PAYLOAD_MULTIPLE_TIME    64U
+#define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
+
+// Function definition
 #define crypto_box                        crypto_box_curve25519xsalsa20poly1305
 #define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 #define crypto_box_open                   crypto_box_curve25519xsalsa20poly1305_open
@@ -2823,7 +2836,7 @@ typedef struct _dns_record_caa_
 #define crypto_box_open_afternm           crypto_box_curve25519xsalsa20poly1305_open_afternm
 #define crypto_sign_open                  crypto_sign_ed25519_open
 
-/* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
+/* DNSCrypt Test Strings/TXT Data header
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2834,17 +2847,17 @@ typedef struct _dns_record_caa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve ES version of X25519-XSalsa20Poly1305
-#define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve ES version of X25519-XChacha20Poly1305
-#define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
-typedef struct _dnscurve_txt_hdr_
+#define DNSCRYPT_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCrypt ES version of X25519-XSalsa20Poly1305
+#define DNSCRYPT_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCrypt ES version of X25519-XChacha20Poly1305
+#define DNSCRYPT_VERSION_MINOR                   0        //DNSCrypt minor version
+typedef struct _dnscrypt_txt_hdr_
 {
 	uint32_t              CertMagicNumber;
 	uint16_t              MajorVersion;
 	uint16_t              MinorVersion;
-}dnscurve_txt_hdr;
+}dnscrypt_txt_hdr;
 
-/* Domain Name System Curve/DNSCurve Signature with Test Strings/TXT Data
+/* DNSCrypt Signature with Test Strings/TXT Data
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2869,25 +2882,27 @@ typedef struct _dnscurve_txt_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dnscurve_txt_signature_
+typedef struct _dnscrypt_txt_signature_
 {
 	uint8_t               PublicKey[crypto_box_PUBLICKEYBYTES];
 	uint8_t               MagicNumber[8U];
 	uint32_t              Serial;
 	uint32_t              CertTime_Begin;
 	uint32_t              CertTime_End;
-}dnscurve_txt_signature;
+}dnscrypt_txt_signature;
 #endif
 
 
-//SOCKS Protocol part
+//////////////////////////////////////////////////
+// SOCKS protocol structure
+// 
 /* About RFC standards
 * RFC 1928, SOCKS Protocol Version 5(https://tools.ietf.org/html/rfc1928)
 * RFC 1929, Username/Password Authentication for SOCKS V5(https://tools.ietf.org/html/rfc1929)
 * SOCKS(version 4): A protocol for TCP proxy across firewalls(https://www.openssh.com/txt/socks4.protocol)
 * SOCKS 4A: A Simple Extension to SOCKS 4 Protocol(https://www.openssh.com/txt/socks4a.protocol)
 */
-//Version, Method, Command and Reply definitions
+//Version, Method, Command and Reply definition
 #define SOCKS_VERSION_4                            4U
 #define SOCKS_VERSION_4A                           4U
 #define SOCKS_VERSION_CONFIG_4A                    0x4A
@@ -3108,7 +3123,9 @@ typedef struct _socks_udp_relay_request_
 }socks_udp_relay_request;
 
 
-// Hypertext Transfer Protocol/HTTP part
+//////////////////////////////////////////////////
+// Hypertext Transfer Protocol/HTTP structure
+// 
 /* About RFC standards
 * RFC 7230, Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing(https://tools.ietf.org/html/rfc7230)
 * RFC 7231, Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content(https://tools.ietf.org/html/rfc7231)
@@ -3117,14 +3134,12 @@ typedef struct _socks_udp_relay_request_
 * RFC 7541, HPACK: Header Compression for HTTP/2(https://tools.ietf.org/html/rfc7541)
 * RFC 7617, The 'Basic' HTTP Authentication Scheme(https://tools.ietf.org/html/rfc7617)
 */
-//Size and data definitions
+//Size and data definition
 #define HTTP_STATUS_CODE_SIZE                       3U
 #if defined(ENABLE_TLS)
 #if defined(PLATFORM_WIN)
-#if !defined(PLATFORM_WIN_XP)
 	#define HTTP_1_TLS_ALPN_STRING                      ("http/1.1")
 	#define HTTP_2_TLS_ALPN_STRING                      ("h2")
-#endif
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define HTTP_1_TLS_ALPN_STRING                      {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
 	#define HTTP_2_TLS_ALPN_STRING                      {2U, 'h', '2'}
@@ -3438,6 +3453,9 @@ typedef struct _tls_base_record_
 }tls_base_record;
 #endif
 
-//Memory alignment settings(Part 2)
-#pragma pack(pop) //Restore original alignment from stack.
+
+//////////////////////////////////////////////////
+// Memory alignment
+// 
+#pragma pack(pop)           //Restore original alignment from stack.
 #endif

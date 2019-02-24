@@ -5,104 +5,14 @@ VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{777BC78B-14C3-4CEE-AF7A-05DCC515DB21}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\CMakeLists.txt = Dependency\CMakeLists.txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenSSL", "OpenSSL", "{48201270-2D78-4FFC-A7C0-56B3F0641B25}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\OpenSSL\LibCrypto_macOS.a = Dependency\OpenSSL\LibCrypto_macOS.a
-		Dependency\OpenSSL\LibSSL_macOS.a = Dependency\OpenSSL\LibSSL_macOS.a
-	EndProjectSection
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auxiliary", "Auxiliary", "{CF55D226-2035-48C6-ABDA-7186B4EAA9B4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auxiliary", "Auxiliary", "{F2A72142-51AE-44D6-8E8D-2F93839DA1EF}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{A58D2A84-D0D4-4058-AECA-EDFAD230CE6B}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Documents\Changelog.en.txt = Auxiliary\Documents\Changelog.en.txt
-		Auxiliary\Documents\Changelog.zh-Hans.txt = Auxiliary\Documents\Changelog.zh-Hans.txt
-		Auxiliary\Documents\Changelog.zh-Hant.txt = Auxiliary\Documents\Changelog.zh-Hant.txt
-		Auxiliary\Documents\FAQ.en.txt = Auxiliary\Documents\FAQ.en.txt
-		Auxiliary\Documents\FAQ.zh-Hans.txt = Auxiliary\Documents\FAQ.zh-Hans.txt
-		Auxiliary\Documents\FAQ.zh-Hant.txt = Auxiliary\Documents\FAQ.zh-Hant.txt
-		Auxiliary\Documents\FAQ_Linux_macOS.en.txt = Auxiliary\Documents\FAQ_Linux_macOS.en.txt
-		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt
-		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt
-		Auxiliary\Documents\FAQ_Windows.en.txt = Auxiliary\Documents\FAQ_Windows.en.txt
-		Auxiliary\Documents\FAQ_Windows.zh-Hans.txt = Auxiliary\Documents\FAQ_Windows.zh-Hans.txt
-		Auxiliary\Documents\FAQ_Windows.zh-Hant.txt = Auxiliary\Documents\FAQ_Windows.zh-Hant.txt
-		Auxiliary\Documents\ReadMe.en.md = Auxiliary\Documents\ReadMe.en.md
-		Auxiliary\Documents\ReadMe.en.txt = Auxiliary\Documents\ReadMe.en.txt
-		Auxiliary\Documents\ReadMe.zh-Hans.md = Auxiliary\Documents\ReadMe.zh-Hans.md
-		Auxiliary\Documents\ReadMe.zh-Hans.txt = Auxiliary\Documents\ReadMe.zh-Hans.txt
-		Auxiliary\Documents\ReadMe.zh-Hant.md = Auxiliary\Documents\ReadMe.zh-Hant.md
-		Auxiliary\Documents\ReadMe.zh-Hant.txt = Auxiliary\Documents\ReadMe.zh-Hant.txt
-		Auxiliary\Documents\ReadMe_Linux.en.txt = Auxiliary\Documents\ReadMe_Linux.en.txt
-		Auxiliary\Documents\ReadMe_Linux.zh-Hans.txt = Auxiliary\Documents\ReadMe_Linux.zh-Hans.txt
-		Auxiliary\Documents\ReadMe_Linux.zh-Hant.txt = Auxiliary\Documents\ReadMe_Linux.zh-Hant.txt
-		Auxiliary\Documents\ReadMe_macOS.en.txt = Auxiliary\Documents\ReadMe_macOS.en.txt
-		Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt
-		Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt
-		Auxiliary\Documents\ReadMe_Windows.en.txt = Auxiliary\Documents\ReadMe_Windows.en.txt
-		Auxiliary\Documents\ReadMe_Windows.zh-Hans.txt = Auxiliary\Documents\ReadMe_Windows.zh-Hans.txt
-		Auxiliary\Documents\ReadMe_Windows.zh-Hant.txt = Auxiliary\Documents\ReadMe_Windows.zh-Hant.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{9A911CC0-63B2-400E-B819-2EA7DB529AAE}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\ExampleConfig\Config.ini = Auxiliary\ExampleConfig\Config.ini
-		Auxiliary\ExampleConfig\Hosts.ini = Auxiliary\ExampleConfig\Hosts.ini
-		Auxiliary\ExampleConfig\IPFilter.ini = Auxiliary\ExampleConfig\IPFilter.ini
-		Auxiliary\ExampleConfig\Pcap_DNSProxy.service = Auxiliary\ExampleConfig\Pcap_DNSProxy.service
-		Auxiliary\ExampleConfig\pcap_dnsproxy.service.plist = Auxiliary\ExampleConfig\pcap_dnsproxy.service.plist
-		Auxiliary\ExampleConfig\PcapDNSProxyService = Auxiliary\ExampleConfig\PcapDNSProxyService
-		Auxiliary\ExampleConfig\Routing.txt = Auxiliary\ExampleConfig\Routing.txt
-		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
-		Auxiliary\ExampleConfig\WhiteList.txt = Auxiliary\ExampleConfig\WhiteList.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{4998748C-219A-49EF-BA88-5CFAAF3BEC97}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Scripts\CMake_Build.sh = Auxiliary\Scripts\CMake_Build.sh
-		Auxiliary\Scripts\Linux_Install.Systemd.sh = Auxiliary\Scripts\Linux_Install.Systemd.sh
-		Auxiliary\Scripts\Linux_Install.SysV.sh = Auxiliary\Scripts\Linux_Install.SysV.sh
-		Auxiliary\Scripts\Linux_Uninstall.Systemd.sh = Auxiliary\Scripts\Linux_Uninstall.Systemd.sh
-		Auxiliary\Scripts\Linux_Uninstall.SysV.sh = Auxiliary\Scripts\Linux_Uninstall.SysV.sh
-		Auxiliary\Scripts\macOS_Install.sh = Auxiliary\Scripts\macOS_Install.sh
-		Auxiliary\Scripts\macOS_Uninstall.sh = Auxiliary\Scripts\macOS_Uninstall.sh
-		Auxiliary\Scripts\Update_Routing.sh = Auxiliary\Scripts\Update_Routing.sh
-		Auxiliary\Scripts\Update_WhiteList.sh = Auxiliary\Scripts\Update_WhiteList.sh
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{5F168452-68EB-45A8-995F-9897E161545E}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{6DAEC5F3-28DD-4A68-8093-FB4883C5580A}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Tools\Update_Routing\Log_Lib = Auxiliary\Tools\Update_Routing\Log_Lib
-		Auxiliary\Tools\Update_Routing\ReadMe_Hans.md = Auxiliary\Tools\Update_Routing\ReadMe_Hans.md
-		Auxiliary\Tools\Update_Routing\ReadMe_Hant.md = Auxiliary\Tools\Update_Routing\ReadMe_Hant.md
-		Auxiliary\Tools\Update_Routing\Update.bat = Auxiliary\Tools\Update_Routing\Update.bat
-		Auxiliary\Tools\Update_Routing\Update_Big5.bat = Auxiliary\Tools\Update_Routing\Update_Big5.bat
-		Auxiliary\Tools\Update_Routing\Update_GB2312.bat = Auxiliary\Tools\Update_Routing\Update_GB2312.bat
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{A495709C-E95F-4F60-B9B2-0976AB560420}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat = Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Markdown", "Markdown", "{410393B1-2930-4827-85EE-E0C6208E7B8D}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Markdown\.gitattributes = Auxiliary\Markdown\.gitattributes
-		Auxiliary\Markdown\ISSUE_TEMPLATE.md = Auxiliary\Markdown\ISSUE_TEMPLATE.md
-		Auxiliary\Markdown\LICENSE = Auxiliary\Markdown\LICENSE
-		Auxiliary\Markdown\README.md = Auxiliary\Markdown\README.md
-		Auxiliary\Markdown\README.zh-Hans.md = Auxiliary\Markdown\README.zh-Hans.md
-		Auxiliary\Markdown\README.zh-Hant.md = Auxiliary\Markdown\README.zh-Hant.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibEvent", "LibEvent", "{9FA091B6-BA72-4292-8EEA-3089E15C06D5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibEvent", "LibEvent", "{4DD36304-2C38-4DBD-86E1-43D37A6F34CF}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\LibEvent\LibEvent_Core_macOS.a = Dependency\LibEvent\LibEvent_Core_macOS.a
 		Dependency\LibEvent\LibEvent_Core_x64.lib = Dependency\LibEvent\LibEvent_Core_x64.lib
@@ -111,227 +21,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibEvent", "LibEvent", "{9F
 		Dependency\LibEvent\LibEvent_Extra_x64.lib = Dependency\LibEvent\LibEvent_Extra_x64.lib
 		Dependency\LibEvent\LibEvent_Extra_x86.lib = Dependency\LibEvent\LibEvent_Extra_x86.lib
 		Dependency\LibEvent\LibEvent_macOS.a = Dependency\LibEvent\LibEvent_macOS.a
+		Dependency\LibEvent\LibEvent_OpenSSL_macOS.a = Dependency\LibEvent\LibEvent_OpenSSL_macOS.a
+		Dependency\LibEvent\LibEvent_Pthreads_macOS.a = Dependency\LibEvent\LibEvent_Pthreads_macOS.a
 		Dependency\LibEvent\LibEvent_x64.lib = Dependency\LibEvent\LibEvent_x64.lib
 		Dependency\LibEvent\LibEvent_x86.lib = Dependency\LibEvent\LibEvent_x86.lib
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{6E9F5BD5-EBDE-4670-8485-437A7D6DC8FA}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\WinPcap\LibPacket.a = Dependency\WinPcap\LibPacket.a
-		Dependency\WinPcap\LibPcap.a = Dependency\WinPcap\LibPcap.a
-		Dependency\WinPcap\LibWPCAP.a = Dependency\WinPcap\LibWPCAP.a
-		Dependency\WinPcap\Packet_x64.lib = Dependency\WinPcap\Packet_x64.lib
-		Dependency\WinPcap\Packet_x86.lib = Dependency\WinPcap\Packet_x86.lib
-		Dependency\WinPcap\WPCAP_x64.lib = Dependency\WinPcap\WPCAP_x64.lib
-		Dependency\WinPcap\WPCAP_x86.lib = Dependency\WinPcap\WPCAP_x86.lib
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{1FEA0844-1EFE-4FC1-83BA-9BD7282EBD88}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\WinPcap\Include\bittypes.h = Dependency\WinPcap\Include\bittypes.h
-		Dependency\WinPcap\Include\ip6_misc.h = Dependency\WinPcap\Include\ip6_misc.h
-		Dependency\WinPcap\Include\Packet32.h = Dependency\WinPcap\Include\Packet32.h
-		Dependency\WinPcap\Include\pcap-bpf.h = Dependency\WinPcap\Include\pcap-bpf.h
-		Dependency\WinPcap\Include\pcap-namedb.h = Dependency\WinPcap\Include\pcap-namedb.h
-		Dependency\WinPcap\Include\pcap-stdinc.h = Dependency\WinPcap\Include\pcap-stdinc.h
-		Dependency\WinPcap\Include\pcap.h = Dependency\WinPcap\Include\pcap.h
-		Dependency\WinPcap\Include\remote-ext.h = Dependency\WinPcap\Include\remote-ext.h
-		Dependency\WinPcap\Include\Win32-Extensions.h = Dependency\WinPcap\Include\Win32-Extensions.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{4D6A7FCD-5A9F-4D7E-943A-0F727E553078}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\WinPcap\Include\pcap\bluetooth.h = Dependency\WinPcap\Include\pcap\bluetooth.h
-		Dependency\WinPcap\Include\pcap\bpf.h = Dependency\WinPcap\Include\pcap\bpf.h
-		Dependency\WinPcap\Include\pcap\namedb.h = Dependency\WinPcap\Include\pcap\namedb.h
-		Dependency\WinPcap\Include\pcap\pcap.h = Dependency\WinPcap\Include\pcap\pcap.h
-		Dependency\WinPcap\Include\pcap\sll.h = Dependency\WinPcap\Include\pcap\sll.h
-		Dependency\WinPcap\Include\pcap\usb.h = Dependency\WinPcap\Include\pcap\usb.h
-		Dependency\WinPcap\Include\pcap\vlan.h = Dependency\WinPcap\Include\pcap\vlan.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{FB064069-3869-4E5C-AA4A-8989DE151164}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\LibSodium\LibSodium_macOS.a = Dependency\LibSodium\LibSodium_macOS.a
-		Dependency\LibSodium\LibSodium_x64.lib = Dependency\LibSodium\LibSodium_x64.lib
-		Dependency\LibSodium\LibSodium_x86.lib = Dependency\LibSodium\LibSodium_x86.lib
-		Dependency\LibSodium\LibSodium_XP.lib = Dependency\LibSodium\LibSodium_XP.lib
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{A38A73A8-7D10-49F0-BD77-30AC6781256D}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\OpenSSL\openssl\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\openssl\__DECC_INCLUDE_EPILOGUE.H
-		Dependency\OpenSSL\openssl\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\openssl\__DECC_INCLUDE_PROLOGUE.H
-		Dependency\OpenSSL\openssl\aes.h = Dependency\OpenSSL\openssl\aes.h
-		Dependency\OpenSSL\openssl\asn1.h = Dependency\OpenSSL\openssl\asn1.h
-		Dependency\OpenSSL\openssl\asn1_mac.h = Dependency\OpenSSL\openssl\asn1_mac.h
-		Dependency\OpenSSL\openssl\asn1err.h = Dependency\OpenSSL\openssl\asn1err.h
-		Dependency\OpenSSL\openssl\asn1t.h = Dependency\OpenSSL\openssl\asn1t.h
-		Dependency\OpenSSL\openssl\async.h = Dependency\OpenSSL\openssl\async.h
-		Dependency\OpenSSL\openssl\asyncerr.h = Dependency\OpenSSL\openssl\asyncerr.h
-		Dependency\OpenSSL\openssl\bio.h = Dependency\OpenSSL\openssl\bio.h
-		Dependency\OpenSSL\openssl\bioerr.h = Dependency\OpenSSL\openssl\bioerr.h
-		Dependency\OpenSSL\openssl\blowfish.h = Dependency\OpenSSL\openssl\blowfish.h
-		Dependency\OpenSSL\openssl\bn.h = Dependency\OpenSSL\openssl\bn.h
-		Dependency\OpenSSL\openssl\bnerr.h = Dependency\OpenSSL\openssl\bnerr.h
-		Dependency\OpenSSL\openssl\buffer.h = Dependency\OpenSSL\openssl\buffer.h
-		Dependency\OpenSSL\openssl\buffererr.h = Dependency\OpenSSL\openssl\buffererr.h
-		Dependency\OpenSSL\openssl\camellia.h = Dependency\OpenSSL\openssl\camellia.h
-		Dependency\OpenSSL\openssl\cast.h = Dependency\OpenSSL\openssl\cast.h
-		Dependency\OpenSSL\openssl\cmac.h = Dependency\OpenSSL\openssl\cmac.h
-		Dependency\OpenSSL\openssl\cms.h = Dependency\OpenSSL\openssl\cms.h
-		Dependency\OpenSSL\openssl\cmserr.h = Dependency\OpenSSL\openssl\cmserr.h
-		Dependency\OpenSSL\openssl\comp.h = Dependency\OpenSSL\openssl\comp.h
-		Dependency\OpenSSL\openssl\comperr.h = Dependency\OpenSSL\openssl\comperr.h
-		Dependency\OpenSSL\openssl\conf.h = Dependency\OpenSSL\openssl\conf.h
-		Dependency\OpenSSL\openssl\conf_api.h = Dependency\OpenSSL\openssl\conf_api.h
-		Dependency\OpenSSL\openssl\conferr.h = Dependency\OpenSSL\openssl\conferr.h
-		Dependency\OpenSSL\openssl\crypto.h = Dependency\OpenSSL\openssl\crypto.h
-		Dependency\OpenSSL\openssl\cryptoerr.h = Dependency\OpenSSL\openssl\cryptoerr.h
-		Dependency\OpenSSL\openssl\ct.h = Dependency\OpenSSL\openssl\ct.h
-		Dependency\OpenSSL\openssl\cterr.h = Dependency\OpenSSL\openssl\cterr.h
-		Dependency\OpenSSL\openssl\des.h = Dependency\OpenSSL\openssl\des.h
-		Dependency\OpenSSL\openssl\dh.h = Dependency\OpenSSL\openssl\dh.h
-		Dependency\OpenSSL\openssl\dherr.h = Dependency\OpenSSL\openssl\dherr.h
-		Dependency\OpenSSL\openssl\dsa.h = Dependency\OpenSSL\openssl\dsa.h
-		Dependency\OpenSSL\openssl\dsaerr.h = Dependency\OpenSSL\openssl\dsaerr.h
-		Dependency\OpenSSL\openssl\dtls1.h = Dependency\OpenSSL\openssl\dtls1.h
-		Dependency\OpenSSL\openssl\e_os2.h = Dependency\OpenSSL\openssl\e_os2.h
-		Dependency\OpenSSL\openssl\ebcdic.h = Dependency\OpenSSL\openssl\ebcdic.h
-		Dependency\OpenSSL\openssl\ec.h = Dependency\OpenSSL\openssl\ec.h
-		Dependency\OpenSSL\openssl\ecdh.h = Dependency\OpenSSL\openssl\ecdh.h
-		Dependency\OpenSSL\openssl\ecdsa.h = Dependency\OpenSSL\openssl\ecdsa.h
-		Dependency\OpenSSL\openssl\ecerr.h = Dependency\OpenSSL\openssl\ecerr.h
-		Dependency\OpenSSL\openssl\engine.h = Dependency\OpenSSL\openssl\engine.h
-		Dependency\OpenSSL\openssl\engineerr.h = Dependency\OpenSSL\openssl\engineerr.h
-		Dependency\OpenSSL\openssl\err.h = Dependency\OpenSSL\openssl\err.h
-		Dependency\OpenSSL\openssl\evp.h = Dependency\OpenSSL\openssl\evp.h
-		Dependency\OpenSSL\openssl\evperr.h = Dependency\OpenSSL\openssl\evperr.h
-		Dependency\OpenSSL\openssl\hmac.h = Dependency\OpenSSL\openssl\hmac.h
-		Dependency\OpenSSL\openssl\idea.h = Dependency\OpenSSL\openssl\idea.h
-		Dependency\OpenSSL\openssl\kdf.h = Dependency\OpenSSL\openssl\kdf.h
-		Dependency\OpenSSL\openssl\kdferr.h = Dependency\OpenSSL\openssl\kdferr.h
-		Dependency\OpenSSL\openssl\lhash.h = Dependency\OpenSSL\openssl\lhash.h
-		Dependency\OpenSSL\openssl\md2.h = Dependency\OpenSSL\openssl\md2.h
-		Dependency\OpenSSL\openssl\md4.h = Dependency\OpenSSL\openssl\md4.h
-		Dependency\OpenSSL\openssl\md5.h = Dependency\OpenSSL\openssl\md5.h
-		Dependency\OpenSSL\openssl\mdc2.h = Dependency\OpenSSL\openssl\mdc2.h
-		Dependency\OpenSSL\openssl\modes.h = Dependency\OpenSSL\openssl\modes.h
-		Dependency\OpenSSL\openssl\obj_mac.h = Dependency\OpenSSL\openssl\obj_mac.h
-		Dependency\OpenSSL\openssl\objects.h = Dependency\OpenSSL\openssl\objects.h
-		Dependency\OpenSSL\openssl\objectserr.h = Dependency\OpenSSL\openssl\objectserr.h
-		Dependency\OpenSSL\openssl\ocsp.h = Dependency\OpenSSL\openssl\ocsp.h
-		Dependency\OpenSSL\openssl\ocsperr.h = Dependency\OpenSSL\openssl\ocsperr.h
-		Dependency\OpenSSL\openssl\opensslconf.h = Dependency\OpenSSL\openssl\opensslconf.h
-		Dependency\OpenSSL\openssl\opensslv.h = Dependency\OpenSSL\openssl\opensslv.h
-		Dependency\OpenSSL\openssl\ossl_typ.h = Dependency\OpenSSL\openssl\ossl_typ.h
-		Dependency\OpenSSL\openssl\pem.h = Dependency\OpenSSL\openssl\pem.h
-		Dependency\OpenSSL\openssl\pem2.h = Dependency\OpenSSL\openssl\pem2.h
-		Dependency\OpenSSL\openssl\pemerr.h = Dependency\OpenSSL\openssl\pemerr.h
-		Dependency\OpenSSL\openssl\pkcs12.h = Dependency\OpenSSL\openssl\pkcs12.h
-		Dependency\OpenSSL\openssl\pkcs12err.h = Dependency\OpenSSL\openssl\pkcs12err.h
-		Dependency\OpenSSL\openssl\pkcs7.h = Dependency\OpenSSL\openssl\pkcs7.h
-		Dependency\OpenSSL\openssl\pkcs7err.h = Dependency\OpenSSL\openssl\pkcs7err.h
-		Dependency\OpenSSL\openssl\rand.h = Dependency\OpenSSL\openssl\rand.h
-		Dependency\OpenSSL\openssl\rand_drbg.h = Dependency\OpenSSL\openssl\rand_drbg.h
-		Dependency\OpenSSL\openssl\randerr.h = Dependency\OpenSSL\openssl\randerr.h
-		Dependency\OpenSSL\openssl\rc2.h = Dependency\OpenSSL\openssl\rc2.h
-		Dependency\OpenSSL\openssl\rc4.h = Dependency\OpenSSL\openssl\rc4.h
-		Dependency\OpenSSL\openssl\rc5.h = Dependency\OpenSSL\openssl\rc5.h
-		Dependency\OpenSSL\openssl\ripemd.h = Dependency\OpenSSL\openssl\ripemd.h
-		Dependency\OpenSSL\openssl\rsa.h = Dependency\OpenSSL\openssl\rsa.h
-		Dependency\OpenSSL\openssl\rsaerr.h = Dependency\OpenSSL\openssl\rsaerr.h
-		Dependency\OpenSSL\openssl\safestack.h = Dependency\OpenSSL\openssl\safestack.h
-		Dependency\OpenSSL\openssl\seed.h = Dependency\OpenSSL\openssl\seed.h
-		Dependency\OpenSSL\openssl\sha.h = Dependency\OpenSSL\openssl\sha.h
-		Dependency\OpenSSL\openssl\srp.h = Dependency\OpenSSL\openssl\srp.h
-		Dependency\OpenSSL\openssl\srtp.h = Dependency\OpenSSL\openssl\srtp.h
-		Dependency\OpenSSL\openssl\ssl.h = Dependency\OpenSSL\openssl\ssl.h
-		Dependency\OpenSSL\openssl\ssl2.h = Dependency\OpenSSL\openssl\ssl2.h
-		Dependency\OpenSSL\openssl\ssl3.h = Dependency\OpenSSL\openssl\ssl3.h
-		Dependency\OpenSSL\openssl\sslerr.h = Dependency\OpenSSL\openssl\sslerr.h
-		Dependency\OpenSSL\openssl\stack.h = Dependency\OpenSSL\openssl\stack.h
-		Dependency\OpenSSL\openssl\store.h = Dependency\OpenSSL\openssl\store.h
-		Dependency\OpenSSL\openssl\storeerr.h = Dependency\OpenSSL\openssl\storeerr.h
-		Dependency\OpenSSL\openssl\symhacks.h = Dependency\OpenSSL\openssl\symhacks.h
-		Dependency\OpenSSL\openssl\tls1.h = Dependency\OpenSSL\openssl\tls1.h
-		Dependency\OpenSSL\openssl\ts.h = Dependency\OpenSSL\openssl\ts.h
-		Dependency\OpenSSL\openssl\tserr.h = Dependency\OpenSSL\openssl\tserr.h
-		Dependency\OpenSSL\openssl\txt_db.h = Dependency\OpenSSL\openssl\txt_db.h
-		Dependency\OpenSSL\openssl\ui.h = Dependency\OpenSSL\openssl\ui.h
-		Dependency\OpenSSL\openssl\uierr.h = Dependency\OpenSSL\openssl\uierr.h
-		Dependency\OpenSSL\openssl\whrlpool.h = Dependency\OpenSSL\openssl\whrlpool.h
-		Dependency\OpenSSL\openssl\x509.h = Dependency\OpenSSL\openssl\x509.h
-		Dependency\OpenSSL\openssl\x509_vfy.h = Dependency\OpenSSL\openssl\x509_vfy.h
-		Dependency\OpenSSL\openssl\x509err.h = Dependency\OpenSSL\openssl\x509err.h
-		Dependency\OpenSSL\openssl\x509v3.h = Dependency\OpenSSL\openssl\x509v3.h
-		Dependency\OpenSSL\openssl\x509v3err.h = Dependency\OpenSSL\openssl\x509v3err.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{4BF13917-8BAA-46F7-A7A8-A3B85520503B}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\OpenSSL\internal\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\internal\__DECC_INCLUDE_EPILOGUE.H
-		Dependency\OpenSSL\internal\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\internal\__DECC_INCLUDE_PROLOGUE.H
-		Dependency\OpenSSL\internal\bio.h = Dependency\OpenSSL\internal\bio.h
-		Dependency\OpenSSL\internal\comp.h = Dependency\OpenSSL\internal\comp.h
-		Dependency\OpenSSL\internal\conf.h = Dependency\OpenSSL\internal\conf.h
-		Dependency\OpenSSL\internal\constant_time_locl.h = Dependency\OpenSSL\internal\constant_time_locl.h
-		Dependency\OpenSSL\internal\cryptlib.h = Dependency\OpenSSL\internal\cryptlib.h
-		Dependency\OpenSSL\internal\dane.h = Dependency\OpenSSL\internal\dane.h
-		Dependency\OpenSSL\internal\dso.h = Dependency\OpenSSL\internal\dso.h
-		Dependency\OpenSSL\internal\dsoerr.h = Dependency\OpenSSL\internal\dsoerr.h
-		Dependency\OpenSSL\internal\err.h = Dependency\OpenSSL\internal\err.h
-		Dependency\OpenSSL\internal\nelem.h = Dependency\OpenSSL\internal\nelem.h
-		Dependency\OpenSSL\internal\numbers.h = Dependency\OpenSSL\internal\numbers.h
-		Dependency\OpenSSL\internal\o_dir.h = Dependency\OpenSSL\internal\o_dir.h
-		Dependency\OpenSSL\internal\o_str.h = Dependency\OpenSSL\internal\o_str.h
-		Dependency\OpenSSL\internal\refcount.h = Dependency\OpenSSL\internal\refcount.h
-		Dependency\OpenSSL\internal\sockets.h = Dependency\OpenSSL\internal\sockets.h
-		Dependency\OpenSSL\internal\sslconf.h = Dependency\OpenSSL\internal\sslconf.h
-		Dependency\OpenSSL\internal\thread_once.h = Dependency\OpenSSL\internal\thread_once.h
-		Dependency\OpenSSL\internal\tsan_assist.h = Dependency\OpenSSL\internal\tsan_assist.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_Windows", "Include_Windows", "{88237563-848A-4C2E-8B62-76C60642D12F}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\LibEvent\Include_Windows\evdns.h = Dependency\LibEvent\Include_Windows\evdns.h
-		Dependency\LibEvent\Include_Windows\event.h = Dependency\LibEvent\Include_Windows\event.h
-		Dependency\LibEvent\Include_Windows\evhttp.h = Dependency\LibEvent\Include_Windows\evhttp.h
-		Dependency\LibEvent\Include_Windows\evrpc.h = Dependency\LibEvent\Include_Windows\evrpc.h
-		Dependency\LibEvent\Include_Windows\evutil.h = Dependency\LibEvent\Include_Windows\evutil.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{B1E7DC53-833A-4458-9295-7BA66C5AFA06}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\LibEvent\Include_Windows\event2\buffer.h = Dependency\LibEvent\Include_Windows\event2\buffer.h
-		Dependency\LibEvent\Include_Windows\event2\buffer_compat.h = Dependency\LibEvent\Include_Windows\event2\buffer_compat.h
-		Dependency\LibEvent\Include_Windows\event2\bufferevent.h = Dependency\LibEvent\Include_Windows\event2\bufferevent.h
-		Dependency\LibEvent\Include_Windows\event2\bufferevent_compat.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_compat.h
-		Dependency\LibEvent\Include_Windows\event2\bufferevent_ssl.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_ssl.h
-		Dependency\LibEvent\Include_Windows\event2\bufferevent_struct.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_struct.h
-		Dependency\LibEvent\Include_Windows\event2\dns.h = Dependency\LibEvent\Include_Windows\event2\dns.h
-		Dependency\LibEvent\Include_Windows\event2\dns_compat.h = Dependency\LibEvent\Include_Windows\event2\dns_compat.h
-		Dependency\LibEvent\Include_Windows\event2\dns_struct.h = Dependency\LibEvent\Include_Windows\event2\dns_struct.h
-		Dependency\LibEvent\Include_Windows\event2\event-config.h = Dependency\LibEvent\Include_Windows\event2\event-config.h
-		Dependency\LibEvent\Include_Windows\event2\event.h = Dependency\LibEvent\Include_Windows\event2\event.h
-		Dependency\LibEvent\Include_Windows\event2\event_compat.h = Dependency\LibEvent\Include_Windows\event2\event_compat.h
-		Dependency\LibEvent\Include_Windows\event2\event_struct.h = Dependency\LibEvent\Include_Windows\event2\event_struct.h
-		Dependency\LibEvent\Include_Windows\event2\http.h = Dependency\LibEvent\Include_Windows\event2\http.h
-		Dependency\LibEvent\Include_Windows\event2\http_compat.h = Dependency\LibEvent\Include_Windows\event2\http_compat.h
-		Dependency\LibEvent\Include_Windows\event2\http_struct.h = Dependency\LibEvent\Include_Windows\event2\http_struct.h
-		Dependency\LibEvent\Include_Windows\event2\keyvalq_struct.h = Dependency\LibEvent\Include_Windows\event2\keyvalq_struct.h
-		Dependency\LibEvent\Include_Windows\event2\listener.h = Dependency\LibEvent\Include_Windows\event2\listener.h
-		Dependency\LibEvent\Include_Windows\event2\rpc.h = Dependency\LibEvent\Include_Windows\event2\rpc.h
-		Dependency\LibEvent\Include_Windows\event2\rpc_compat.h = Dependency\LibEvent\Include_Windows\event2\rpc_compat.h
-		Dependency\LibEvent\Include_Windows\event2\rpc_struct.h = Dependency\LibEvent\Include_Windows\event2\rpc_struct.h
-		Dependency\LibEvent\Include_Windows\event2\tag.h = Dependency\LibEvent\Include_Windows\event2\tag.h
-		Dependency\LibEvent\Include_Windows\event2\tag_compat.h = Dependency\LibEvent\Include_Windows\event2\tag_compat.h
-		Dependency\LibEvent\Include_Windows\event2\thread.h = Dependency\LibEvent\Include_Windows\event2\thread.h
-		Dependency\LibEvent\Include_Windows\event2\util.h = Dependency\LibEvent\Include_Windows\event2\util.h
-		Dependency\LibEvent\Include_Windows\event2\visibility.h = Dependency\LibEvent\Include_Windows\event2\visibility.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_macOS", "{AD9BE07E-5CA6-49C9-821F-256179BF86F4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_macOS", "{A728037D-42EF-46E5-96E2-9ADA30DCF38C}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\LibEvent\Include_macOS\evdns.h = Dependency\LibEvent\Include_macOS\evdns.h
 		Dependency\LibEvent\Include_macOS\event.h = Dependency\LibEvent\Include_macOS\event.h
@@ -340,7 +36,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_ma
 		Dependency\LibEvent\Include_macOS\evutil.h = Dependency\LibEvent\Include_macOS\evutil.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{042801A1-9CA4-4389-9994-A2F84C2E319F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_Windows", "Include_Windows", "{111A8C4A-468F-44A7-9E33-15E028D79B28}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibEvent\Include_Windows\evdns.h = Dependency\LibEvent\Include_Windows\evdns.h
+		Dependency\LibEvent\Include_Windows\event.h = Dependency\LibEvent\Include_Windows\event.h
+		Dependency\LibEvent\Include_Windows\evhttp.h = Dependency\LibEvent\Include_Windows\evhttp.h
+		Dependency\LibEvent\Include_Windows\evrpc.h = Dependency\LibEvent\Include_Windows\evrpc.h
+		Dependency\LibEvent\Include_Windows\evutil.h = Dependency\LibEvent\Include_Windows\evutil.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{4707D302-E293-46FF-8D27-C1040182AE43}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\LibEvent\Include_macOS\event2\buffer.h = Dependency\LibEvent\Include_macOS\event2\buffer.h
 		Dependency\LibEvent\Include_macOS\event2\buffer_compat.h = Dependency\LibEvent\Include_macOS\event2\buffer_compat.h
@@ -370,7 +75,44 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{042801
 		Dependency\LibEvent\Include_macOS\event2\visibility.h = Dependency\LibEvent\Include_macOS\event2\visibility.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_macOS", "{B5640794-E053-44FF-B75B-BBE106FC261B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{FECD5CA0-80E4-4C9C-ACA9-28AAD370716B}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibEvent\Include_Windows\event2\buffer.h = Dependency\LibEvent\Include_Windows\event2\buffer.h
+		Dependency\LibEvent\Include_Windows\event2\buffer_compat.h = Dependency\LibEvent\Include_Windows\event2\buffer_compat.h
+		Dependency\LibEvent\Include_Windows\event2\bufferevent.h = Dependency\LibEvent\Include_Windows\event2\bufferevent.h
+		Dependency\LibEvent\Include_Windows\event2\bufferevent_compat.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_compat.h
+		Dependency\LibEvent\Include_Windows\event2\bufferevent_ssl.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_ssl.h
+		Dependency\LibEvent\Include_Windows\event2\bufferevent_struct.h = Dependency\LibEvent\Include_Windows\event2\bufferevent_struct.h
+		Dependency\LibEvent\Include_Windows\event2\dns.h = Dependency\LibEvent\Include_Windows\event2\dns.h
+		Dependency\LibEvent\Include_Windows\event2\dns_compat.h = Dependency\LibEvent\Include_Windows\event2\dns_compat.h
+		Dependency\LibEvent\Include_Windows\event2\dns_struct.h = Dependency\LibEvent\Include_Windows\event2\dns_struct.h
+		Dependency\LibEvent\Include_Windows\event2\event-config.h = Dependency\LibEvent\Include_Windows\event2\event-config.h
+		Dependency\LibEvent\Include_Windows\event2\event.h = Dependency\LibEvent\Include_Windows\event2\event.h
+		Dependency\LibEvent\Include_Windows\event2\event_compat.h = Dependency\LibEvent\Include_Windows\event2\event_compat.h
+		Dependency\LibEvent\Include_Windows\event2\event_struct.h = Dependency\LibEvent\Include_Windows\event2\event_struct.h
+		Dependency\LibEvent\Include_Windows\event2\http.h = Dependency\LibEvent\Include_Windows\event2\http.h
+		Dependency\LibEvent\Include_Windows\event2\http_compat.h = Dependency\LibEvent\Include_Windows\event2\http_compat.h
+		Dependency\LibEvent\Include_Windows\event2\http_struct.h = Dependency\LibEvent\Include_Windows\event2\http_struct.h
+		Dependency\LibEvent\Include_Windows\event2\keyvalq_struct.h = Dependency\LibEvent\Include_Windows\event2\keyvalq_struct.h
+		Dependency\LibEvent\Include_Windows\event2\listener.h = Dependency\LibEvent\Include_Windows\event2\listener.h
+		Dependency\LibEvent\Include_Windows\event2\rpc.h = Dependency\LibEvent\Include_Windows\event2\rpc.h
+		Dependency\LibEvent\Include_Windows\event2\rpc_compat.h = Dependency\LibEvent\Include_Windows\event2\rpc_compat.h
+		Dependency\LibEvent\Include_Windows\event2\rpc_struct.h = Dependency\LibEvent\Include_Windows\event2\rpc_struct.h
+		Dependency\LibEvent\Include_Windows\event2\tag.h = Dependency\LibEvent\Include_Windows\event2\tag.h
+		Dependency\LibEvent\Include_Windows\event2\tag_compat.h = Dependency\LibEvent\Include_Windows\event2\tag_compat.h
+		Dependency\LibEvent\Include_Windows\event2\thread.h = Dependency\LibEvent\Include_Windows\event2\thread.h
+		Dependency\LibEvent\Include_Windows\event2\util.h = Dependency\LibEvent\Include_Windows\event2\util.h
+		Dependency\LibEvent\Include_Windows\event2\visibility.h = Dependency\LibEvent\Include_Windows\event2\visibility.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{ABE55552-7B8A-4D92-89ED-2A1398AA20B1}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\LibSodium_macOS.a = Dependency\LibSodium\LibSodium_macOS.a
+		Dependency\LibSodium\LibSodium_x64.lib = Dependency\LibSodium\LibSodium_x64.lib
+		Dependency\LibSodium\LibSodium_x86.lib = Dependency\LibSodium\LibSodium_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_macOS", "{4D197AA5-DBB8-482C-9028-5E8181936371}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\LibSodium\Include_macOS\core.h = Dependency\LibSodium\Include_macOS\core.h
 		Dependency\LibSodium\Include_macOS\crypto_aead_aes256gcm.h = Dependency\LibSodium\Include_macOS\crypto_aead_aes256gcm.h
@@ -436,18 +178,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_macOS", "Include_ma
 		Dependency\LibSodium\Include_macOS\version.h = Dependency\LibSodium\Include_macOS\version.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{03E92DE1-CFB6-4DC5-A9AE-5E4C9B80A7AC}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\LibSodium\Include_macOS\private\common.h = Dependency\LibSodium\Include_macOS\private\common.h
-		Dependency\LibSodium\Include_macOS\private\ed25519_ref10.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10.h
-		Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_25_5.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_25_5.h
-		Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_51.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_51.h
-		Dependency\LibSodium\Include_macOS\private\implementations.h = Dependency\LibSodium\Include_macOS\private\implementations.h
-		Dependency\LibSodium\Include_macOS\private\mutex.h = Dependency\LibSodium\Include_macOS\private\mutex.h
-		Dependency\LibSodium\Include_macOS\private\sse2_64_32.h = Dependency\LibSodium\Include_macOS\private\sse2_64_32.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_Windows", "Include_Windows", "{85F8EE8B-D531-471B-BC5B-4177C17484C6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_Windows", "Include_Windows", "{0544F017-08B3-4A9B-A6AB-B5231A9AA09F}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\LibSodium\Include_Windows\core.h = Dependency\LibSodium\Include_Windows\core.h
 		Dependency\LibSodium\Include_Windows\crypto_aead_aes256gcm.h = Dependency\LibSodium\Include_Windows\crypto_aead_aes256gcm.h
@@ -513,8 +244,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include_Windows", "Include_
 		Dependency\LibSodium\Include_Windows\version.h = Dependency\LibSodium\Include_Windows\version.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{7552C38D-C4F8-498A-8500-031F987D735E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{B6D1EBD9-9E67-44D0-947E-D7BE96D21B3E}"
 	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\Include_macOS\private\common.h = Dependency\LibSodium\Include_macOS\private\common.h
+		Dependency\LibSodium\Include_macOS\private\ed25519_ref10.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10.h
+		Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_25_5.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_25_5.h
+		Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_51.h = Dependency\LibSodium\Include_macOS\private\ed25519_ref10_fe_51.h
+		Dependency\LibSodium\Include_macOS\private\implementations.h = Dependency\LibSodium\Include_macOS\private\implementations.h
+		Dependency\LibSodium\Include_macOS\private\mutex.h = Dependency\LibSodium\Include_macOS\private\mutex.h
+		Dependency\LibSodium\Include_macOS\private\sse2_64_32.h = Dependency\LibSodium\Include_macOS\private\sse2_64_32.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{7C45985B-0FE7-483D-B790-91EBBC22B630}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\Include_Windows\private\chacha20_ietf_ext.h = Dependency\LibSodium\Include_Windows\private\chacha20_ietf_ext.h
 		Dependency\LibSodium\Include_Windows\private\common.h = Dependency\LibSodium\Include_Windows\private\common.h
 		Dependency\LibSodium\Include_Windows\private\ed25519_ref10.h = Dependency\LibSodium\Include_Windows\private\ed25519_ref10.h
 		Dependency\LibSodium\Include_Windows\private\ed25519_ref10_fe_25_5.h = Dependency\LibSodium\Include_Windows\private\ed25519_ref10_fe_25_5.h
@@ -524,12 +267,191 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{7552
 		Dependency\LibSodium\Include_Windows\private\sse2_64_32.h = Dependency\LibSodium\Include_Windows\private\sse2_64_32.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenSSL", "OpenSSL", "{C87764FC-B3CE-4464-9CA2-389DD7C3E3CC}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\LibCrypto_macOS.a = Dependency\OpenSSL\LibCrypto_macOS.a
+		Dependency\OpenSSL\LibSSL_macOS.a = Dependency\OpenSSL\LibSSL_macOS.a
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{FF4AA411-F158-450E-B222-AC0D365FA443}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_EPILOGUE.H
+		Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_PROLOGUE.H
+		Dependency\OpenSSL\Include\openssl\aes.h = Dependency\OpenSSL\Include\openssl\aes.h
+		Dependency\OpenSSL\Include\openssl\asn1.h = Dependency\OpenSSL\Include\openssl\asn1.h
+		Dependency\OpenSSL\Include\openssl\asn1_mac.h = Dependency\OpenSSL\Include\openssl\asn1_mac.h
+		Dependency\OpenSSL\Include\openssl\asn1err.h = Dependency\OpenSSL\Include\openssl\asn1err.h
+		Dependency\OpenSSL\Include\openssl\asn1t.h = Dependency\OpenSSL\Include\openssl\asn1t.h
+		Dependency\OpenSSL\Include\openssl\async.h = Dependency\OpenSSL\Include\openssl\async.h
+		Dependency\OpenSSL\Include\openssl\asyncerr.h = Dependency\OpenSSL\Include\openssl\asyncerr.h
+		Dependency\OpenSSL\Include\openssl\bio.h = Dependency\OpenSSL\Include\openssl\bio.h
+		Dependency\OpenSSL\Include\openssl\bioerr.h = Dependency\OpenSSL\Include\openssl\bioerr.h
+		Dependency\OpenSSL\Include\openssl\blowfish.h = Dependency\OpenSSL\Include\openssl\blowfish.h
+		Dependency\OpenSSL\Include\openssl\bn.h = Dependency\OpenSSL\Include\openssl\bn.h
+		Dependency\OpenSSL\Include\openssl\bnerr.h = Dependency\OpenSSL\Include\openssl\bnerr.h
+		Dependency\OpenSSL\Include\openssl\buffer.h = Dependency\OpenSSL\Include\openssl\buffer.h
+		Dependency\OpenSSL\Include\openssl\buffererr.h = Dependency\OpenSSL\Include\openssl\buffererr.h
+		Dependency\OpenSSL\Include\openssl\camellia.h = Dependency\OpenSSL\Include\openssl\camellia.h
+		Dependency\OpenSSL\Include\openssl\cast.h = Dependency\OpenSSL\Include\openssl\cast.h
+		Dependency\OpenSSL\Include\openssl\cmac.h = Dependency\OpenSSL\Include\openssl\cmac.h
+		Dependency\OpenSSL\Include\openssl\cms.h = Dependency\OpenSSL\Include\openssl\cms.h
+		Dependency\OpenSSL\Include\openssl\cmserr.h = Dependency\OpenSSL\Include\openssl\cmserr.h
+		Dependency\OpenSSL\Include\openssl\comp.h = Dependency\OpenSSL\Include\openssl\comp.h
+		Dependency\OpenSSL\Include\openssl\comperr.h = Dependency\OpenSSL\Include\openssl\comperr.h
+		Dependency\OpenSSL\Include\openssl\conf.h = Dependency\OpenSSL\Include\openssl\conf.h
+		Dependency\OpenSSL\Include\openssl\conf_api.h = Dependency\OpenSSL\Include\openssl\conf_api.h
+		Dependency\OpenSSL\Include\openssl\conferr.h = Dependency\OpenSSL\Include\openssl\conferr.h
+		Dependency\OpenSSL\Include\openssl\crypto.h = Dependency\OpenSSL\Include\openssl\crypto.h
+		Dependency\OpenSSL\Include\openssl\cryptoerr.h = Dependency\OpenSSL\Include\openssl\cryptoerr.h
+		Dependency\OpenSSL\Include\openssl\ct.h = Dependency\OpenSSL\Include\openssl\ct.h
+		Dependency\OpenSSL\Include\openssl\cterr.h = Dependency\OpenSSL\Include\openssl\cterr.h
+		Dependency\OpenSSL\Include\openssl\des.h = Dependency\OpenSSL\Include\openssl\des.h
+		Dependency\OpenSSL\Include\openssl\dh.h = Dependency\OpenSSL\Include\openssl\dh.h
+		Dependency\OpenSSL\Include\openssl\dherr.h = Dependency\OpenSSL\Include\openssl\dherr.h
+		Dependency\OpenSSL\Include\openssl\dsa.h = Dependency\OpenSSL\Include\openssl\dsa.h
+		Dependency\OpenSSL\Include\openssl\dsaerr.h = Dependency\OpenSSL\Include\openssl\dsaerr.h
+		Dependency\OpenSSL\Include\openssl\dtls1.h = Dependency\OpenSSL\Include\openssl\dtls1.h
+		Dependency\OpenSSL\Include\openssl\e_os2.h = Dependency\OpenSSL\Include\openssl\e_os2.h
+		Dependency\OpenSSL\Include\openssl\ebcdic.h = Dependency\OpenSSL\Include\openssl\ebcdic.h
+		Dependency\OpenSSL\Include\openssl\ec.h = Dependency\OpenSSL\Include\openssl\ec.h
+		Dependency\OpenSSL\Include\openssl\ecdh.h = Dependency\OpenSSL\Include\openssl\ecdh.h
+		Dependency\OpenSSL\Include\openssl\ecdsa.h = Dependency\OpenSSL\Include\openssl\ecdsa.h
+		Dependency\OpenSSL\Include\openssl\ecerr.h = Dependency\OpenSSL\Include\openssl\ecerr.h
+		Dependency\OpenSSL\Include\openssl\engine.h = Dependency\OpenSSL\Include\openssl\engine.h
+		Dependency\OpenSSL\Include\openssl\engineerr.h = Dependency\OpenSSL\Include\openssl\engineerr.h
+		Dependency\OpenSSL\Include\openssl\err.h = Dependency\OpenSSL\Include\openssl\err.h
+		Dependency\OpenSSL\Include\openssl\evp.h = Dependency\OpenSSL\Include\openssl\evp.h
+		Dependency\OpenSSL\Include\openssl\evperr.h = Dependency\OpenSSL\Include\openssl\evperr.h
+		Dependency\OpenSSL\Include\openssl\hmac.h = Dependency\OpenSSL\Include\openssl\hmac.h
+		Dependency\OpenSSL\Include\openssl\idea.h = Dependency\OpenSSL\Include\openssl\idea.h
+		Dependency\OpenSSL\Include\openssl\kdf.h = Dependency\OpenSSL\Include\openssl\kdf.h
+		Dependency\OpenSSL\Include\openssl\kdferr.h = Dependency\OpenSSL\Include\openssl\kdferr.h
+		Dependency\OpenSSL\Include\openssl\lhash.h = Dependency\OpenSSL\Include\openssl\lhash.h
+		Dependency\OpenSSL\Include\openssl\md2.h = Dependency\OpenSSL\Include\openssl\md2.h
+		Dependency\OpenSSL\Include\openssl\md4.h = Dependency\OpenSSL\Include\openssl\md4.h
+		Dependency\OpenSSL\Include\openssl\md5.h = Dependency\OpenSSL\Include\openssl\md5.h
+		Dependency\OpenSSL\Include\openssl\mdc2.h = Dependency\OpenSSL\Include\openssl\mdc2.h
+		Dependency\OpenSSL\Include\openssl\modes.h = Dependency\OpenSSL\Include\openssl\modes.h
+		Dependency\OpenSSL\Include\openssl\obj_mac.h = Dependency\OpenSSL\Include\openssl\obj_mac.h
+		Dependency\OpenSSL\Include\openssl\objects.h = Dependency\OpenSSL\Include\openssl\objects.h
+		Dependency\OpenSSL\Include\openssl\objectserr.h = Dependency\OpenSSL\Include\openssl\objectserr.h
+		Dependency\OpenSSL\Include\openssl\ocsp.h = Dependency\OpenSSL\Include\openssl\ocsp.h
+		Dependency\OpenSSL\Include\openssl\ocsperr.h = Dependency\OpenSSL\Include\openssl\ocsperr.h
+		Dependency\OpenSSL\Include\openssl\opensslconf.h = Dependency\OpenSSL\Include\openssl\opensslconf.h
+		Dependency\OpenSSL\Include\openssl\opensslv.h = Dependency\OpenSSL\Include\openssl\opensslv.h
+		Dependency\OpenSSL\Include\openssl\ossl_typ.h = Dependency\OpenSSL\Include\openssl\ossl_typ.h
+		Dependency\OpenSSL\Include\openssl\pem.h = Dependency\OpenSSL\Include\openssl\pem.h
+		Dependency\OpenSSL\Include\openssl\pem2.h = Dependency\OpenSSL\Include\openssl\pem2.h
+		Dependency\OpenSSL\Include\openssl\pemerr.h = Dependency\OpenSSL\Include\openssl\pemerr.h
+		Dependency\OpenSSL\Include\openssl\pkcs12.h = Dependency\OpenSSL\Include\openssl\pkcs12.h
+		Dependency\OpenSSL\Include\openssl\pkcs12err.h = Dependency\OpenSSL\Include\openssl\pkcs12err.h
+		Dependency\OpenSSL\Include\openssl\pkcs7.h = Dependency\OpenSSL\Include\openssl\pkcs7.h
+		Dependency\OpenSSL\Include\openssl\pkcs7err.h = Dependency\OpenSSL\Include\openssl\pkcs7err.h
+		Dependency\OpenSSL\Include\openssl\rand.h = Dependency\OpenSSL\Include\openssl\rand.h
+		Dependency\OpenSSL\Include\openssl\rand_drbg.h = Dependency\OpenSSL\Include\openssl\rand_drbg.h
+		Dependency\OpenSSL\Include\openssl\randerr.h = Dependency\OpenSSL\Include\openssl\randerr.h
+		Dependency\OpenSSL\Include\openssl\rc2.h = Dependency\OpenSSL\Include\openssl\rc2.h
+		Dependency\OpenSSL\Include\openssl\rc4.h = Dependency\OpenSSL\Include\openssl\rc4.h
+		Dependency\OpenSSL\Include\openssl\rc5.h = Dependency\OpenSSL\Include\openssl\rc5.h
+		Dependency\OpenSSL\Include\openssl\ripemd.h = Dependency\OpenSSL\Include\openssl\ripemd.h
+		Dependency\OpenSSL\Include\openssl\rsa.h = Dependency\OpenSSL\Include\openssl\rsa.h
+		Dependency\OpenSSL\Include\openssl\rsaerr.h = Dependency\OpenSSL\Include\openssl\rsaerr.h
+		Dependency\OpenSSL\Include\openssl\safestack.h = Dependency\OpenSSL\Include\openssl\safestack.h
+		Dependency\OpenSSL\Include\openssl\seed.h = Dependency\OpenSSL\Include\openssl\seed.h
+		Dependency\OpenSSL\Include\openssl\sha.h = Dependency\OpenSSL\Include\openssl\sha.h
+		Dependency\OpenSSL\Include\openssl\srp.h = Dependency\OpenSSL\Include\openssl\srp.h
+		Dependency\OpenSSL\Include\openssl\srtp.h = Dependency\OpenSSL\Include\openssl\srtp.h
+		Dependency\OpenSSL\Include\openssl\ssl.h = Dependency\OpenSSL\Include\openssl\ssl.h
+		Dependency\OpenSSL\Include\openssl\ssl2.h = Dependency\OpenSSL\Include\openssl\ssl2.h
+		Dependency\OpenSSL\Include\openssl\ssl3.h = Dependency\OpenSSL\Include\openssl\ssl3.h
+		Dependency\OpenSSL\Include\openssl\sslerr.h = Dependency\OpenSSL\Include\openssl\sslerr.h
+		Dependency\OpenSSL\Include\openssl\stack.h = Dependency\OpenSSL\Include\openssl\stack.h
+		Dependency\OpenSSL\Include\openssl\store.h = Dependency\OpenSSL\Include\openssl\store.h
+		Dependency\OpenSSL\Include\openssl\storeerr.h = Dependency\OpenSSL\Include\openssl\storeerr.h
+		Dependency\OpenSSL\Include\openssl\symhacks.h = Dependency\OpenSSL\Include\openssl\symhacks.h
+		Dependency\OpenSSL\Include\openssl\tls1.h = Dependency\OpenSSL\Include\openssl\tls1.h
+		Dependency\OpenSSL\Include\openssl\ts.h = Dependency\OpenSSL\Include\openssl\ts.h
+		Dependency\OpenSSL\Include\openssl\tserr.h = Dependency\OpenSSL\Include\openssl\tserr.h
+		Dependency\OpenSSL\Include\openssl\txt_db.h = Dependency\OpenSSL\Include\openssl\txt_db.h
+		Dependency\OpenSSL\Include\openssl\ui.h = Dependency\OpenSSL\Include\openssl\ui.h
+		Dependency\OpenSSL\Include\openssl\uierr.h = Dependency\OpenSSL\Include\openssl\uierr.h
+		Dependency\OpenSSL\Include\openssl\whrlpool.h = Dependency\OpenSSL\Include\openssl\whrlpool.h
+		Dependency\OpenSSL\Include\openssl\x509.h = Dependency\OpenSSL\Include\openssl\x509.h
+		Dependency\OpenSSL\Include\openssl\x509_vfy.h = Dependency\OpenSSL\Include\openssl\x509_vfy.h
+		Dependency\OpenSSL\Include\openssl\x509err.h = Dependency\OpenSSL\Include\openssl\x509err.h
+		Dependency\OpenSSL\Include\openssl\x509v3.h = Dependency\OpenSSL\Include\openssl\x509v3.h
+		Dependency\OpenSSL\Include\openssl\x509v3err.h = Dependency\OpenSSL\Include\openssl\x509v3err.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{9B810CD6-9FF4-4CC2-A30C-E53C6A223C52}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H
+		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H
+		Dependency\OpenSSL\Include\internal\bio.h = Dependency\OpenSSL\Include\internal\bio.h
+		Dependency\OpenSSL\Include\internal\comp.h = Dependency\OpenSSL\Include\internal\comp.h
+		Dependency\OpenSSL\Include\internal\conf.h = Dependency\OpenSSL\Include\internal\conf.h
+		Dependency\OpenSSL\Include\internal\constant_time_locl.h = Dependency\OpenSSL\Include\internal\constant_time_locl.h
+		Dependency\OpenSSL\Include\internal\cryptlib.h = Dependency\OpenSSL\Include\internal\cryptlib.h
+		Dependency\OpenSSL\Include\internal\dane.h = Dependency\OpenSSL\Include\internal\dane.h
+		Dependency\OpenSSL\Include\internal\dso.h = Dependency\OpenSSL\Include\internal\dso.h
+		Dependency\OpenSSL\Include\internal\dsoerr.h = Dependency\OpenSSL\Include\internal\dsoerr.h
+		Dependency\OpenSSL\Include\internal\err.h = Dependency\OpenSSL\Include\internal\err.h
+		Dependency\OpenSSL\Include\internal\nelem.h = Dependency\OpenSSL\Include\internal\nelem.h
+		Dependency\OpenSSL\Include\internal\numbers.h = Dependency\OpenSSL\Include\internal\numbers.h
+		Dependency\OpenSSL\Include\internal\o_dir.h = Dependency\OpenSSL\Include\internal\o_dir.h
+		Dependency\OpenSSL\Include\internal\o_str.h = Dependency\OpenSSL\Include\internal\o_str.h
+		Dependency\OpenSSL\Include\internal\refcount.h = Dependency\OpenSSL\Include\internal\refcount.h
+		Dependency\OpenSSL\Include\internal\sockets.h = Dependency\OpenSSL\Include\internal\sockets.h
+		Dependency\OpenSSL\Include\internal\sslconf.h = Dependency\OpenSSL\Include\internal\sslconf.h
+		Dependency\OpenSSL\Include\internal\thread_once.h = Dependency\OpenSSL\Include\internal\thread_once.h
+		Dependency\OpenSSL\Include\internal\tsan_assist.h = Dependency\OpenSSL\Include\internal\tsan_assist.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npcap", "Npcap", "{42645084-F768-449A-A925-7BE959132D66}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Packet_x64.lib = Dependency\Npcap\Packet_x64.lib
+		Dependency\Npcap\Packet_x86.lib = Dependency\Npcap\Packet_x86.lib
+		Dependency\Npcap\WPCAP_x64.lib = Dependency\Npcap\WPCAP_x64.lib
+		Dependency\Npcap\WPCAP_x86.lib = Dependency\Npcap\WPCAP_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{53707539-5D83-44B0-85CB-A1409708CB87}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\Packet32.h = Dependency\Npcap\Include\Packet32.h
+		Dependency\Npcap\Include\pcap-bpf.h = Dependency\Npcap\Include\pcap-bpf.h
+		Dependency\Npcap\Include\pcap-namedb.h = Dependency\Npcap\Include\pcap-namedb.h
+		Dependency\Npcap\Include\pcap-stdinc.h = Dependency\Npcap\Include\pcap-stdinc.h
+		Dependency\Npcap\Include\pcap.h = Dependency\Npcap\Include\pcap.h
+		Dependency\Npcap\Include\remote-ext.h = Dependency\Npcap\Include\remote-ext.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47D0EC6-B602-401E-B860-5BB87FD7E589}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\pcap\bluetooth.h = Dependency\Npcap\Include\pcap\bluetooth.h
+		Dependency\Npcap\Include\pcap\bpf.h = Dependency\Npcap\Include\pcap\bpf.h
+		Dependency\Npcap\Include\pcap\can_socketcan.h = Dependency\Npcap\Include\pcap\can_socketcan.h
+		Dependency\Npcap\Include\pcap\dlt.h = Dependency\Npcap\Include\pcap\dlt.h
+		Dependency\Npcap\Include\pcap\export-defs.h = Dependency\Npcap\Include\pcap\export-defs.h
+		Dependency\Npcap\Include\pcap\ipnet.h = Dependency\Npcap\Include\pcap\ipnet.h
+		Dependency\Npcap\Include\pcap\namedb.h = Dependency\Npcap\Include\pcap\namedb.h
+		Dependency\Npcap\Include\pcap\nflog.h = Dependency\Npcap\Include\pcap\nflog.h
+		Dependency\Npcap\Include\pcap\pcap.h = Dependency\Npcap\Include\pcap\pcap.h
+		Dependency\Npcap\Include\pcap\sll.h = Dependency\Npcap\Include\pcap\sll.h
+		Dependency\Npcap\Include\pcap\usb.h = Dependency\Npcap\Include\pcap\usb.h
+		Dependency\Npcap\Include\pcap\vlan.h = Dependency\Npcap\Include\pcap\vlan.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{D2883F98-9F41-43A6-B417-6272FF771999}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
-		Release_XP|x64 = Release_XP|x64
-		Release_XP|x86 = Release_XP|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -538,10 +460,6 @@ Global
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.Build.0 = Debug|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.ActiveCfg = Debug|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.Build.0 = Debug|Win32
-		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x64.ActiveCfg = Release_XP|x64
-		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x64.Build.0 = Release_XP|x64
-		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x86.ActiveCfg = Release_XP|Win32
-		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x86.Build.0 = Release_XP|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.ActiveCfg = Release|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.Build.0 = Release|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.ActiveCfg = Release|Win32
@@ -551,29 +469,24 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{48201270-2D78-4FFC-A7C0-56B3F0641B25} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
-		{A58D2A84-D0D4-4058-AECA-EDFAD230CE6B} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{9A911CC0-63B2-400E-B819-2EA7DB529AAE} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{4998748C-219A-49EF-BA88-5CFAAF3BEC97} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{5F168452-68EB-45A8-995F-9897E161545E} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{6DAEC5F3-28DD-4A68-8093-FB4883C5580A} = {5F168452-68EB-45A8-995F-9897E161545E}
-		{A495709C-E95F-4F60-B9B2-0976AB560420} = {5F168452-68EB-45A8-995F-9897E161545E}
-		{410393B1-2930-4827-85EE-E0C6208E7B8D} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{9FA091B6-BA72-4292-8EEA-3089E15C06D5} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
-		{6E9F5BD5-EBDE-4670-8485-437A7D6DC8FA} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
-		{1FEA0844-1EFE-4FC1-83BA-9BD7282EBD88} = {6E9F5BD5-EBDE-4670-8485-437A7D6DC8FA}
-		{4D6A7FCD-5A9F-4D7E-943A-0F727E553078} = {1FEA0844-1EFE-4FC1-83BA-9BD7282EBD88}
-		{FB064069-3869-4E5C-AA4A-8989DE151164} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
-		{A38A73A8-7D10-49F0-BD77-30AC6781256D} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
-		{4BF13917-8BAA-46F7-A7A8-A3B85520503B} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
-		{88237563-848A-4C2E-8B62-76C60642D12F} = {9FA091B6-BA72-4292-8EEA-3089E15C06D5}
-		{B1E7DC53-833A-4458-9295-7BA66C5AFA06} = {88237563-848A-4C2E-8B62-76C60642D12F}
-		{AD9BE07E-5CA6-49C9-821F-256179BF86F4} = {9FA091B6-BA72-4292-8EEA-3089E15C06D5}
-		{042801A1-9CA4-4389-9994-A2F84C2E319F} = {AD9BE07E-5CA6-49C9-821F-256179BF86F4}
-		{B5640794-E053-44FF-B75B-BBE106FC261B} = {FB064069-3869-4E5C-AA4A-8989DE151164}
-		{03E92DE1-CFB6-4DC5-A9AE-5E4C9B80A7AC} = {B5640794-E053-44FF-B75B-BBE106FC261B}
-		{85F8EE8B-D531-471B-BC5B-4177C17484C6} = {FB064069-3869-4E5C-AA4A-8989DE151164}
-		{7552C38D-C4F8-498A-8500-031F987D735E} = {85F8EE8B-D531-471B-BC5B-4177C17484C6}
+		{4DD36304-2C38-4DBD-86E1-43D37A6F34CF} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
+		{A728037D-42EF-46E5-96E2-9ADA30DCF38C} = {4DD36304-2C38-4DBD-86E1-43D37A6F34CF}
+		{111A8C4A-468F-44A7-9E33-15E028D79B28} = {4DD36304-2C38-4DBD-86E1-43D37A6F34CF}
+		{4707D302-E293-46FF-8D27-C1040182AE43} = {A728037D-42EF-46E5-96E2-9ADA30DCF38C}
+		{FECD5CA0-80E4-4C9C-ACA9-28AAD370716B} = {111A8C4A-468F-44A7-9E33-15E028D79B28}
+		{ABE55552-7B8A-4D92-89ED-2A1398AA20B1} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
+		{4D197AA5-DBB8-482C-9028-5E8181936371} = {ABE55552-7B8A-4D92-89ED-2A1398AA20B1}
+		{0544F017-08B3-4A9B-A6AB-B5231A9AA09F} = {ABE55552-7B8A-4D92-89ED-2A1398AA20B1}
+		{B6D1EBD9-9E67-44D0-947E-D7BE96D21B3E} = {4D197AA5-DBB8-482C-9028-5E8181936371}
+		{7C45985B-0FE7-483D-B790-91EBBC22B630} = {0544F017-08B3-4A9B-A6AB-B5231A9AA09F}
+		{C87764FC-B3CE-4464-9CA2-389DD7C3E3CC} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
+		{FF4AA411-F158-450E-B222-AC0D365FA443} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
+		{9B810CD6-9FF4-4CC2-A30C-E53C6A223C52} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
+		{42645084-F768-449A-A925-7BE959132D66} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
+		{53707539-5D83-44B0-85CB-A1409708CB87} = {42645084-F768-449A-A925-7BE959132D66}
+		{B47D0EC6-B602-401E-B860-5BB87FD7E589} = {53707539-5D83-44B0-85CB-A1409708CB87}
+		{FF40A2D8-8CA3-4392-84C7-A5754C98A2E3} = {C87764FC-B3CE-4464-9CA2-389DD7C3E3CC}
+		{D2883F98-9F41-43A6-B417-6272FF771999} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B1D403CF-FFF8-44B3-9E46-FF704DBA2284}

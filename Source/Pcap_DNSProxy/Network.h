@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Pcap_DNSProxy, a local DNS server based on packet capturing
 // Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -22,28 +22,9 @@
 
 #include "Include.h"
 
-//Global variables
-extern CONFIGURATION_TABLE Parameter;
-extern GLOBAL_STATUS GlobalRunningStatus;
-extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-#if defined(ENABLE_LIBSODIUM)
-extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
-#endif
-extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
-#if defined(ENABLE_PCAP)
-extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
-extern std::mutex OutputPacketListLock;
-#endif
-extern std::mutex SocketRegisterLock;
+//Global variable
+extern CONFIGURATION_TABLE GlobalConfiguration;
 
-//Functions
-ssize_t SelectingResultOnce(
-	const REQUEST_PROCESS_TYPE RequestType, 
-	const uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingDataList, 
-	void * const OriginalDNSCurveSocketSelectingDataList, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize, 
-	const SOCKET_DATA * const LocalSocketData);
+//Localization function
+
 #endif

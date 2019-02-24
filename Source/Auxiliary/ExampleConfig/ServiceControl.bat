@@ -1,7 +1,7 @@
 :: Pcap_DNSProxy service control batch
 :: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 :: 
-:: Author: Hugo Chan, Syrone Wong, Stzx, Chengr28
+:: Contributions: Hugo Chan, Syrone Wong, Stzx, Chengr28
 :: 
 
 
@@ -67,7 +67,7 @@ goto %UserChoice%
 	call :KILL_PROCESS
 	ping 127.0.0.1 -n 3 >NUL
 	sc create %ServiceName% binPath= "%~dp0%Executable%" DisplayName= "PcapDNSProxy Service" start= auto
-	%Executable% --first-setup
+	%Executable% --firewall-test
 	sc description %ServiceName% "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
 	sc failure %ServiceName% reset= 0 actions= restart/5000/restart/10000//
 	sc start %ServiceName%

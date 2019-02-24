@@ -24,50 +24,42 @@ cmake_minimum_required(VERSION 3.1)
 project(Pcap_DNSProxy)
 set(CMAKE_BUILD_TYPE "Release")
 set(MAIN_SRC_FILES
-		"Base.h"
-		"Capture.h"
-		"Configuration.h"
+		"Buffer.h"
+		"Class.h"
+		"Constructor.h"
 		"Definition.h"
-		"DNSCurveControl.h"
-		"DNSCurveRequest.h"
+		"Destructor.h"
+		"Environment.h"
+		"File.h"
 		"Include.h"
-		"Initialization.h"
-		"Main.h"
 		"Monitor.h"
 		"Network.h"
-		"PacketData.h"
+		"Pcap_DNSProxy.h"
 		"Platform.h"
 		"PrintLog.h"
-		"Process.h"
-		"Protocol.h"
-		"Proxy.h"
-		"Request.h"
+		"ReadCommand.h"
+		"ReadConfiguration.h"
+		"ReadSupport.h"
 		"Service.h"
 		"Structure.h"
 		"Template.h"
-		"TransportSecurity.h"
+		"Text.h"
 		"Type.h"
-		"Base.cpp"
-		"Capture.cpp"
-		"Configuration.cpp"
-		"DNSCurveControl.cpp"
-		"DNSCurveRequest.cpp"
-		"Initialization.cpp"
-		"Main.cpp"
+		"Version.h"
+		"Buffer.cpp"
+		"Constructor.cpp"
+		"Destructor.cpp"
+		"Environment.cpp"
+		"File.cpp"
 		"Monitor.cpp"
 		"Network.cpp"
-		"PacketData.cpp"
+		"Pcap_DNSProxy.cpp"
 		"PrintLog.cpp"
-		"Process.cpp"
-		"Protocol.cpp"
-		"Proxy.cpp"
 		"ReadCommand.cpp"
-		"ReadHosts.cpp"
-		"ReadIPFilter.cpp"
-		"ReadParameter.cpp"
-		"Request.cpp"
+		"ReadConfiguration.cpp"
+		"ReadSupport.cpp"
 		"Service.cpp"
-		"TransportSecurity.cpp")
+		"Text.cpp")
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 
 # Compiling and linking flags
@@ -118,13 +110,12 @@ IF(ENABLE_TLS)
 	add_definitions(-DENABLE_TLS)
 ENDIF(ENABLE_TLS)
 
-# Static libraries linking if needed
+# Libraries linking
+## Static linking need
 IF(STATIC_LIB)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
 ENDIF(STATIC_LIB)
-
-# Libraries linking
 ## All needed
 find_package(Threads REQUIRED)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
