@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -819,14 +819,14 @@ void GlobalStatusSetting(
 #if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	GlobalRunningStatusParameter->IsDaemon = true;
 #endif
-	std::random_device RandomDevice;
-	GlobalRunningStatusParameter->RandomEngine->seed(RandomDevice());
 	GlobalRunningStatusParameter->DomainTable_Normal = const_cast<uint8_t *>(DomainTable_Normal);
 	GlobalRunningStatusParameter->DomainTable_Upper = const_cast<uint8_t *>(DomainTable_Upper);
 #if !defined(ENABLE_LIBSODIUM)
 	GlobalRunningStatusParameter->Base64_EncodeTable = const_cast<uint8_t *>(Base64_EncodeTable_Initialization);
 	GlobalRunningStatusParameter->Base64_DecodeTable = const_cast<int8_t *>(Base64_DecodeTable_Initialization);
 #endif
+	std::random_device RandomDevice;
+	GlobalRunningStatusParameter->RandomEngine->seed(RandomDevice());
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
@@ -838,24 +838,29 @@ void GlobalStatusSetting(
 GlobalStatus::~GlobalStatus(
 	void)
 {
+//Set need exit signal.
+	IsNeedExit = true;
+
 //Close all sockets.
 	for (auto &SocketItem:*LocalListeningSocket)
 		SocketSetting(SocketItem, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 #if defined(PLATFORM_WIN)
+//Mutex handle cleanup
+	if (Initialized_MutexHandle != nullptr)
+	{
+		ReleaseMutex(
+			Initialized_MutexHandle);
+		CloseHandle(
+			Initialized_MutexHandle);
+		Initialized_MutexHandle = nullptr;
+	}
+
 //WinSock cleanup
 	if (IsInitialized_WinSock)
 	{
 		WSACleanup();
 		IsInitialized_WinSock = false;
-	}
-
-//Mutex handle cleanup
-	if (Initialized_MutexHandle != nullptr)
-	{
-		ReleaseMutex(Initialized_MutexHandle);
-		CloseHandle(Initialized_MutexHandle);
-		Initialized_MutexHandle = nullptr;
 	}
 
 //Close all file handles.
@@ -919,7 +924,7 @@ GlobalStatus::~GlobalStatus(
 #endif
 
 //Exit process.
-	Sleep(STANDARD_TIMEOUT);
+	Sleep(STANDARD_THREAD_TIMEOUT);
 	return;
 }
 

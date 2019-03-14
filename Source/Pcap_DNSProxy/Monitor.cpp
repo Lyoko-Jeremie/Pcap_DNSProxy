@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -677,7 +677,7 @@ bool ListenMonitor_BindSocket(
 		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			(LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::REUSE, true, nullptr)) || 
 		#endif
-			!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+			!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 			!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr))
 				return false;
 
@@ -739,25 +739,25 @@ bool ListenMonitor_UDP(
 	memset(RecvBuffer.get(), 0, (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 	MONITOR_QUEUE_DATA MonitorQueryData;
-	MonitorQueryData.first.Buffer = nullptr;
-	MonitorQueryData.first.BufferSize = PACKET_NORMAL_MAXSIZE;
-	MonitorQueryData.first.Length = 0;
-	memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
-	MonitorQueryData.first.Protocol = IPPROTO_UDP;
-	MonitorQueryData.first.QueryType = 0;
-	MonitorQueryData.first.IsLocalRequest = false;
-	MonitorQueryData.first.IsLocalInWhite = false;
-	MonitorQueryData.first.Records_QuestionLen = 0;
-	MonitorQueryData.first.Records_AnswerCount = 0;
-	MonitorQueryData.first.Records_AuthorityCount = 0;
-	MonitorQueryData.first.Records_AdditionalCount = 0;
-	MonitorQueryData.first.DomainString_Original.clear();
-	MonitorQueryData.first.DomainString_Request.clear();
-	MonitorQueryData.first.EDNS_Location = 0;
-	MonitorQueryData.first.EDNS_Length = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Buffer = nullptr;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.BufferSize = PACKET_NORMAL_MAXSIZE;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Length = 0;
+	memset(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget, 0, sizeof(MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget));
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Protocol = IPPROTO_UDP;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.QueryType = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalRequest = false;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalInWhite = false;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_QuestionLen = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AnswerCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AuthorityCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AdditionalCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Original.clear();
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Request.clear();
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Location = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Length = 0;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	const auto SocketDataPointer = &MonitorQueryData.second;
+	const auto SocketDataPointer = &MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET;
 	uint64_t LastRegisterTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastRegisterTime = GetCurrentSystemTime();
@@ -767,7 +767,7 @@ bool ListenMonitor_UDP(
 	socklen_t OptionSize = sizeof(OptionValue);
 
 //Listening module
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
@@ -780,7 +780,7 @@ bool ListenMonitor_UDP(
 		}
 
 	//Reset parameters(Part 1).
-		MonitorQueryData.second = LocalSocketData;
+		MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET = LocalSocketData;
 
 	//Select file descriptor set size and maximum socket index check
 	//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
@@ -789,9 +789,9 @@ bool ListenMonitor_UDP(
 	//Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
 	//Linux and macOS: An fd_set is a fixed size buffer.
 	//Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
-		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+		if (!SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
 		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+			|| MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U >= FD_SETSIZE
 		#endif
 			)
 				break;
@@ -800,7 +800,7 @@ bool ListenMonitor_UDP(
 		memset(RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index, 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 		FD_ZERO(&ReadFDS);
-		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
+		FD_SET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS);
 		OptionValue = 0;
 		OptionSize = sizeof(OptionValue);
 
@@ -808,15 +808,15 @@ bool ListenMonitor_UDP(
 	#if defined(PLATFORM_WIN)
 		ssize_t SelectResult = select(0, &ReadFDS, nullptr, nullptr, nullptr);
 	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		ssize_t SelectResult = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
+		ssize_t SelectResult = select(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
 	#endif
 		if (SelectResult > 0)
 		{
-			if (FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
+			if (FD_ISSET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS) != 0)
 			{
 			//Socket option check
 			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
-				if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+				if (getsockopt(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
 					Sleep(LOOP_INTERVAL_TIME_DELAY);
@@ -832,31 +832,31 @@ bool ListenMonitor_UDP(
 				}
 
 			//Receive response and check DNS query data.
-				RecvLen = recvfrom(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index), PACKET_NORMAL_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), reinterpret_cast<socklen_t *>(&SocketDataPointer->AddrLen));
+				RecvLen = recvfrom(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, reinterpret_cast<char *>(RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index), PACKET_NORMAL_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), reinterpret_cast<socklen_t *>(&SocketDataPointer->AddrLen));
 				if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 				{
 					continue;
 				}
 				else {
-					MonitorQueryData.first.Buffer = RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index;
-					MonitorQueryData.first.Length = RecvLen;
-					MonitorQueryData.first.QueryType = 0;
-					MonitorQueryData.first.IsLocalRequest = false;
-					MonitorQueryData.first.IsLocalInWhite = false;
-					memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
-					MonitorQueryData.first.Records_QuestionLen = 0;
-					MonitorQueryData.first.Records_AnswerCount = 0;
-					MonitorQueryData.first.Records_AuthorityCount = 0;
-					MonitorQueryData.first.Records_AdditionalCount = 0;
-					MonitorQueryData.first.Records_Location.clear();
-					MonitorQueryData.first.Records_Length.clear();
-					MonitorQueryData.first.DomainString_Original.clear();
-					MonitorQueryData.first.DomainString_Request.clear();
-					MonitorQueryData.first.EDNS_Location = 0;
-					MonitorQueryData.first.EDNS_Length = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Buffer = RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Length = RecvLen;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.QueryType = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalRequest = false;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalInWhite = false;
+					memset(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget, 0, sizeof(MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget));
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_QuestionLen = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AnswerCount = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AuthorityCount = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AdditionalCount = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_Location.clear();
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_Length.clear();
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Original.clear();
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Request.clear();
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Location = 0;
+					MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Length = 0;
 
 				//Check DNS query data.
-					if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), PACKET_NORMAL_MAXSIZE, MonitorQueryData.second))
+					if (!CheckQueryData(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET, SendBuffer.get(), PACKET_NORMAL_MAXSIZE, MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET))
 						continue;
 				}
 
@@ -887,7 +887,7 @@ bool ListenMonitor_UDP(
 		#if defined(PLATFORM_WIN)
 			if (WSAGetLastError() != WSAENOTSOCK)
 		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (errno != WSAENOTSOCK && errno != EBADF)
+			if (errno != ENOTSOCK && errno != EBADF)
 		#endif
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
@@ -896,9 +896,10 @@ bool ListenMonitor_UDP(
 		}
 	}
 
-//Monitor terminated
+//Loop terminated
 	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -908,25 +909,25 @@ bool ListenMonitor_TCP(
 {
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
-	MonitorQueryData.first.Buffer = nullptr;
-	MonitorQueryData.first.BufferSize = Parameter.LargeBufferSize;
-	MonitorQueryData.first.Length = 0;
-	memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
-	MonitorQueryData.first.Protocol = IPPROTO_TCP;
-	MonitorQueryData.first.QueryType = 0;
-	MonitorQueryData.first.IsLocalRequest = false;
-	MonitorQueryData.first.IsLocalInWhite = false;
-	MonitorQueryData.first.Records_QuestionLen = 0;
-	MonitorQueryData.first.Records_AnswerCount = 0;
-	MonitorQueryData.first.Records_AuthorityCount = 0;
-	MonitorQueryData.first.Records_AdditionalCount = 0;
-	MonitorQueryData.first.DomainString_Original.clear();
-	MonitorQueryData.first.DomainString_Request.clear();
-	MonitorQueryData.first.EDNS_Location = 0;
-	MonitorQueryData.first.EDNS_Length = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Buffer = nullptr;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.BufferSize = Parameter.LargeBufferSize;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Length = 0;
+	memset(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget, 0, sizeof(MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget));
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Protocol = IPPROTO_TCP;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.QueryType = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalRequest = false;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalInWhite = false;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_QuestionLen = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AnswerCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AuthorityCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AdditionalCount = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Original.clear();
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Request.clear();
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Location = 0;
+	MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Length = 0;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	const auto SocketDataPointer = &MonitorQueryData.second;
+	const auto SocketDataPointer = &MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET;
 	uint64_t LastRegisterTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastRegisterTime = GetCurrentSystemTime();
@@ -935,7 +936,7 @@ bool ListenMonitor_TCP(
 	socklen_t OptionSize = sizeof(OptionValue);
 
 //Start listening Monitor.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
@@ -962,9 +963,9 @@ bool ListenMonitor_TCP(
 				break;
 
 	//Reset parameters.
-		memset(&MonitorQueryData.second.SockAddr, 0, sizeof(MonitorQueryData.second.SockAddr));
-		MonitorQueryData.second.AddrLen = LocalSocketData.AddrLen;
-		MonitorQueryData.second.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
+		memset(&MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.SockAddr, 0, sizeof(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.SockAddr));
+		MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.AddrLen = LocalSocketData.AddrLen;
+		MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
 		FD_ZERO(&ReadFDS);
 		FD_SET(LocalSocketData.Socket, &ReadFDS);
 		OptionValue = 0;
@@ -998,15 +999,15 @@ bool ListenMonitor_TCP(
 				}
 
 			//Accept connection.
-				MonitorQueryData.second.Socket = accept(LocalSocketData.Socket, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), &SocketDataPointer->AddrLen);
-				if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+				MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket = accept(LocalSocketData.Socket, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), &SocketDataPointer->AddrLen);
+				if (!SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 				{
 					continue;
 				}
 			//Check request address.
-				else if (!CheckQueryData(nullptr, nullptr, 0, MonitorQueryData.second))
+				else if (!CheckQueryData(nullptr, nullptr, 0, MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET))
 				{
-					SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+					SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					continue;
 				}
 
@@ -1037,7 +1038,7 @@ bool ListenMonitor_TCP(
 		#if defined(PLATFORM_WIN)
 			if (WSAGetLastError() != WSAENOTSOCK)
 		#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (errno != WSAENOTSOCK && errno != EBADF)
+			if (errno != ENOTSOCK && errno != EBADF)
 		#endif
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
@@ -1046,9 +1047,10 @@ bool ListenMonitor_TCP(
 		}
 	}
 
-//Monitor terminated
+//Loop terminated
 	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -1065,13 +1067,13 @@ bool TCP_AcceptProcess(
 //Linux and macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
 //Linux and macOS: An fd_set is a fixed size buffer.
 //Linux and macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
-	if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+	if (!SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
 	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+		|| MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U >= FD_SETSIZE
 	#endif
 		)
 	{
-		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return false;
 	}
 
@@ -1094,48 +1096,48 @@ bool TCP_AcceptProcess(
 	Timeout = Parameter.SocketTimeout_Reliable_Once;
 #endif
 	FD_ZERO(&ReadFDS);
-	FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
+	FD_SET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS);
 
 //Receive process
 //Only receive 2 times data sending operations from sender when accepting, reject all connections which have more than 2 times sending operations.
 #if defined(PLATFORM_WIN)
 	RecvLenFirst = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	RecvLenFirst = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+	RecvLenFirst = select(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 #endif
 	if (RecvLenFirst > 0 && 
-		FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
+		FD_ISSET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS) != 0)
 	{
 	//Socket option check
 	//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
-		if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+		if (getsockopt(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
 		{
 //			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 			return false;
 		}
 		else if (OptionValue > 0)
 		{
 //			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 			return false;
 		}
 
 	//Receive data.
-		RecvLenFirst = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get()), static_cast<const int>(Parameter.LargeBufferSize), 0);
+		RecvLenFirst = recv(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, reinterpret_cast<char *>(RecvBuffer.get()), static_cast<const int>(Parameter.LargeBufferSize), 0);
 
 	//Connection closed or SOCKET_ERROR
 		if (RecvLenFirst < static_cast<const ssize_t>(sizeof(uint16_t))) //Sender must send packet length value(16 bits) at first.
 		{
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
 		}
 	}
 //Timeout or SOCKET_ERROR
 	else {
-		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return false;
 	}
 
@@ -1143,13 +1145,13 @@ bool TCP_AcceptProcess(
 	if (RecvLenFirst < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
 	{
 	//Select file descriptor set size and maximum socket index check(Part 2)
-		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+		if (!SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
 		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+			|| MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U >= FD_SETSIZE
 		#endif
 			)
 		{
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
 		}
 
@@ -1163,7 +1165,7 @@ bool TCP_AcceptProcess(
 		Timeout = Parameter.SocketTimeout_Reliable_Once;
 	#endif
 		FD_ZERO(&ReadFDS);
-		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
+		FD_SET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS);
 		OptionValue = 0;
 		OptionSize = sizeof(OptionValue);
 
@@ -1171,41 +1173,41 @@ bool TCP_AcceptProcess(
 	#if defined(PLATFORM_WIN)
 		RecvLenSecond = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 	#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		RecvLenSecond = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+		RecvLenSecond = select(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
 		if (RecvLenSecond > 0 && 
-			FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
+			FD_ISSET(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, &ReadFDS) != 0)
 		{
 		//Socket option check
 		//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
-			if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+			if (getsockopt(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
 			{
 //				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
-				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 				return false;
 			}
 			else if (OptionValue > 0)
 			{
 //				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
-				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 				return false;
 			}
 
 		//Receive data.
-			RecvLenSecond = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + RecvLenFirst), static_cast<const int>(Parameter.LargeBufferSize - RecvLenFirst), 0);
+			RecvLenSecond = recv(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, reinterpret_cast<char *>(RecvBuffer.get() + RecvLenFirst), static_cast<const int>(Parameter.LargeBufferSize - RecvLenFirst), 0);
 
 		//Connection closed or SOCKET_ERROR
 			if (RecvLenSecond <= 0)
 			{
-				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				return false;
 			}
 		}
 	//Timeout or SOCKET_ERROR
 		else {
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
 		}
 	}
@@ -1216,29 +1218,29 @@ bool TCP_AcceptProcess(
 		((RecvLenFirst < static_cast<const ssize_t>(DNS_PACKET_MINSIZE) && RecvLenFirst + RecvLenSecond >= static_cast<const ssize_t>(LengthValue + sizeof(uint16_t))) || 
 		(RecvLenFirst >= static_cast<const ssize_t>(DNS_PACKET_MINSIZE) && RecvLenFirst >= static_cast<const ssize_t>(LengthValue + sizeof(uint16_t)))))
 	{
-		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
-		MonitorQueryData.first.Length = LengthValue;
-		MonitorQueryData.first.QueryType = 0;
-		MonitorQueryData.first.IsLocalRequest = false;
-		MonitorQueryData.first.IsLocalInWhite = false;
-		memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
-		MonitorQueryData.first.Records_QuestionLen = 0;
-		MonitorQueryData.first.Records_AnswerCount = 0;
-		MonitorQueryData.first.Records_AuthorityCount = 0;
-		MonitorQueryData.first.Records_AdditionalCount = 0;
-		MonitorQueryData.first.Records_Location.clear();
-		MonitorQueryData.first.Records_Length.clear();
-		MonitorQueryData.first.DomainString_Original.clear();
-		MonitorQueryData.first.DomainString_Request.clear();
-		MonitorQueryData.first.EDNS_Location = 0;
-		MonitorQueryData.first.EDNS_Length = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Buffer = RecvBuffer.get() + sizeof(uint16_t);
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Length = LengthValue;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.QueryType = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalRequest = false;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.IsLocalInWhite = false;
+		memset(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget, 0, sizeof(MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.LocalTarget));
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_QuestionLen = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AnswerCount = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AuthorityCount = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_AdditionalCount = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_Location.clear();
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.Records_Length.clear();
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Original.clear();
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.DomainString_Request.clear();
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Location = 0;
+		MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET.EDNS_Length = 0;
 
 	//Check DNS query data.
 		auto SendBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
-		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), Parameter.LargeBufferSize, MonitorQueryData.second))
+		if (!CheckQueryData(&MonitorQueryData.MONITOR_QUEUE_DATA_DNS_PACKET, SendBuffer.get(), Parameter.LargeBufferSize, MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET))
 		{
-			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
 		}
 		else {
@@ -1249,18 +1251,18 @@ bool TCP_AcceptProcess(
 		EnterRequestProcess(MonitorQueryData, OriginalRecv, RecvSize);
 	}
 	else {
-		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return false;
 	}
 
 //Block Port Unreachable messages of system.
-	shutdown(MonitorQueryData.second.Socket, SD_SEND);
+	shutdown(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SD_SEND);
 #if defined(PLATFORM_WIN)
 	Sleep(Parameter.SocketTimeout_Reliable_Once);
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	usleep(Parameter.SocketTimeout_Reliable_Once.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Once.tv_usec);
 #endif
-	SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+	SocketSetting(MonitorQueryData.MONITOR_QUEUE_DATA_SOCKET.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 	return true;
 }
@@ -1274,7 +1276,7 @@ void AlternateServerSwitcher(
 	std::array<uint64_t, ALTERNATE_SERVER_NUM> RangeTimer{}, SwapTimer{};
 
 //Start Switcher.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Complete request process check
 		for (Index = 0;Index < ALTERNATE_SERVER_NUM;++Index)
@@ -1312,8 +1314,9 @@ void AlternateServerSwitcher(
 		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -1666,7 +1669,7 @@ void NetworkInformationMonitor(
 	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV6), std::defer_lock), LocalAddressMutexIPv4(LocalAddressLock.at(NETWORK_LAYER_TYPE_IPV4), std::defer_lock), SocketRegisterMutex(SocketRegisterLock, std::defer_lock);
 
 //Start listening Monitor.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Get local machine addresses.
 	//IPv6
@@ -2010,9 +2013,9 @@ void NetworkInformationMonitor(
 
 	//Close all socket registers.
 		SocketRegisterMutex.lock();
-		while (!SocketRegisterList.empty() && SocketRegisterList.front().second <= GetCurrentSystemTime())
+		while (!SocketRegisterList.empty() && SocketRegisterList.front().SOCKET_REGISTER_DATA_TIME <= GetCurrentSystemTime())
 		{
-			SocketSetting(SocketRegisterList.front().first, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			SocketSetting(SocketRegisterList.front().SOCKET_REGISTER_DATA_SOCKET, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketRegisterList.pop_front();
 		}
 		SocketRegisterMutex.unlock();
@@ -2021,7 +2024,8 @@ void NetworkInformationMonitor(
 		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
 	return;
 }

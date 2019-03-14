@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -222,7 +222,7 @@ bool DNSCurve_SignatureRequest_TCP(
 	}
 
 //Send request.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Sleep time controller
 		if (TotalSleepTime > 0)
@@ -238,6 +238,7 @@ bool DNSCurve_SignatureRequest_TCP(
 			{
 				TotalSleepTime += Parameter.FileRefreshTime;
 
+			//Next loop
 				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
@@ -255,7 +256,7 @@ bool DNSCurve_SignatureRequest_TCP(
 		else 
 			goto JumpTo_Restart;
 		if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
+			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr) || 
 			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 			(Protocol == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 			(Protocol == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr))))
@@ -304,11 +305,14 @@ bool DNSCurve_SignatureRequest_TCP(
 				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4);
 		}
 
+	//Next loop
 		Sleep(SENDING_INTERVAL_TIME);
 	}
 
+//Loop terminated
 	SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -376,7 +380,7 @@ bool DNSCurve_SignatureRequest_UDP(
 	}
 
 //Send request.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Sleep time controller
 		if (TotalSleepTime > 0)
@@ -392,6 +396,7 @@ bool DNSCurve_SignatureRequest_UDP(
 			{
 				TotalSleepTime += Parameter.FileRefreshTime;
 
+			//Next loop
 				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
@@ -458,11 +463,14 @@ bool DNSCurve_SignatureRequest_UDP(
 				++AlternateSwapList.TimeoutTimes.at(ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4);
 		}
 
+	//Next loop
 		Sleep(SENDING_INTERVAL_TIME);
 	}
 
+//Loop terminated
 	SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 

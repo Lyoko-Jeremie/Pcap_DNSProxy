@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -97,7 +97,6 @@ bool SocketSetting(
 		//Range
 			if (Parameter.PacketHopLimits_IPv6_End > 0)
 			{
-			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
 				DWORD OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
@@ -142,7 +141,6 @@ bool SocketSetting(
 		//Range
 			if (Parameter.PacketHopLimits_IPv4_End > 0)
 			{
-			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
 				DWORD OptionValue = 0;
 				GenerateRandomBuffer(&OptionValue, sizeof(OptionValue), nullptr, Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
@@ -281,13 +279,12 @@ bool SocketSetting(
 				return false;
 			}
 		}break;
-	//Socket attribute setting(TFO/TCP Fast Open)
-		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN:
+	//Socket attribute setting(TFO/TCP Fast Open, normal version)
+		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL:
 		{
-		//Socket attribute settings process
 			if (Parameter.TCP_FastOpen > 0)
 			{
-			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extends it to normal socket(2018-09-30).
+			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extends it to normal socket.
 			//Linux: Server side and client side are both completed, also support queue length.
 			//macOS: Server side and client side are both completed.
 			#if defined(PLATFORM_WIN)
@@ -328,6 +325,30 @@ bool SocketSetting(
 			#endif
 			}
 		}break;
+/* Newer version of TCP Fast Open socket option
+	//Socket attribute setting(TFO/TCP Fast Open, client version)
+	#if defined(PLATFORM_LINUX)
+		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN_CONNECT:
+		{
+		//Linux: Client side is completed, also support queue length.
+			if (Parameter.TCP_FastOpen > 0)
+			{
+				errno = 0;
+				const int OptionValue = Parameter.TCP_FastOpen;
+				if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN_CONNECT, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+				{
+					if (IsPrintError)
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open settings error", errno, nullptr, 0);
+					shutdown(Socket, SHUT_RDWR);
+					close(Socket);
+					Socket = INVALID_SOCKET;
+
+					return false;
+				}
+			}
+		}break;
+	#endif
+*/
 	//Socket attribute setting(TCP keep alive mode)
 		case SOCKET_SETTING_TYPE::TCP_KEEP_ALIVE:
 		{
@@ -351,7 +372,16 @@ bool SocketSetting(
 			AliveTransport_IN.keepalivetime = Parameter.SocketTimeout_Reliable_Once;
 			AliveTransport_IN.keepaliveinterval = STANDARD_TIMEOUT;
 			ULONG ulBytesReturn = 0;
-			if (WSAIoctl(Socket, SIO_KEEPALIVE_VALS, &AliveTransport_IN, sizeof(tcp_keepalive), &AliveTransport_OUT, sizeof(tcp_keepalive), &ulBytesReturn, nullptr, nullptr) == SOCKET_ERROR)
+			if (WSAIoctl(
+				Socket, 
+				SIO_KEEPALIVE_VALS, 
+				&AliveTransport_IN, 
+				sizeof(tcp_keepalive), 
+				&AliveTransport_OUT, 
+				sizeof(tcp_keepalive), 
+				&ulBytesReturn, 
+				nullptr, 
+				nullptr) == SOCKET_ERROR)
 			{
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
@@ -403,7 +433,16 @@ bool SocketSetting(
 		#if defined(PLATFORM_WIN)
 			BOOL NewBehavior = FALSE;
 			DWORD BytesReturned = 0;
-			if (WSAIoctl(Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr) == SOCKET_ERROR)
+			if (WSAIoctl(
+				Socket, 
+				SIO_UDP_CONNRESET, 
+				&NewBehavior, 
+				sizeof(BOOL), 
+				nullptr, 
+				0, 
+				&BytesReturned, 
+				nullptr, 
+				nullptr) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket UDP block RESET message settings error", WSAGetLastError(), nullptr, 0);
@@ -1181,7 +1220,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 			{
 				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1248,7 +1287,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 			{
@@ -1272,7 +1311,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 			{
 				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1287,7 +1326,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 			{
@@ -1338,7 +1377,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 			{
 				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1379,7 +1418,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 			{
@@ -1429,7 +1468,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 			{
 				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1470,7 +1509,7 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 			{
@@ -1535,7 +1574,7 @@ bool SelectTargetSocketMultiple(
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 				{
@@ -1562,7 +1601,7 @@ bool SelectTargetSocketMultiple(
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 				{
@@ -1591,7 +1630,7 @@ bool SelectTargetSocketMultiple(
 
 				//Socket attribute settings
 					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 					{
@@ -1630,7 +1669,7 @@ bool SelectTargetSocketMultiple(
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 					(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
@@ -1658,7 +1697,7 @@ bool SelectTargetSocketMultiple(
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 					(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
@@ -1688,7 +1727,7 @@ bool SelectTargetSocketMultiple(
 
 				//Socket attribute settings
 					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN_NORMAL, true, nullptr)) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 						(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
@@ -1713,7 +1752,7 @@ bool SelectTargetSocketMultiple(
 	return true;
 }
 
-//Connect to server(TCP) or socket connecting(UDP)
+//Socket connect request
 size_t SocketConnecting(
 	const uint16_t Protocol, 
 	SYSTEM_SOCKET &Socket, 
@@ -1729,9 +1768,13 @@ size_t SocketConnecting(
 		return EXIT_FAILURE;
 	}
 
+//Initialization
+	ssize_t ErrorCode = 0;
+
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
 	{
+	//TCP Fast Open connect request
 	#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (Parameter.TCP_FastOpen > 0 && OriginalSend != nullptr && SendSize > 0)
 		{
@@ -1740,10 +1783,31 @@ size_t SocketConnecting(
 		#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 		//Send request and network stack will connect to server first.
 		#if defined(PLATFORM_FREEBSD)
+		//Use TCP_FASTOPEN socket option to send TCP Fast Open reuqest.
 			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, 0, SockAddr, AddrLen);
 		#elif defined(PLATFORM_LINUX)
+		//Use MSG_FASTOPEN flag to send TCP Fast Open reuqest.
 			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
+
+/* Newer version of TCP Fast Open socket option
+		//Use TCP_FASTOPEN_CONNECT socket option to send TCP Fast Open reuqest.
+			if (connect(Socket, SockAddr, AddrLen) == SOCKET_ERROR)
+			{
+				if (errno != EAGAIN && errno != EINPROGRESS)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"TCP connection initialization error", errno, nullptr, 0);
+					SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+					return EXIT_FAILURE;
+				}
+			}
+			else {
+				RecvLen = send(Socket, OriginalSend, SendSize, 0);
+			}
+*/
 		#endif
+
+		//Result check
 			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
 				return EXIT_FAILURE;
 			else if (RecvLen < static_cast<const ssize_t>(DNS_PACKET_MINSIZE))
@@ -1751,7 +1815,7 @@ size_t SocketConnecting(
 			else 
 				return RecvLen;
 		#elif defined(PLATFORM_MACOS)
-		//Socket initialization
+		//Endpoint initialization
 			sa_endpoints_t EndPoints;
 			memset(&EndPoints, 0, sizeof(EndPoints));
 			EndPoints.sae_srcif = 0;
@@ -1760,7 +1824,7 @@ size_t SocketConnecting(
 			EndPoints.sae_dstaddr = SockAddr;
 			EndPoints.sae_dstaddrlen = AddrLen;
 
-		//Socket length initialization
+		//Endpoint protocol initialization
 			if (AddrLen == sizeof(sockaddr_in6))
 				reinterpret_cast<sockaddr_in6 *>(const_cast<sockaddr *>(EndPoints.sae_dstaddr))->sin6_len = sizeof(sockaddr_in6);
 			else if (AddrLen == sizeof(sockaddr_in))
@@ -1785,9 +1849,11 @@ size_t SocketConnecting(
 		}
 		else {
 	#endif
+
+		//Normal connect request
 			if (connect(Socket, SockAddr, AddrLen) == SOCKET_ERROR)
 			{
-				ssize_t ErrorCode = WSAGetLastError();
+				ErrorCode = WSAGetLastError();
 
 			#if defined(PLATFORM_WIN)
 				if (ErrorCode != WSAEWOULDBLOCK)
@@ -1810,7 +1876,7 @@ size_t SocketConnecting(
 	{
 		if (connect(Socket, SockAddr, AddrLen) == SOCKET_ERROR)
 		{
-			ssize_t ErrorCode = WSAGetLastError();
+			ErrorCode = WSAGetLastError();
 
 		#if defined(PLATFORM_WIN)
 			if (ErrorCode != WSAEWOULDBLOCK)
@@ -1996,11 +2062,11 @@ ssize_t SocketSelectingOnce(
 #endif
 
 //Selecting send and receive process
-	for (;;)
+	auto IsAllSocketShutdown = false;
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
-		auto IsAllSocketShutdown = false;
-
 	//Socket check(Part 2)
+		IsAllSocketShutdown = false;
 		for (auto SocketDataItem = SocketDataList.begin();SocketDataItem != SocketDataList.end();++SocketDataItem)
 		{
 			if (SocketSetting(SocketDataItem->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -2441,22 +2507,22 @@ ssize_t SelectingResultOnce(
 					if (SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
 						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
-						SocketRegisterDataTemp.first = SocketDataItem.Socket;
-						SocketRegisterDataTemp.second = 0;
+						SocketRegisterDataTemp.SOCKET_REGISTER_DATA_SOCKET = SocketDataItem.Socket;
+						SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = 0;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
 						#endif
 						}
 						else if (Protocol == IPPROTO_UDP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
 						#endif
 						}
 						else {
@@ -2540,22 +2606,22 @@ ssize_t SelectingResultOnce(
 					if (SocketSetting(SocketDataItem.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
 						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
-						SocketRegisterDataTemp.first = SocketDataItem.Socket;
-						SocketRegisterDataTemp.second = 0;
+						SocketRegisterDataTemp.SOCKET_REGISTER_DATA_SOCKET = SocketDataItem.Socket;
+						SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = 0;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
 						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
 						#endif
 						}
 						else if (Protocol == IPPROTO_UDP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
 						#elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
+							SocketRegisterDataTemp.SOCKET_REGISTER_DATA_TIME = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
 						#endif
 						}
 						else {
@@ -2667,7 +2733,7 @@ size_t SocketSelectingSerial(
 	}
 
 //Selecting send process
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		FD_ZERO(&WriteFDS);
@@ -2817,7 +2883,7 @@ StopLoop:
 	}
 
 //Selecting receive process
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		FD_ZERO(&ReadFDS);
@@ -2892,7 +2958,7 @@ StopLoop:
 					}
 
 				//Receive data.
-					for (;;)
+					while (!GlobalRunningStatus.IsNeedExit)
 					{
 					//Prepare buffer.
 						if (!SocketSelectingDataList.at(Index).RecvBuffer)

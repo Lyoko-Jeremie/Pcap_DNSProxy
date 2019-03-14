@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -40,13 +40,14 @@ void CaptureInit(
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Capture Monitor
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Open all devices.
 		if (pcap_findalldevs(
 				&CaptureDriveList, 
 				reinterpret_cast<char *>(ErrorBuffer.data())) < 0)
 		{
+		//Print find all devices error.
 			if (MBS_To_WCS_String(ErrorBuffer.data(), PCAP_ERRBUF_SIZE, Message))
 			{
 				Message.append(L"\n");
@@ -56,6 +57,7 @@ void CaptureInit(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 			}
 
+		//Next loop
 			ErrorBuffer.fill(0);
 			Sleep(Parameter.FileRefreshTime);
 			continue;
@@ -63,9 +65,9 @@ void CaptureInit(
 	//Permissions and available network devices check.
 		else if (CaptureDriveList == nullptr)
 		{
+		//Print empty devices error.
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
 			Sleep(Parameter.FileRefreshTime);
-
 			continue;
 		}
 	//Mark captures.
@@ -151,8 +153,9 @@ void CaptureInit(
 		CaptureDriveList = nullptr;
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -512,11 +515,13 @@ bool Capture_MainProcess(
 	ParamList.DeviceType = DeviceTable.DeviceType;
 	ParamList.Buffer = Buffer.get();
 	ParamList.BufferSize = Parameter.LargeBufferSize;
+	ssize_t ResultValue = 0;
 
 //Start Pcap Monitor.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
-		ssize_t ResultValue = pcap_loop(
+	//Loop process.
+		ResultValue = pcap_loop(
 			DeviceTable.DeviceHandle, 
 			PCAP_LOOP_INFINITY, 
 			Capture_CallbackHandler, 
@@ -535,13 +540,14 @@ bool Capture_MainProcess(
 
 			return false;
 		}
-		else {
-			Sleep(Parameter.FileRefreshTime);
-		}
+
+	//Next loop
+		Sleep(Parameter.FileRefreshTime);
 	}
 
-//Monitor terminated
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+//Loop terminated
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 

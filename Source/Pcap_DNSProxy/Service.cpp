@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -119,6 +119,9 @@ bool CheckProcessExists(
 BOOL WINAPI SignalHandler(
 	const DWORD ControlType)
 {
+//Set need exit signal.
+	GlobalRunningStatus.IsNeedExit = true;
+
 //Print to screen.
 	if (GlobalRunningStatus.IsConsole)
 	{
@@ -142,13 +145,6 @@ BOOL WINAPI SignalHandler(
 		}
 	}
 
-//WinSock cleanup
-	if (GlobalRunningStatus.IsInitialized_WinSock)
-	{
-		WSACleanup();
-		GlobalRunningStatus.IsInitialized_WinSock = false;
-	}
-
 //Mutex handle cleanup
 	if (GlobalRunningStatus.Initialized_MutexHandle != nullptr)
 	{
@@ -159,12 +155,18 @@ BOOL WINAPI SignalHandler(
 		GlobalRunningStatus.Initialized_MutexHandle = nullptr;
 	}
 
+//WinSock cleanup
+	if (GlobalRunningStatus.IsInitialized_WinSock)
+	{
+		WSACleanup();
+		GlobalRunningStatus.IsInitialized_WinSock = false;
+	}
+
 //Close all file handles.
 	_fcloseall();
 
 //Exit process.
-	Sleep(STANDARD_TIMEOUT);
-//	exit(EXIT_SUCCESS);
+	Sleep(STANDARD_THREAD_TIMEOUT);
 	return FALSE;
 }
 
@@ -437,7 +439,7 @@ bool FlushDomainCache_MailslotListener(
 	size_t Index = 0;
 
 //Start Mailslot Listener.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Reset parameters.
 		wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE);
@@ -560,7 +562,8 @@ bool FlushDomainCache_MailslotListener(
 //Listener terminated
 	CloseHandle(
 		MailslotHandle);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Mailslot module listener terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Mailslot module listener terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -715,7 +718,7 @@ bool FlushDomainCache_PipeListener(
 	size_t Index = 0;
 
 //Start FIFO pipe Listener.
-	for (;;)
+	while (!GlobalRunningStatus.IsNeedExit)
 	{
 	//Create FIFO pipe and create its notify listener.
 		unlink(FLUSH_DOMAIN_PIPE_PATH_NAME);
@@ -852,7 +855,8 @@ bool FlushDomainCache_PipeListener(
 //Listener terminated
 	close(PipeHandle);
 	unlink(FLUSH_DOMAIN_PIPE_PATH_NAME);
-	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"FIFO pipe module listener terminated", 0, nullptr, 0);
+	if (!GlobalRunningStatus.IsNeedExit)
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"FIFO pipe module listener terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -933,7 +937,7 @@ void FlushDomainCache_Main(
 		{
 		//Remove from cache data list.
 			const auto CacheMapRange = DNSCacheIndexList.equal_range(DomainString);
-			for (auto CacheMapItem = CacheMapRange.first;CacheMapItem != CacheMapRange.second;++CacheMapItem)
+			for (auto CacheMapItem = CacheMapRange.DNS_CACHE_INDEX_LIST_DOMAIN;CacheMapItem != CacheMapRange.DNS_CACHE_INDEX_LIST_POINTER;++CacheMapItem)
 				DNSCacheList.erase(CacheMapItem->second);
 
 		//Remove from cache index list.

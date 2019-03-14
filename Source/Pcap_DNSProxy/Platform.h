@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -460,8 +460,8 @@
 	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Winsock definitions
-	#define WINSOCK_VERSION_LOW_BYTE   2                            //Low byte of Winsock version 2.2
-	#define WINSOCK_VERSION_HIGH_BYTE  2                            //High byte of Winsock version 2.2
+	#define WINSOCK_VERSION_LOW_BYTE   2                            //Low byte of Winsock version
+	#define WINSOCK_VERSION_HIGH_BYTE  2                            //High byte of Winsock version
 
 //Windows compatible definitions
 	typedef SSIZE_T                    ssize_t;
@@ -600,6 +600,9 @@
 	#define _KERNEL_FASTOPEN
 #ifndef TCP_FASTOPEN
 	#define TCP_FASTOPEN                   23
+#endif
+#ifndef TCP_FASTOPEN_CONNECT
+	#define TCP_FASTOPEN_CONNECT           30
 #endif
 #ifndef MSG_FASTOPEN
 	#define MSG_FASTOPEN                   0x20000000

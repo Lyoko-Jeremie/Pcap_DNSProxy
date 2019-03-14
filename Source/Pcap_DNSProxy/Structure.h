@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -617,7 +617,7 @@ typedef struct _ppp_hdr_
 
 */
 #define IPV4_IHL_STANDARD               0x05     //Standard IPv4 header length(0x05/20 bytes)
-#define IPV4_IHL_BYTES_SET              4U       //IHL is set number of 32-bit words(4 bytes).
+#define IPV4_IHL_BYTES_SET              4U       //IHL is set number of 32-bit words, in 4 bytes
 #define IPV4_FLAG_GET_BIT_MF            0x2000   //Get More Fragment bit in Flags.
 #define IPV4_FLAG_GET_BIT_RES_DF        0xC000   //Get Reserved and Don't Fragment bits in Flags.
 #define IPV4_FLAG_GET_FRAGMENT_OFFSET   0x1FFF   //Get Fragment Offset bits in Flags.
@@ -1094,7 +1094,7 @@ typedef struct _icmpv6_hdr_
 
 */
 #define TCP_IHL_STANDARD        5U       //Standard TCP header length
-#define TCP_IHL_BYTES_SET       4U       //IHL is set of 32-bit words(4 bytes).
+#define TCP_IHL_BYTES_SET       4U       //IHL is set of 32-bit words, in 4 bytes
 #define TCP_FLAG_GET_BIT_IHL    0xF000   //Get data offset in TCP IHL
 #define TCP_FLAG_GET_BIT_FLAG   0x0FFF   //Get bits in TCP flag
 #define TCP_FLAG_GET_BIT_CWR    0x0080   //Get Congestion Window Reduced bit in TCP flags
@@ -2004,7 +2004,7 @@ typedef struct _ipv6_psd_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNS_PACKET_MAXSIZE_TRADITIONAL   512U   //Traditional DNS packet maximum size(512 bytes)
+#define DNS_PACKET_MAXSIZE_TRADITIONAL   512U   //Traditional DNS packet maximum size, in bytes
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;

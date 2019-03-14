@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -177,7 +177,12 @@ typedef enum class _socket_setting_type
 	INVALID_CHECK, 
 	NON_BLOCKING_MODE, 
 	REUSE, 
-	TCP_FAST_OPEN, 
+	TCP_FAST_OPEN_NORMAL, 
+/* Newer version of TCP Fast Open socket option
+#if defined(PLATFORM_LINUX)
+	TCP_FAST_OPEN_CONNECT, 
+#endif
+*/
 	TCP_NO_DELAY, 
 	TCP_KEEP_ALIVE, 
 	TIMEOUT, 
@@ -247,7 +252,6 @@ typedef enum class _tls_version_selection
 #endif
 #endif
 
-
 //////////////////////////////////////////////////
 // Main structures and classes
 // 
@@ -271,9 +275,13 @@ typedef struct _socket_data_
 
 //Socket Register Data structure
 typedef std::pair<SYSTEM_SOCKET, uint64_t> SocketRegisterData, SOCKET_REGISTER_DATA;
+#define SOCKET_REGISTER_DATA_SOCKET      first
+#define SOCKET_REGISTER_DATA_TIME        second
 
 //Address Prefix Block structure
 typedef std::pair<sockaddr_storage, size_t> AddressPrefixBlock, ADDRESS_PREFIX_BLOCK;
+#define ADDRESS_PREFIX_BLOCK_SOCKET      first
+#define ADDRESS_PREFIX_BLOCK_VALUE       second
 
 //Address Union Data structure
 typedef union _address_union_data_
@@ -383,9 +391,13 @@ typedef struct _dns_cache_data_
 	uint16_t                             RecordType;
 	ADDRESS_UNION_DATA                   ForAddress;
 }DNSCacheData, DNS_CACHE_DATA;
+#define DNS_CACHE_INDEX_LIST_DOMAIN      first
+#define DNS_CACHE_INDEX_LIST_POINTER     second
 
 //Monitor Queue Data structure
 typedef std::pair<DNS_PACKET_DATA, SOCKET_DATA> MonitorQueueData, MONITOR_QUEUE_DATA;
+#define MONITOR_QUEUE_DATA_DNS_PACKET    first
+#define MONITOR_QUEUE_DATA_SOCKET        second
 
 //DNSCurve Server Data structure
 #if defined(ENABLE_LIBSODIUM)
@@ -637,21 +649,24 @@ public:
 	int                                  Initialized_MutexHandle;
 #endif
 
-//Running status
+//Startup status
 	time_t                               StartupTime;
 #if defined(PLATFORM_WIN)
 	bool                                 IsConsole;
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 	bool                                 IsDaemon;
 #endif
-	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
-	std::default_random_engine           *RandomEngine;
 	uint8_t                              *DomainTable_Normal;
 	uint8_t                              *DomainTable_Upper;
 #if !defined(ENABLE_LIBSODIUM)
 	uint8_t                              *Base64_EncodeTable;
 	int8_t                               *Base64_DecodeTable;
 #endif
+
+//Running status
+	bool                                 IsNeedExit;
+	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
+	std::default_random_engine           *RandomEngine;
 	std::atomic<size_t>                  *ThreadRunningNum;
 	std::atomic<size_t>                  *ThreadRunningFreeNum;
 

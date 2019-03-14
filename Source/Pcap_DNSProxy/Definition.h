@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2018 Chengr28
+// Copyright (C) 2012-2019 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,10 +47,10 @@
 #if defined(ENABLE_LIBSODIUM)
 	#define LIBSODIUM_ERROR                               (-1)
 #endif
-#define BYTES_TO_BITS                                 8U                          //8 bits = 1 byte
+#define BYTES_TO_BITS                                 8U                          //bits in byte
 #define RETURN_ERROR                                  (-1)
 #define UINT16_NUM_ONE                                0x0001
-#define UNITS_IN_8_OCTETS                             8U                          //8 octets = 1 unit
+#define UNITS_IN_8_OCTETS                             8U                          //octets in unit
 #define HEX_PREAMBLE_STRING                           ("0x")                      //Hexadecimal preamble
 
 //Character value definitions
@@ -115,20 +115,20 @@
 
 //Version definitions
 #define CONFIG_VERSION_COUNT                          2U                                    //Version: Major.Minor
-#define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
-#define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
+#define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version
+#define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version
 #define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
-#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.12"                           //Current full version
+#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2019 Chengr28"   //Copyright message
+#define FULL_VERSION                                  L"0.4.9.13"                           //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
 #define ADDRESS_STRING_IPV6_MINSIZE                   2U                                //The shortest IPv6 address strings(::)
-#define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv6/IPv4) words(64 bytes)
+#define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv6/IPv4) words, in bytes
 #define ALTERNATE_SERVER_NUM                          12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define COMMAND_COUNT_MIN                             1                                 //Minimum count of commands
-#define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
-#define DEFAULT_LOG_READING_MAXSIZE                   8388608U                          //Default number of maximum log file size(8MB/8388608 bytes)
+#define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer, in bytes
+#define DEFAULT_LOG_READING_MAXSIZE                   8388608U                          //Default number of maximum log file size, in bytes
 #define DEFAULT_THREAD_POOL_MAXNUM                    256U                              //Default number of maximum thread pool size
 #define DIFFERNET_FILE_SET_NUM                        2U                                //Number of different file set
 #define DNS_RECORD_COUNT_AAAA_MAX                     43U                               //Maximum Record Resources size of whole AAAA answers, 28 bytes * 43 records = 1204 bytes
@@ -142,15 +142,15 @@
 	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                                //DNScrypt keypair interval length
 	#define DNSCRYPT_RECORD_TXT_LEN                       124U                              //Length of DNScrypt TXT Records
 #endif
-#define DOMAIN_DATA_MAXSIZE                           253U                              //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_MAXSIZE                                256U                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE                           253U                              //Maximum data length of whole level domain, in bytes(Section 2.3.1 in RFC 1035)
+#define DOMAIN_MAXSIZE                                256U                              //Maximum size of whole level domain, in bytes(Section 2.3.1 in RFC 1035)
+#define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain, in bytes(Section 2.3.1 in RFC 1035)
 #define DOMAIN_RANDOM_MINSIZE                         6U                                //Minimum size of random domain request
 #define DOMAIN_SINGLE_DATA_MAXSIZE                    63U                               //Domain length is between 3 and 63(Single label must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
 #define ERROR_MESSAGE_MAXSIZE                         512U                              //Maximum size of log message
 #define ERROR_MESSAGE_MINSIZE                         3U                                //Minimum size of log message
 #define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
-#define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
+#define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file, in bytes.
 #define HTTP_AUTHORIZATION_MAXSIZE                    DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of HTTP proxy authorization string.
 #define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported.
 #define HTTP_VERSION_MAXSIZE                          3U                                //Maximum size of HTTP version
@@ -164,25 +164,25 @@
 	#define ICMP_STRING_START_NUM_MACOS                   8U
 #endif
 #define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file
-#define MEMORY_BUFFER_EXPAND_BYTES                    1U                                //Memory buffer expanded bytes(1 bytes)
-#define MEMORY_RESERVED_BYTES                         2U                                //Memory buffer reserved bytes(2 bytes)
+#define MEMORY_BUFFER_EXPAND_BYTES                    1U                                //Memory buffer expanded bytes, in bytes
+#define MEMORY_RESERVED_BYTES                         2U                                //Memory buffer reserved bytes, in bytes
 #define MULTIPLE_REQUEST_MAXNUM                       32U                               //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
 //#define PACKET_ORIGINAL_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes FCS/Frame Check Sequence
-#define PACKET_ORIGINAL_MAXSIZE                       2048U                             //Some DNS response length exceeds an Ethernet frame maximum payload, extends to 2 KB/2048 bytes.
+#define PACKET_ORIGINAL_MAXSIZE                       2048U                             //Some DNS response length exceeds an Ethernet frame maximum payload, in bytes.
 //#define PACKET_NORMAL_MAXSIZE                         1480U                             //Maximum size of normal Ethernet frame, 1500 bytes maximum payload - 20 bytes IPv4 header(IPv6 header length is longer than IPv4) and ignore all other transport layer protocols.
-#define PACKET_NORMAL_MAXSIZE                         PACKET_ORIGINAL_MAXSIZE           //Some DNS response length exceeds an Ethernet frame maximum payload, extends to 2 KB/2048 bytes.
+#define PACKET_NORMAL_MAXSIZE                         PACKET_ORIGINAL_MAXSIZE           //Some DNS response length exceeds an Ethernet frame maximum payload, in bytes.
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
 #endif
 #if defined(PLATFORM_WIN)
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                       //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                       //Buffer maximum size of QueryServiceConfig function, in bytes
 #endif
 #if defined(PLATFORM_WIN)
 	#define SERVICE_TABLE_ENTRY_NUM                       2U                          //Service table entry number
 #endif
-#define THREAD_POOL_MAXNUM                            148809524U                  //Number of maximum packet buffer queues, 148809523pps or 148.809Mpps in 100 Gigabit Ethernet
+#define THREAD_POOL_MAXNUM                            148809524U                  //Number of maximum packet buffer queues, 148809523pps in 100 Gigabit Ethernet
 #define THREAD_POOL_MINNUM                            8U                          //Number of minimum packet buffer queues
 #define TRANSPORT_LAYER_PARTNUM                       4U                          //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define UINT16_STRING_MAXLEN                          6U                          //Maximum number of 16 bits is 65535, its length is 5.
@@ -214,52 +214,53 @@
 #endif
 
 //Time definitions
-#define DEFAULT_ALTERNATE_RANGE_TIME                  60U                         //Default time of checking timeout(1 minute/60 seconds)
-#define DEFAULT_ALTERNATE_RESET_TIME                  300U                        //Default time to reset switching of alternate servers(300 seconds/5 minutes)
-#define DEFAULT_ALTERNATE_TIMES                       10U                         //Default times of request timeout(10 times)
-#define DEFAULT_DOMAIN_CACHE_PARAMETER                4096U                       //Default parameter of domain cache(4096 size of queue)
-#define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending(900 seconds/15 minutes)
-#define DEFAULT_FILE_REFRESH_TIME                     15000U                      //Default time between files auto-refreshing(15000 ms/15 seconds)
-#define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL(900 seconds/15 minutes)
-#define DEFAULT_ICMP_TEST_TIME                        900U                        //Default time between ICMP Test(900 seconds/15 minutes)
+#define DEFAULT_ALTERNATE_RANGE_TIME                  60U                         //Default time of checking timeout, in seconds
+#define DEFAULT_ALTERNATE_RESET_TIME                  300U                        //Default time to reset switching of alternate servers, in seconds
+#define DEFAULT_ALTERNATE_TIMES                       10U                         //Default times of request timeout, in times
+#define DEFAULT_DOMAIN_CACHE_PARAMETER                4096U                       //Default parameter of domain cache
+#define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending, in seconds
+#define DEFAULT_FILE_REFRESH_TIME                     15000U                      //Default time between files auto-refreshing, in ms
+#define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL, in seconds
+#define DEFAULT_ICMP_TEST_TIME                        900U                        //Default time between ICMP Test, in seconds
 #if defined(ENABLE_PCAP)
-	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  250U                        //Default Pcap Capture reading timeout(250 ms)
-	#define PCAP_CAPTURE_MIN_TIMEOUT                      10U                         //Minimum Pcap Capture reading timeout(10 ms)
+	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  250U                        //Default Pcap Capture reading timeout, in ms
+	#define PCAP_CAPTURE_MIN_TIMEOUT                      10U                         //Minimum Pcap Capture reading timeout, in ms
 #endif
-#define DEFAULT_THREAD_POOL_RESET_TIME                120000U                     //Default time to reset thread pool number(120000 ms/120 seconds)
-#define DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT          3000U                       //Default timeout of reliable once sockets(Such as TCP, 3000 ms/3 seconds)
-#define DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT        1500U                       //Default timeout of reliable serial sockets(Such as TCP, 1500 ms/1.5 second)
-#define DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT        2000U                       //Default timeout of unreliable once sockets(Such as ICMP/ICMPv6/UDP, 2000 ms/2 seconds)
-#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                       //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, 1000 ms/1 second)
+#define DEFAULT_THREAD_POOL_RESET_TIME                120000U                     //Default time to reset thread pool number, in ms
+#define DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT          3000U                       //Default timeout of reliable once sockets(Such as TCP, in ms)
+#define DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT        1500U                       //Default timeout of reliable serial sockets(Such as TCP, in ms)
+#define DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT        2000U                       //Default timeout of unreliable once sockets(Such as ICMP/ICMPv6/UDP, in ms)
+#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                       //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, in ms)
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_DEFAULT_RECHECK_TIME                 1800U                                    //Default DNSCurve keys recheck time(30 minutes/1800 seconds)
+	#define DNSCURVE_DEFAULT_RECHECK_TIME                 1800U                                    //Default DNSCurve keys recheck time, in seconds
 	#define DNSCURVE_DEFAULT_RELIABLE_SOCKET_TIMEOUT      DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
 	#define DNSCURVE_DEFAULT_UNRELIABLE_SOCKET_TIMEOUT    DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT   //Same as default timeout of unreliable sockets
-	#define DNSCURVE_SHORTEST_RECHECK_TIME                10U                                      //The shortest DNSCurve keys recheck time(10 seconds)
+	#define DNSCURVE_SHORTEST_RECHECK_TIME                10U                                      //The shortest DNSCurve keys recheck time, in seconds
 #endif
-#define FLUSH_DOMAIN_CACHE_INTERVAL_TIME              5U                          //Time between every flushing domain cache(5 seconds)
-#define LOOP_INTERVAL_TIME_DELAY                      20U                         //Delay mode loop interval time(20 ms)
+#define FLUSH_DOMAIN_CACHE_INTERVAL_TIME              5U                          //Time between every flushing domain cache, in seconds
+#define LOOP_INTERVAL_TIME_DELAY                      20U                         //Delay mode loop interval time, in ms
 #if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
+	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time, in us
 #endif
-#define LOOP_MAX_LITTLE_TIMES                         4U                          //Little maximum of loop times(4 times)
-#define LOOP_MAX_LARGE_TIMES                          8U                          //Large maximum of loop times(8 times)
-#define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 ms)
-#define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
-#define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending(5000 ms/5 seconds)
-#define SENDING_ONCE_INTERVAL_TIMES                   3U                          //Repeat times between every sending(3 times).
-#define SENDING_MAX_INTERVAL_TIMES                    8U                          //The maximum times of every repeat testing(8 times).
-#define SHORTEST_ALTERNATE_RANGE_TIME                 5U                          //The shortest time of checking timeout(5 seconds)
-#define SHORTEST_ALTERNATE_RESET_TIME                 5U                          //The shortest time to reset switching of alternate servers(5 seconds)
-#define SHORTEST_DOMAIN_TEST_INTERVAL_TIME            5U                          //The shortest Domain Test time between every sending(5 seconds)
-#define SHORTEST_FILE_REFRESH_TIME                    5U                          //The shortest time between files auto-refreshing(5 seconds)
-#define SHORTEST_ICMP_TEST_TIME                       5U                          //The shortest time between ICMP Test(5 seconds)
-#define SHORTEST_QUEUE_RESET_TIME                     5U                          //The shortest time to reset queue limit(5 seconds)
-#define SHORTEST_THREAD_POOL_RESET_TIME               5U                          //The shortest time to reset thread pool number(5 seconds)
-#define SOCKET_TIMEOUT_MIN                            500U                        //The shortest socket timeout(500 ms)
-#define STANDARD_TIMEOUT                              1000U                       //Standard timeout(1000 ms/1 second)
+#define LOOP_MAX_LITTLE_TIMES                         4U                          //Little maximum of loop times, in times
+#define LOOP_MAX_LARGE_TIMES                          8U                          //Large maximum of loop times, in times
+#define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds, in ms
+#define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds, in us
+#define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending, in ms
+#define SENDING_ONCE_INTERVAL_TIMES                   3U                          //Repeat times between every sending, in times.
+#define SENDING_MAX_INTERVAL_TIMES                    8U                          //The maximum times of every repeat testing, in times.
+#define SHORTEST_ALTERNATE_RANGE_TIME                 5U                          //The shortest time of checking timeout, in seconds
+#define SHORTEST_ALTERNATE_RESET_TIME                 5U                          //The shortest time to reset switching of alternate servers, in seconds
+#define SHORTEST_DOMAIN_TEST_INTERVAL_TIME            5U                          //The shortest Domain Test time between every sending, in seconds
+#define SHORTEST_FILE_REFRESH_TIME                    5U                          //The shortest time between files auto-refreshing, in seconds
+#define SHORTEST_ICMP_TEST_TIME                       5U                          //The shortest time between ICMP Test, in seconds
+#define SHORTEST_QUEUE_RESET_TIME                     5U                          //The shortest time to reset queue limit, in seconds
+#define SHORTEST_THREAD_POOL_RESET_TIME               5U                          //The shortest time to reset thread pool number, in seconds
+#define SOCKET_TIMEOUT_MIN                            500U                        //The shortest socket timeout, in ms
+#define STANDARD_THREAD_TIMEOUT                       2000U                       //Standard thread timeout, in ms
+#define STANDARD_TIMEOUT                              1000U                       //Standard timeout, in ms
 #if defined(PLATFORM_WIN)
-	#define UPDATE_SERVICE_TIME                           3000U                       //Update service timeout(3 seconds/3000 ms)
+	#define UPDATE_SERVICE_TIME                           3000U                       //Update service timeout, in seconds
 #endif
 
 //Data definitions
@@ -282,8 +283,8 @@
 	#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
 #endif
 	#define ERROR_LOG_FILE_NAME_WCS                       (L"Error.log")
-	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL             (L"Flush Pcap_DNSProxy domain cache")          //The mailslot message to flush domain cache(All)
-	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC        (L"Flush Pcap_DNSProxy domain cache: ")        //The mailslot message to flush domain cache(Specific)
+	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_ALL             (L"Flush Pcap_DNSProxy domain cache")          //The mailslot message to flush all domain cache
+	#define FLUSH_DOMAIN_MAILSLOT_MESSAGE_SPECIFIC        (L"Flush Pcap_DNSProxy domain cache: ")        //The mailslot message to flush specific domain cache
 	#define FLUSH_DOMAIN_MAILSLOT_NAME                    (L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot")   //The mailslot name to flush domain cache
 	#define MUTEX_EXISTS_NAME                             (L"Global\\Pcap_DNSProxy Process Exists")      //Global mutex exists name
 	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows Administrators group SID header
@@ -310,8 +311,8 @@
 #endif
 	#define ERROR_LOG_FILE_NAME_WCS                       (L"Error.log")
 	#define ERROR_LOG_FILE_NAME_MBS                       ("Error.log")
-	#define FLUSH_DOMAIN_PIPE_MESSAGE_ALL                 ("Flush Pcap_DNSProxy domain cache")         //The FIFO pipe message to flush domain cache(All)
-	#define FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC            ("Flush Pcap_DNSProxy domain cache: ")       //The FIFO pipe message to flush domain cache(Specific)
+	#define FLUSH_DOMAIN_PIPE_MESSAGE_ALL                 ("Flush Pcap_DNSProxy domain cache")         //The FIFO pipe message to flush all domain cache
+	#define FLUSH_DOMAIN_PIPE_MESSAGE_SPECIFIC            ("Flush Pcap_DNSProxy domain cache: ")       //The FIFO pipe message to flush specific domain cache
 	#define FLUSH_DOMAIN_PIPE_PATH_NAME                   ("/tmp/pcap_dnsproxy_fifo")                  //The FIFO pipe pathname to flush domain cache
 #endif
 #define DEFAULT_LOCAL_SERVER_NAME                     ("pcap-dnsproxy.server")                     //Default Local DNS server name
