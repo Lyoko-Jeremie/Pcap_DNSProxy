@@ -198,10 +198,6 @@ public:
 
 typedef class DNS_PacketTable
 {
-public:
-//Pararmeter of packet
-	bool                                       IsNeedWriteEDNS;
-
 private:
 //Packet structure
 	uint16_t                                   PacketID;
@@ -217,8 +213,11 @@ private:
 	size_t                                     StorageSize;
 	size_t                                     StorageLength;
 
-//Redefine operator functions
 public:
+//Pararmeter of packet
+	bool                                       IsNeedWriteEDNS;
+
+//Redefine operator functions
 //	DNS_PacketTable() = default;
 	DNS_PacketTable(const DNS_PacketTable &) = delete;
 	DNS_PacketTable & operator=(const DNS_PacketTable &) = delete;

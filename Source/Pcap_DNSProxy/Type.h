@@ -44,6 +44,7 @@ typedef enum class _huffman_return_type_
 
 typedef enum class _dns_record_section_
 {
+	NONE, 
 //	QUESTION, 
 	ANSWER, 
 	AUTHORITY, 
@@ -115,7 +116,7 @@ typedef enum class _hosts_type_
 	SOURCE
 }HOSTS_TYPE;
 
-typedef enum class _socket_setting_type
+typedef enum class _socket_setting_type_
 {
 	CHECKSUM_IPV6, 
 	CLOSE, 
@@ -240,7 +241,7 @@ typedef enum class _http_version_selection_
 }HTTP_VERSION_SELECTION;
 
 #if defined(ENABLE_TLS)
-typedef enum class _tls_version_selection
+typedef enum class _tls_version_selection_
 {
 	VERSION_AUTO, 
 	VERSION_1_0, 
@@ -267,44 +268,44 @@ typedef enum class _tls_version_selection
 typedef struct _dns_packet_question_
 {
 	std::string                          QuestionName;
-	uint16_t                             QuestionType;
-	uint16_t                             QuestionClass;
+	uint16_t                             QuestionType{0};
+	uint16_t                             QuestionClass{0};
 }DNS_PACKET_QUESTION;
 
 typedef struct _dns_packet_record_
 {
 //Parameter of record
-	bool                                 IsAfterExtension;
+	bool                                 IsAfterExtension{false};
 
 //Packet structure
 	std::string                          RecordName;
-	uint16_t                             RecordType;
-	uint16_t                             RecordClass;
-	uint32_t                             RecordTTL;
-	uint16_t                             RecordLength;
-	size_t                               RecordDataOffset;
+	uint16_t                             RecordType{0};
+	uint16_t                             RecordClass{0};
+	uint32_t                             RecordTTL{0};
+	uint16_t                             RecordLength{0};
+	size_t                               RecordDataOffset{0};
 }DNS_PACKET_RECORD;
 
 typedef struct _dns_packet_extension_option_
 {
-	uint16_t                             OptionCode;
-	uint16_t                             OptionLength;
-	size_t                               OptionDataOffset;
+	uint16_t                             OptionCode{0};
+	uint16_t                             OptionLength{0};
+	size_t                               OptionDataOffset{0};
 }DNS_PACKET_EXTENSION_OPTION;
 
 typedef struct _dns_packet_extension_record_
 {
 //Parameter of record
-	DNS_RECORD_SECTION                         RecordSelection;
+	DNS_RECORD_SECTION                         RecordSection{DNS_RECORD_SECTION::NONE};
 
 //Packet structure
 //	std::string                                RecordName;
-	uint16_t                                   RecordType;
-	uint16_t                                   RecordPayloadSize;
-	uint8_t                                    RecordExtendRCode;
-	uint8_t                                    RecordVersion;
-	uint16_t                                   RecordFlags;
-	uint16_t                                   RecordLength;
+	uint16_t                                   RecordType{0};
+	uint16_t                                   RecordPayloadSize{0};
+	uint8_t                                    RecordExtendRCode{0};
+	uint8_t                                    RecordVersion{0};
+	uint16_t                                   RecordFlags{0};
+	uint16_t                                   RecordLength{0};
 	std::vector<DNS_PACKET_EXTENSION_OPTION>   RecordData;
 }DNS_PACKET_EXTENSION_RECORD;
 
@@ -318,30 +319,30 @@ typedef struct _file_data_
 #if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          FileName_MBS;
 #endif
-	time_t                               ModificationTime;
+	time_t                               ModificationTime{0};
 }FileData, FILE_DATA;
 
 typedef union _address_union_data_
 {
-	sockaddr_storage                     Storage;
+	sockaddr_storage                     Storage{0};
 	sockaddr_in6                         IPv6;
 	sockaddr_in                          IPv4;
 }AddressUnionData, ADDRESS_UNION_DATA;
 
 typedef struct _socket_data_
 {
-	SYSTEM_SOCKET                        Socket;
-	sockaddr_storage                     SockAddr;
-	socklen_t                            AddrLen;
+	SYSTEM_SOCKET                        Socket{0};
+	sockaddr_storage                     SockAddr{0};
+	socklen_t                            AddrLen{0};
 }SocketData, SOCKET_DATA;
 
 typedef struct _dns_cache_data_
 {
 	std::string                          Domain;
 	std::unique_ptr<uint8_t[]>           Response;
-	size_t                               Length;
-	uint64_t                             ClearCacheTime;
-	uint16_t                             RecordType;
+	size_t                               Length{0};
+	uint64_t                             ClearCacheTime{0};
+	uint16_t                             RecordType{0};
 	ADDRESS_UNION_DATA                   ForAddress;
 }DNSCacheData, DNS_CACHE_DATA;
 #define DNS_CACHE_INDEX_MAP_DOMAIN       first

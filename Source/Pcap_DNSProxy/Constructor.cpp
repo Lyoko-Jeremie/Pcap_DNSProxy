@@ -185,6 +185,7 @@ void SetDefault_ConfigurationTable(
 {
 //[Base] block
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILE_REFRESH_TIME;
+	ConfigurationParameter->LargeBufferSize = DEFAULT_LARGE_BUFFER_SIZE;
 
 //[Log] block
 	ConfigurationParameter->PrintLogLevel = DEFAULT_LOG_LEVEL;
@@ -226,7 +227,7 @@ bool SocketValueTable::SocketValueInit(
 				memcpy_s(&reinterpret_cast<sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr, sizeof(reinterpret_cast<const sockaddr_in6 *>(&ValueItem.SockAddr)->sin6_addr), SocketAddress, sizeof(in6_addr));
 
 		//Add item to list.
-			ValueSet.push_back(ValueItem);
+			ValueSet.emplace_back(std::move(ValueItem));
 			return true;
 		}
 	}
@@ -247,7 +248,7 @@ bool SocketValueTable::SocketValueInit(
 				memcpy_s(&reinterpret_cast<sockaddr_in *>(&ValueItem.SockAddr)->sin_addr, sizeof(reinterpret_cast<const sockaddr_in *>(&ValueItem.SockAddr)->sin_addr), SocketAddress, sizeof(in_addr));
 
 		//Add item to list.
-			ValueSet.push_back(ValueItem);
+			ValueSet.emplace_back(std::move(ValueItem));
 			return true;
 		}
 	}
@@ -276,11 +277,11 @@ void SocketValueTable::ClearAllSocket(
 DNS_PacketTable::DNS_PacketTable(
 	void)
 {
-	IsNeedWriteEDNS = false;
 	PacketID = 0;
 	PacketFlags = 0;
 	StorageSize = 0;
 	StorageLength = 0;
+	IsNeedWriteEDNS = false;
 
 	return;
 }
@@ -346,11 +347,11 @@ bool DNS_PacketTable::IsVaild(
 //Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance
 	std::vector<const DNS_PACKET_RECORD *> ComplianceRecordList;
 	for (const auto &RecordItem:PacketAnswer)
-		ComplianceRecordList.push_back(&RecordItem);
+		ComplianceRecordList.emplace_back(&RecordItem);
 	for (const auto &RecordItem:PacketAuthority)
-		ComplianceRecordList.push_back(&RecordItem);
+		ComplianceRecordList.emplace_back(&RecordItem);
 	for (const auto &RecordItem:PacketAdditional)
-		ComplianceRecordList.push_back(&RecordItem);
+		ComplianceRecordList.emplace_back(&RecordItem);
 	for (size_t Index = 0;Index < ComplianceRecordList.size();++Index)
 	{
 	//Empty pointer.
@@ -365,23 +366,23 @@ bool DNS_PacketTable::IsVaild(
 	//This will cause filter to reject DNS answers with incorrect timestamp settings.
 		if (!ComplianceRecordList.at(Index)->RecordName.empty())
 		{
-			for (size_t InnerIndex = Index + 1U;InnerIndex < ComplianceRecordList.size();++InnerIndex)
+			for (size_t ComplianceIndex = Index + 1U;ComplianceIndex < ComplianceRecordList.size();++ComplianceIndex)
 			{
 			//Empty pointer or record name.
-				if (ComplianceRecordList.at(InnerIndex) == nullptr)
+				if (ComplianceRecordList.at(ComplianceIndex) == nullptr)
 					continue;
-				else if (ComplianceRecordList.at(InnerIndex)->RecordName.empty())
+				else if (ComplianceRecordList.at(ComplianceIndex)->RecordName.empty())
 					continue;
-			
+
 			//It is however possible for most record types to exist with the same label, class and type, but with different data.
-				if (ComplianceRecordList.at(Index)->RecordName == ComplianceRecordList.at(InnerIndex)->RecordName && 
-					ComplianceRecordList.at(Index)->RecordType == ComplianceRecordList.at(InnerIndex)->RecordType && 
-					ComplianceRecordList.at(Index)->RecordClass == ComplianceRecordList.at(InnerIndex)->RecordClass)
+				if (ComplianceRecordList.at(Index)->RecordName == ComplianceRecordList.at(ComplianceIndex)->RecordName && 
+					ComplianceRecordList.at(Index)->RecordType == ComplianceRecordList.at(ComplianceIndex)->RecordType && 
+					ComplianceRecordList.at(Index)->RecordClass == ComplianceRecordList.at(ComplianceIndex)->RecordClass)
 				{
-					if (ComplianceRecordList.at(Index)->RecordTTL != ComplianceRecordList.at(InnerIndex)->RecordTTL)
+					if (ComplianceRecordList.at(Index)->RecordTTL != ComplianceRecordList.at(ComplianceIndex)->RecordTTL)
 						return false;
 					else 
-						ComplianceRecordList.at(InnerIndex) = nullptr;
+						ComplianceRecordList.at(ComplianceIndex) = nullptr;
 				}
 			}
 		}
@@ -395,10 +396,9 @@ bool DNS_PacketTable::WritePacketToTable(
 	const uint8_t * const PacketBuffer, 
 	const size_t PacketLength)
 {
-	size_t BufferOffset = 0;
-
 //Header
-	if (BufferOffset + sizeof(dns_hdr) >= PacketLength)
+	size_t BufferOffset = 0;
+	if (PacketBuffer == nullptr || BufferOffset + sizeof(dns_hdr) >= PacketLength)
 	{
 		return false;
 	}
@@ -407,9 +407,9 @@ bool DNS_PacketTable::WritePacketToTable(
 		PacketFlags = ntoh16(reinterpret_cast<const dns_hdr *>(PacketBuffer + BufferOffset)->Flags);
 		BufferOffset += sizeof(dns_hdr);
 	}
-	const auto HeaderPointer = reinterpret_cast<const dns_hdr *>(PacketBuffer);
 
 //Question
+	const auto HeaderPointer = reinterpret_cast<const dns_hdr *>(PacketBuffer);
 	if (ntoh16(HeaderPointer->Question) > UINT16_NUM_ONE)
 	{
 		return false;
@@ -418,7 +418,7 @@ bool DNS_PacketTable::WritePacketToTable(
 	{
 		DNS_PACKET_QUESTION WritePacketQuestion;
 		if (GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) == 0 || 
-			BufferOffset + GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) + sizeof(dns_qry) > PacketLength)
+			BufferOffset + GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) + sizeof(dns_qry) >= PacketLength)
 		{
 			return false;
 		}
@@ -438,7 +438,7 @@ bool DNS_PacketTable::WritePacketToTable(
 		}
 
 	//Add Question to table.
-		PacketQuestion.push_back(std::move(WritePacketQuestion));
+		PacketQuestion.emplace_back(std::move(WritePacketQuestion));
 	}
 
 //Resource record(Answer, Authority, Additional, Extension)
@@ -447,7 +447,7 @@ bool DNS_PacketTable::WritePacketToTable(
 	{
 	//Record length check
 		if (GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) == 0 || 
-			BufferOffset + GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) + sizeof(dns_record_standard) > PacketLength)
+			BufferOffset + GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset) + sizeof(dns_record_standard) >= PacketLength)
 				return false;
 
 	//Name
@@ -460,7 +460,7 @@ bool DNS_PacketTable::WritePacketToTable(
 			BufferOffset += GetDomainNameLength(PacketBuffer + BufferOffset, PacketLength - BufferOffset);
 
 	//Record data length check
-		if (BufferOffset + sizeof(dns_record_standard) + ntoh16(reinterpret_cast<const dns_record_standard *>(PacketBuffer + BufferOffset)->Length) > PacketLength)
+		if (BufferOffset + sizeof(dns_record_standard) + ntoh16(reinterpret_cast<const dns_record_standard *>(PacketBuffer + BufferOffset)->Length) >= PacketLength)
 			return false;
 
 	//Extension record
@@ -472,14 +472,14 @@ bool DNS_PacketTable::WritePacketToTable(
 			else 
 				IsAfterExtension = true;
 
-		//Record selection
+		//Record section
 			DNS_PACKET_EXTENSION_RECORD WritePacketExtension;
 			if (Index < static_cast<const size_t>(ntoh16(HeaderPointer->Answer)))
-				WritePacketExtension.RecordSelection = DNS_RECORD_SECTION::ANSWER;
+				WritePacketExtension.RecordSection = DNS_RECORD_SECTION::ANSWER;
 			else if (Index < static_cast<const size_t>(ntoh16(HeaderPointer->Answer)) + static_cast<const size_t>(ntoh16(HeaderPointer->Authority)))
-				WritePacketExtension.RecordSelection = DNS_RECORD_SECTION::AUTHORITY;
+				WritePacketExtension.RecordSection = DNS_RECORD_SECTION::AUTHORITY;
 			else 
-				WritePacketExtension.RecordSelection = DNS_RECORD_SECTION::ADDITIONAL;
+				WritePacketExtension.RecordSection = DNS_RECORD_SECTION::ADDITIONAL;
 
 		//Resource in record
 			WritePacketExtension.RecordType = ntoh16(reinterpret_cast<const dns_record_edns *>(PacketBuffer + BufferOffset)->Type);
@@ -503,8 +503,8 @@ bool DNS_PacketTable::WritePacketToTable(
 					return false;
 
 			//Option in record
-				WritePacketExtensionOption.OptionCode = ntoh16(reinterpret_cast<const edns_data_option *>(BufferOffset + OptionOffset)->Code);
-				WritePacketExtensionOption.OptionLength = ntoh16(reinterpret_cast<const edns_data_option *>(BufferOffset + OptionOffset)->Length);
+				WritePacketExtensionOption.OptionCode = ntoh16(reinterpret_cast<const edns_data_option *>(PacketBuffer + OptionOffset)->Code);
+				WritePacketExtensionOption.OptionLength = ntoh16(reinterpret_cast<const edns_data_option *>(PacketBuffer + OptionOffset)->Length);
 				OptionOffset += sizeof(edns_data_option);
 
 			//Option data length check
@@ -518,12 +518,12 @@ bool DNS_PacketTable::WritePacketToTable(
 				OptionOffset += WritePacketExtensionOption.OptionLength;
 
 			//Add option to table.
-				WritePacketExtension.RecordData.push_back(WritePacketExtensionOption);
+				WritePacketExtension.RecordData.emplace_back(std::move(WritePacketExtensionOption));
 			}
 			BufferOffset += WritePacketExtension.RecordLength;
 
 		//Add Question to table.
-			PacketExtension.push_back(std::move(WritePacketExtension));
+			PacketExtension.emplace_back(std::move(WritePacketExtension));
 		}
 	//Other record
 		else {
@@ -550,11 +550,11 @@ bool DNS_PacketTable::WritePacketToTable(
 
 		//Add Question to table.
 			if (Index < static_cast<const size_t>(ntoh16(HeaderPointer->Answer)))
-				PacketAnswer.push_back(std::move(WritePacketRecord));
+				PacketAnswer.emplace_back(std::move(WritePacketRecord));
 			else if (Index < static_cast<const size_t>(ntoh16(HeaderPointer->Answer)) + static_cast<const size_t>(ntoh16(HeaderPointer->Authority)))
-				PacketAuthority.push_back(std::move(WritePacketRecord));
+				PacketAuthority.emplace_back(std::move(WritePacketRecord));
 			else 
-				PacketAdditional.push_back(std::move(WritePacketRecord));
+				PacketAdditional.emplace_back(std::move(WritePacketRecord));
 		}
 	}
 
@@ -657,7 +657,7 @@ bool DNS_PacketTable::UpdateTableQuestion(
 //Clear and update Question list.
 	PacketQuestion.clear();
 	PacketQuestion.shrink_to_fit();
-	PacketQuestion.push_back(std::move(UpdatePacketQuestion));
+	PacketQuestion.emplace_back(std::move(UpdatePacketQuestion));
 
 	return true;
 }
@@ -668,6 +668,10 @@ void DNS_PacketTable::AddRecordToTable(
 	DNS_PACKET_RECORD RecordHeader, 
 	const uint8_t * const RecordData)
 {
+//Record section check
+	if (RecordSection == DNS_RECORD_SECTION::NONE)
+		return;
+
 //Copy record data to storage.
 	if (RecordHeader.RecordLength > 0)
 	{
@@ -683,8 +687,8 @@ void DNS_PacketTable::AddRecordToTable(
 //Find Extension position.
 	if (!PacketExtension.empty())
 	{
-		if ((RecordSection == DNS_RECORD_SECTION::ADDITIONAL && PacketExtension.back().RecordSelection != DNS_RECORD_SECTION::ADDITIONAL) || 
-			(RecordSection == DNS_RECORD_SECTION::AUTHORITY && PacketExtension.back().RecordSelection == DNS_RECORD_SECTION::ANSWER))
+		if ((RecordSection == DNS_RECORD_SECTION::ADDITIONAL && PacketExtension.back().RecordSection != DNS_RECORD_SECTION::ADDITIONAL) || 
+			(RecordSection == DNS_RECORD_SECTION::AUTHORITY && PacketExtension.back().RecordSection == DNS_RECORD_SECTION::ANSWER))
 				RecordHeader.IsAfterExtension = true;
 		else 
 			RecordHeader.IsAfterExtension = false;
@@ -696,34 +700,37 @@ void DNS_PacketTable::AddRecordToTable(
 //Add record to table.
 	if (RecordSection == DNS_RECORD_SECTION::ANSWER)
 	{
-		PacketAnswer.push_back(RecordHeader);
+		PacketAnswer.emplace_back(RecordHeader);
 	}
 	else if (RecordSection == DNS_RECORD_SECTION::AUTHORITY)
 	{
-		PacketAuthority.push_back(RecordHeader);
+		PacketAuthority.emplace_back(RecordHeader);
 	}
 	else {
 	//Some cases need for the TSIG or SIG(0) RRs to be the last in the additional section whenever they are present.
 		if (!PacketAdditional.empty())
 		{
 		//Pop all SIG and TSIG records back from Additional.
-			std::deque<DNS_PACKET_RECORD> SigRecordList;
+			std::stack<DNS_PACKET_RECORD> SigRecordList;
 			while (!PacketAdditional.empty() && (PacketAdditional.back().RecordType == DNS_TYPE_SIG || PacketAdditional.back().RecordType == DNS_TYPE_TSIG))
 			{
-				SigRecordList.push_front(PacketAdditional.back());
+				SigRecordList.emplace(std::move(PacketAdditional.back()));
 				PacketAdditional.pop_back();
 			}
 
 		//Add record to Additional.
-			PacketAdditional.push_back(RecordHeader);
+			PacketAdditional.emplace_back(RecordHeader);
 
 		//Push all SIG and TSIG records back to Additional.
-			for (const auto &RecordItem:SigRecordList)
-				PacketAdditional.push_back(RecordItem);
+			while (!SigRecordList.empty())
+			{
+				PacketAdditional.emplace_back(std::move(SigRecordList.top()));
+				SigRecordList.pop();
+			}
 		}
 	//Add record to Additional.
 		else {
-			PacketAdditional.push_back(RecordHeader);
+			PacketAdditional.emplace_back(RecordHeader);
 		}
 	}
 
@@ -785,7 +792,7 @@ bool DNS_PacketTable::GetTableExtension(
 	if (PacketExtension.empty())
 		return true;
 
-//Copy option data to table.
+//Copy option data from table.
 	if (PacketExtension.back().RecordLength > 0)
 	{
 	//Option buffer check
@@ -811,14 +818,13 @@ bool DNS_PacketTable::GetTableExtension(
 			memcpy_s(OptionData + OptionBufferLength, OptionSize - OptionBufferLength, StorageBuffer.get() + OptionItem.OptionDataOffset, OptionItem.OptionLength);
 			GetTableExtensionOption.OptionDataOffset = OptionBufferLength;
 			OptionBufferLength += OptionItem.OptionLength;
-				
+
 		//Option in record
 			GetTableExtensionOption.OptionCode = OptionItem.OptionCode;
 			GetTableExtensionOption.OptionLength = OptionItem.OptionLength;
 
 		//Add option to Extension.
-			ExtensionHeader.RecordData.push_back(GetTableExtensionOption);
-
+			ExtensionHeader.RecordData.emplace_back(std::move(GetTableExtensionOption));
 		}
 
 	//Resource in record
@@ -832,7 +838,7 @@ bool DNS_PacketTable::GetTableExtension(
 	}
 
 //Resource in record
-	ExtensionHeader.RecordSelection = PacketExtension.back().RecordSelection;
+	ExtensionHeader.RecordSection = PacketExtension.back().RecordSection;
 	ExtensionHeader.RecordType = PacketExtension.back().RecordType;
 	ExtensionHeader.RecordPayloadSize = PacketExtension.back().RecordPayloadSize;
 	ExtensionHeader.RecordExtendRCode = PacketExtension.back().RecordExtendRCode;
@@ -847,12 +853,20 @@ void DNS_PacketTable::UpdateTableExtension(
 	DNS_PACKET_EXTENSION_RECORD ExtensionHeader, 
 	const uint8_t * const OptionData)
 {
+//Record section check
+	if (ExtensionHeader.RecordSection == DNS_RECORD_SECTION::NONE)
+		return;
+
 //Add a new Extension to table.
 	if (PacketExtension.empty())
 	{
 	//Option in record
 		if (ExtensionHeader.RecordLength > 0)
 		{
+		//Option data check
+			if (OptionData == nullptr)
+				return;
+
 		//Prepare storage.
 			ExpandStorage(StorageLength + ExtensionHeader.RecordLength);
 
@@ -866,14 +880,14 @@ void DNS_PacketTable::UpdateTableExtension(
 		}
 
 	//Mark Extension position.
-		if (ExtensionHeader.RecordSelection == DNS_RECORD_SECTION::ANSWER)
+		if (ExtensionHeader.RecordSection == DNS_RECORD_SECTION::ANSWER)
 		{
 			for (auto &RecordItem:PacketAuthority)
 				RecordItem.IsAfterExtension = true;
 			for (auto &RecordItem:PacketAdditional)
 				RecordItem.IsAfterExtension = true;
 		}
-		else if (ExtensionHeader.RecordSelection == DNS_RECORD_SECTION::AUTHORITY)
+		else if (ExtensionHeader.RecordSection == DNS_RECORD_SECTION::AUTHORITY)
 		{
 			for (auto &RecordItem:PacketAdditional)
 				RecordItem.IsAfterExtension = true;
@@ -888,12 +902,12 @@ void DNS_PacketTable::UpdateTableExtension(
 		}
 
 	//Add Extension to table.
-		PacketExtension.push_back(ExtensionHeader);
+		PacketExtension.emplace_back(ExtensionHeader);
 	}
 //Modify exist Extension.
 	else {
 	//Resource in record
-//		PacketExtension.back().RecordSelection = ExtensionHeader.RecordSelection;
+//		PacketExtension.back().RecordSection = ExtensionHeader.RecordSection;
 //		PacketExtension.back().RecordType = ExtensionHeader.RecordType;
 		PacketExtension.back().RecordPayloadSize = ExtensionHeader.RecordPayloadSize;
 		PacketExtension.back().RecordExtendRCode = ExtensionHeader.RecordExtendRCode;
@@ -903,6 +917,10 @@ void DNS_PacketTable::UpdateTableExtension(
 	//Option in record
 		if (ExtensionHeader.RecordLength > 0)
 		{
+		//Option data check
+			if (OptionData == nullptr)
+				return;
+
 		//Prepare storage.
 			ExpandStorage(StorageLength + ExtensionHeader.RecordLength);
 
@@ -937,8 +955,8 @@ size_t DNS_PacketTable::WriteTableToPacket(
 	const size_t TargetSize, 
 	const bool IsTCP)
 {
-//Target buffer size check
-	if (GetTableBufferLength(IsTCP) > TargetSize)
+//Target buffer check
+	if (TargetBuffer == nullptr || GetTableBufferLength(IsTCP) > TargetSize)
 		return 0;
 
 //Header length value
@@ -959,9 +977,9 @@ size_t DNS_PacketTable::WriteTableToPacket(
 	reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Additional = hton16(static_cast<uint16_t>(PacketAdditional.size()));
 	if (!PacketExtension.empty())
 	{
-		if (PacketExtension.back().RecordSelection == DNS_RECORD_SECTION::ANSWER)
+		if (PacketExtension.back().RecordSection == DNS_RECORD_SECTION::ANSWER)
 			reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Answer = hton16(ntoh16(reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Answer) + 1U);
-		else if (PacketExtension.back().RecordSelection == DNS_RECORD_SECTION::AUTHORITY)
+		else if (PacketExtension.back().RecordSection == DNS_RECORD_SECTION::AUTHORITY)
 			reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Authority = hton16(ntoh16(reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Authority) + 1U);
 		else 
 			reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Additional = hton16(ntoh16(reinterpret_cast<dns_hdr *>(TargetBuffer + TargetLength)->Additional) + 1U);
@@ -971,6 +989,7 @@ size_t DNS_PacketTable::WriteTableToPacket(
 //Question
 
 
+
 	return 0;
 }
 
@@ -978,7 +997,6 @@ size_t DNS_PacketTable::WriteTableToPacket(
 void DNS_PacketTable::ClearTable(
 	void)
 {
-	IsNeedWriteEDNS = false;
 	PacketID = 0;
 	PacketFlags = 0;
 	PacketQuestion.clear();
@@ -994,6 +1012,7 @@ void DNS_PacketTable::ClearTable(
 	StorageBuffer.reset();
 	StorageSize = 0;
 	StorageLength = 0;
+	IsNeedWriteEDNS = false;
 
 	return;
 }
@@ -1008,10 +1027,8 @@ void DNS_PacketTable::ExpandStorage(
 	{
 		if (StorageSize > 0)
 			return;
-		else if (GlobalConfiguration.LargeBufferSize > 0)
-			ExpandSize = GlobalConfiguration.LargeBufferSize;
 		else 
-			ExpandSize = DEFAULT_LARGE_BUFFER_SIZE;
+			ExpandSize = GlobalConfiguration.LargeBufferSize;
 	}
 	else if (TargetSize <= StorageSize)
 	{
@@ -1042,7 +1059,7 @@ bool DNS_PacketTable::RebuildStorage(
 	size_t RebuildLength = 0, RebuildSize = StorageSize;
 
 //Copy data from the old one.
-	std::deque<size_t> DataOffsetList;
+	std::queue<size_t> DataOffsetList;
 	for (const auto &RecordItem:PacketAnswer)
 	{
 		if (RecordItem.RecordLength > 0)
@@ -1053,7 +1070,7 @@ bool DNS_PacketTable::RebuildStorage(
 			}
 			else {
 				memcpy_s(RebuildBuffer.get() + RebuildLength, RebuildSize - RebuildLength, StorageBuffer.get() + RecordItem.RecordDataOffset, RecordItem.RecordLength);
-				DataOffsetList.push_back(RebuildLength);
+				DataOffsetList.emplace(RebuildLength);
 				RebuildLength += RecordItem.RecordLength;
 			}
 		}
@@ -1068,7 +1085,7 @@ bool DNS_PacketTable::RebuildStorage(
 			}
 			else {
 				memcpy_s(RebuildBuffer.get() + RebuildLength, RebuildSize - RebuildLength, StorageBuffer.get() + RecordItem.RecordDataOffset, RecordItem.RecordLength);
-				DataOffsetList.push_back(RebuildLength);
+				DataOffsetList.emplace(RebuildLength);
 				RebuildLength += RecordItem.RecordLength;
 			}
 		}
@@ -1083,7 +1100,7 @@ bool DNS_PacketTable::RebuildStorage(
 			}
 			else {
 				memcpy_s(RebuildBuffer.get() + RebuildLength, RebuildSize - RebuildLength, StorageBuffer.get() + RecordItem.RecordDataOffset, RecordItem.RecordLength);
-				DataOffsetList.push_back(RebuildLength);
+				DataOffsetList.emplace(RebuildLength);
 				RebuildLength += RecordItem.RecordLength;
 			}
 		}
@@ -1100,7 +1117,7 @@ bool DNS_PacketTable::RebuildStorage(
 				}
 				else {
 					memcpy_s(RebuildBuffer.get() + RebuildLength, RebuildSize - RebuildLength, StorageBuffer.get() + OptionItem.OptionDataOffset, OptionItem.OptionLength);
-					DataOffsetList.push_back(RebuildLength);
+					DataOffsetList.emplace(RebuildLength);
 					RebuildLength += OptionItem.OptionLength;
 				}
 			}
@@ -1116,7 +1133,7 @@ bool DNS_PacketTable::RebuildStorage(
 		}
 		else {
 			RecordItem.RecordDataOffset = DataOffsetList.front();
-			DataOffsetList.pop_front();
+			DataOffsetList.pop();
 		}
 	}
 	for (auto &RecordItem:PacketAuthority)
@@ -1127,7 +1144,7 @@ bool DNS_PacketTable::RebuildStorage(
 		}
 		else {
 			RecordItem.RecordDataOffset = DataOffsetList.front();
-			DataOffsetList.pop_front();
+			DataOffsetList.pop();
 		}
 	}
 	for (auto &RecordItem:PacketAdditional)
@@ -1138,7 +1155,7 @@ bool DNS_PacketTable::RebuildStorage(
 		}
 		else {
 			RecordItem.RecordDataOffset = DataOffsetList.front();
-			DataOffsetList.pop_front();
+			DataOffsetList.pop();
 		}
 	}
 	for (auto &RecordItem:PacketExtension)
@@ -1151,7 +1168,7 @@ bool DNS_PacketTable::RebuildStorage(
 			}
 			else {
 				OptionItem.OptionDataOffset = DataOffsetList.front();
-				DataOffsetList.pop_front();
+				DataOffsetList.pop();
 			}
 		}
 	}

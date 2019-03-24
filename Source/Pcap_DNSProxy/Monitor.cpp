@@ -55,7 +55,7 @@ void FlushDomainCache_Process(
 	//Make insensitive domain.
 		std::string DomainString(reinterpret_cast<const char *>(Domain));
 		CaseConvert(DomainString, false);
-		
+
 	//Scan domain cache list.
 		if (GlobalRunningStatus.DNSCacheList != nullptr && GlobalRunningStatus.DNSCacheIndexMap != nullptr && 
 			GlobalRunningStatus.DNSCacheIndexMap->find(DomainString) != GlobalRunningStatus.DNSCacheIndexMap->end())
@@ -484,16 +484,16 @@ bool FlushDomainCache_PipeSender(
 	}
 
 //Print error log.
-	std::wstring InnerMessage(L"[System Error] FIFO pipe write messages error");
+	std::wstring ErrorString(L"[System Error] FIFO pipe write messages error");
 	if (errno == 0)
 	{
-		InnerMessage.append(L".\n");
-		PrintToScreen(true, false, InnerMessage.c_str());
+		ErrorString.append(L".\n");
+		PrintToScreen(true, false, ErrorString.c_str());
 	}
 	else {
-		ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, errno, InnerMessage);
-		InnerMessage.append(L".\n");
-		PrintToScreen(true, false, InnerMessage.c_str(), errno);
+		ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, errno, ErrorString);
+		ErrorString.append(L".\n");
+		PrintToScreen(true, false, ErrorString.c_str(), errno);
 	}
 
 	return false;

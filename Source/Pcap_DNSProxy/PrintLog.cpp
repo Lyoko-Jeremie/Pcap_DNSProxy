@@ -21,7 +21,7 @@
 
 //Print message to screen
 void PrintToScreen(
-	const bool IsInnerLock, 
+	const bool IsInternalLock, 
 	const bool IsStandardOut, 
 	const wchar_t * const Format, 
 	...
@@ -32,7 +32,7 @@ void PrintToScreen(
 	va_start(ArgList, Format);
 
 //Print data to screen.
-	if (IsInnerLock)
+	if (IsInternalLock)
 	{
 		std::lock_guard<std::mutex> ScreenMutex((*GlobalRunningStatus.ScreenLock));
 		if (IsStandardOut)
@@ -65,13 +65,13 @@ void ErrorCodeToMessage(
 //Convert error code to error messages.
 	Message.append(L": ");
 #if defined(PLATFORM_WIN)
-	wchar_t *InnerMessage = nullptr;
+	wchar_t *FormattedString = nullptr;
 	if (FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, 
 		nullptr, 
 		static_cast<const DWORD>(ErrorCode), 
 		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), 
-		reinterpret_cast<LPWSTR>(&InnerMessage), 
+		reinterpret_cast<LPWSTR>(&FormattedString), 
 		0, 
 		nullptr) == 0)
 	{
@@ -89,15 +89,15 @@ void ErrorCodeToMessage(
 			Message.append(L"%d");
 
 	//Free pointer.
-		if (InnerMessage != nullptr)
+		if (FormattedString != nullptr)
 		{
-			LocalFree(InnerMessage);
-			InnerMessage = nullptr;
+			LocalFree(FormattedString);
+			FormattedString = nullptr;
 		}
 	}
 	else {
 	//Write error code message.
-		Message.append(InnerMessage);
+		Message.append(FormattedString);
 		while (!Message.empty() && Message.back() == ASCII_SPACE)
 			Message.pop_back(); //Remove space.
 		while (!Message.empty() && Message.back() == ASCII_PERIOD)
@@ -117,18 +117,18 @@ void ErrorCodeToMessage(
 			Message.append(L"[%d]");
 
 	//Free pointer.
-		LocalFree(InnerMessage);
-		InnerMessage = nullptr;
+		LocalFree(FormattedString);
+		FormattedString = nullptr;
 	}
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::wstring InnerMessage;
-	const auto ErrorMessage = strerror(static_cast<const int>(ErrorCode));
-	if (ErrorMessage == nullptr || !MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(ErrorMessage), strnlen(ErrorMessage, ERROR_MESSAGE_MAXSIZE), InnerMessage))
+	std::wstring FormattedString;
+	const auto ErrorString = strerror(static_cast<const int>(ErrorCode));
+	if (ErrorString == nullptr || !MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(ErrorString), strnlen(ErrorString, ERROR_MESSAGE_MAXSIZE), FormattedString))
 	{
 		Message.append(L"%d");
 	}
 	else {
-		Message.append(InnerMessage);
+		Message.append(FormattedString);
 		Message.append(L"[%d]");
 	}
 #endif
@@ -156,34 +156,34 @@ bool PrintError(
 		return false;
 
 //Match log type.
-	std::wstring ErrorMessage;
+	std::wstring ErrorString;
 	switch (ErrorType)
 	{
 	//Message Notice
 		case LOG_ERROR_TYPE::NOTICE:
 		{
-			ErrorMessage.append(L"[Notice] ");
+			ErrorString.append(L"[Notice] ");
 		}break;
 	//System Error
 	//About System Error Codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
 		case LOG_ERROR_TYPE::SYSTEM:
 		{
-			ErrorMessage.append(L"[System Error] ");
+			ErrorString.append(L"[System Error] ");
 		}break;
 	//Parameter Error
 		case LOG_ERROR_TYPE::PARAMETER:
 		{
-			ErrorMessage.append(L"[Parameter Error] ");
+			ErrorString.append(L"[Parameter Error] ");
 		}break;
 	//IPFilter Error
 		case LOG_ERROR_TYPE::IPFILTER:
 		{
-			ErrorMessage.append(L"[IPFilter Error] ");
+			ErrorString.append(L"[IPFilter Error] ");
 		}break;
 	//Hosts Error
 		case LOG_ERROR_TYPE::HOSTS:
 		{
-			ErrorMessage.append(L"[Hosts Error] ");
+			ErrorString.append(L"[Hosts Error] ");
 		}break;
 	//Network Error
 	//About Windows Sockets error codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
@@ -195,7 +195,7 @@ bool PrintError(
 				(ErrorCode == WSAENETUNREACH || ErrorCode == WSAEHOSTUNREACH))
 					return true;
 			else 
-				ErrorMessage.append(L"[Network Error] ");
+				ErrorString.append(L"[Network Error] ");
 		}break;
 	//Npcap or LibPcap Error
 	//About Npcap or LibPcap error codes, please visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
@@ -203,30 +203,30 @@ bool PrintError(
 		case LOG_ERROR_TYPE::PCAP:
 		{
 		//There are no any error codes or file names to be reported in LOG_ERROR_TYPE::PCAP.
-			ErrorMessage.append(L"[Pcap Error] ");
-			ErrorMessage.append(Message);
-			ErrorMessage.append(L"\n");
+			ErrorString.append(L"[Pcap Error] ");
+			ErrorString.append(Message);
+			ErrorString.append(L"\n");
 
-			return WriteMessageToStream(ErrorMessage, ErrorCode, Line);
+			return WriteMessageToStream(ErrorString, ErrorCode, Line);
 		}break;
 	#endif
 	//DNSCrypt Error
 	#if defined(ENABLE_LIBSODIUM)
 		case LOG_ERROR_TYPE::DNSCRYPT:
 		{
-			ErrorMessage.append(L"[DNSCrypt Error] ");
+			ErrorString.append(L"[DNSCrypt Error] ");
 		}break;
 	#endif
 	//SOCKS Error
 		case LOG_ERROR_TYPE::SOCKS:
 		{
-			ErrorMessage.append(L"[SOCKS Error] ");
+			ErrorString.append(L"[SOCKS Error] ");
 		}break;
 	//HTTP CONNECT Error
 	//About HTTP status codes, vitis https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
 		case LOG_ERROR_TYPE::HTTP_CONNECT:
 		{
-			ErrorMessage.append(L"[HTTP CONNECT Error] ");
+			ErrorString.append(L"[HTTP CONNECT Error] ");
 		}break;
 	//TLS Error
 	//About SSPI/SChannel error codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
@@ -234,7 +234,7 @@ bool PrintError(
 	#if defined(ENABLE_TLS)
 		case LOG_ERROR_TYPE::TLS:
 		{
-			ErrorMessage.append(L"[TLS Error] ");
+			ErrorString.append(L"[TLS Error] ");
 		}break;
 	#endif
 		default:
@@ -244,8 +244,8 @@ bool PrintError(
 	}
 
 //Add error message, error code details, and line number.
-	ErrorMessage.append(Message);
-	ErrorCodeToMessage(ErrorType, ErrorCode, ErrorMessage);
+	ErrorString.append(Message);
+	ErrorCodeToMessage(ErrorType, ErrorCode, ErrorString);
 
 //Convert and add file name.
 	if (FileName != nullptr)
@@ -272,12 +272,12 @@ bool PrintError(
 			FileNameString.append(L"(Line %u)");
 
 	//Add file name to string.
-		ErrorMessage.append(FileNameString);
+		ErrorString.append(FileNameString);
 	}
 
 //Print error log.
-	ErrorMessage.append(L".\n");
-	return WriteMessageToStream(ErrorMessage, ErrorCode, Line);
+	ErrorString.append(L".\n");
+	return WriteMessageToStream(ErrorString, ErrorCode, Line);
 }
 
 //Write message to stream
@@ -287,8 +287,8 @@ bool WriteMessageToStream(
 	const size_t Line)
 {
 //Buffer initialization
-	auto MessageBuffer = std::make_unique<wchar_t[]>(ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
-	memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+	auto StreamBuffer = std::make_unique<wchar_t[]>(ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(StreamBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
 
 //Get current date and time.
 	std::wstring CurrentTimeString;
@@ -308,7 +308,7 @@ bool WriteMessageToStream(
 			return false;
 
 	//Convert time structure to string.
-		if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
+		if (swprintf(StreamBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
 				TimeStructure.tm_year + 1900, 
 				TimeStructure.tm_mon + 1, 
 				TimeStructure.tm_mday, 
@@ -319,8 +319,8 @@ bool WriteMessageToStream(
 			return false;
 		}
 		else {
-			CurrentTimeString.append(MessageBuffer.get());
-			memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+			CurrentTimeString.append(StreamBuffer.get());
+			memset(StreamBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
 		}
 	}
 	else {
@@ -346,7 +346,7 @@ bool WriteMessageToStream(
 			return false;
 
 	//Convert time structure to string.
-		if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
+		if (swprintf(StreamBuffer.get(), ERROR_MESSAGE_MAXSIZE, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
 				TimeStructure.tm_year + 1900, 
 				TimeStructure.tm_mon + 1, 
 				TimeStructure.tm_mday, 
@@ -357,8 +357,8 @@ bool WriteMessageToStream(
 					return false;
 		}
 		else {
-			LogStartupTimeString.append(MessageBuffer.get());
-			memset(MessageBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
+			LogStartupTimeString.append(StreamBuffer.get());
+			memset(StreamBuffer.get(), 0, ERROR_MESSAGE_MAXSIZE + MEMORY_RESERVED_BYTES);
 		}
 	}
 
@@ -372,24 +372,24 @@ bool WriteMessageToStream(
 	//Convert message to string.
 		if (Line > 0 && ErrorCode != 0)
 		{
-			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode, Line) < 0)
+			if (swprintf(StreamBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode, Line) < 0)
 				return false;
 			else 
-				OutputString.append(MessageBuffer.get());
+				OutputString.append(StreamBuffer.get());
 		}
 		else if (Line > 0)
 		{
-			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), Line) < 0)
+			if (swprintf(StreamBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), Line) < 0)
 				return false;
 			else 
-				OutputString.append(MessageBuffer.get());
+				OutputString.append(StreamBuffer.get());
 		}
 		else if (ErrorCode != 0)
 		{
-			if (swprintf(MessageBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode) < 0)
+			if (swprintf(StreamBuffer.get(), ERROR_MESSAGE_MAXSIZE, Message.c_str(), ErrorCode) < 0)
 				return false;
 			else 
-				OutputString.append(MessageBuffer.get());
+				OutputString.append(StreamBuffer.get());
 		}
 		else {
 			OutputString.append(Message);
@@ -397,7 +397,7 @@ bool WriteMessageToStream(
 	}
 
 //Reset buffer pointer.
-	MessageBuffer.reset();
+	StreamBuffer.reset();
 
 //Print to screen.
 	if (*GlobalRunningStatus.Path_ErrorLog_WCS == L"stderr" || *GlobalRunningStatus.Path_ErrorLog_WCS == L"stdout"

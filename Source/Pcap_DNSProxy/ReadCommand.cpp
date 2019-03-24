@@ -290,7 +290,7 @@ bool ReadCommand(
 				memset(Buffer.get(), 0, DNSCRYPT_KEYPAIR_MESSAGE_LEN + MEMORY_RESERVED_BYTES);
 				DNSCRYPT_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				std::array<uint8_t, crypto_box_PUBLICKEYBYTES> PublicKey{};
-				size_t InnerIndex = 0;
+				size_t KeyIndex = 0;
 
 			//Generate a random keypair.
 				if (crypto_box_keypair(
@@ -313,13 +313,13 @@ bool ReadCommand(
 				}
 
 			//Write public key.
-				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (KeyIndex = 0;KeyIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++KeyIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
-						InnerIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+					if (KeyIndex > 0 && KeyIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
+						KeyIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 							fwprintf_s(FileHandle, L":");
 
-					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
+					fwprintf_s(FileHandle, L"%c", Buffer.get()[KeyIndex]);
 				}
 
 			//Reset buffer.
@@ -344,13 +344,13 @@ bool ReadCommand(
 				}
 
 			//Write secret key.
-				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (KeyIndex = 0;KeyIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++KeyIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
-						InnerIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+					if (KeyIndex > 0 && KeyIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
+						KeyIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 							fwprintf_s(FileHandle, L":");
 
-					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
+					fwprintf_s(FileHandle, L"%c", Buffer.get()[KeyIndex]);
 				}
 				fwprintf_s(FileHandle, L"\n");
 

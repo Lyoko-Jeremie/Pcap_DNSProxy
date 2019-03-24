@@ -21,16 +21,16 @@
 
 //Convert multiple bytes to wide character string
 bool MBS_To_WCS_String(
-	const uint8_t * const Buffer, 
+	const uint8_t * const BufferPointer, 
 	const size_t BufferSize, 
 	std::wstring &Target)
 {
 //Check buffer.
 	Target.clear();
-	if (Buffer == nullptr || BufferSize == 0)
+	if (BufferPointer == nullptr || BufferSize == 0)
 		return false;
-	const auto DataLength = strnlen_s(reinterpret_cast<const char *>(Buffer), BufferSize);
-	if (DataLength == 0 || CheckEmptyBuffer(Buffer, DataLength))
+	const auto DataLength = strnlen_s(reinterpret_cast<const char *>(BufferPointer), BufferSize);
+	if (DataLength == 0 || CheckEmptyBuffer(BufferPointer, DataLength))
 		return false;
 
 //Initialization
@@ -42,12 +42,12 @@ bool MBS_To_WCS_String(
 	if (MultiByteToWideChar(
 			CP_ACP, 
 			0, 
-			reinterpret_cast<const LPCCH>(Buffer), 
+			reinterpret_cast<const LPCCH>(BufferPointer), 
 			MBSTOWCS_NULL_TERMINATE, 
 			TargetBuffer.get(), 
 			static_cast<const int>(DataLength + NULL_TERMINATE_LENGTH)) == 0)
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
+	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(BufferPointer), DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
@@ -64,16 +64,16 @@ bool MBS_To_WCS_String(
 
 //Convert wide character string to multiple bytes
 bool WCS_To_MBS_String(
-	const wchar_t * const Buffer, 
+	const wchar_t * const BufferPointer, 
 	const size_t BufferSize, 
 	std::string &Target)
 {
 //Check buffer pointer.
 	Target.clear();
-	if (Buffer == nullptr || BufferSize == 0)
+	if (BufferPointer == nullptr || BufferSize == 0)
 		return false;
-	const auto DataLength = wcsnlen_s(Buffer, BufferSize);
-	if (DataLength == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * DataLength))
+	const auto DataLength = wcsnlen_s(BufferPointer, BufferSize);
+	if (DataLength == 0 || CheckEmptyBuffer(BufferPointer, sizeof(wchar_t) * DataLength))
 		return false;
 
 //Initialization
@@ -85,14 +85,14 @@ bool WCS_To_MBS_String(
 	if (WideCharToMultiByte(
 			CP_ACP, 
 			0, 
-			Buffer, 
+			BufferPointer, 
 			WCSTOMBS_NULL_TERMINATE, 
 			reinterpret_cast<LPSTR>(TargetBuffer.get()), 
 			static_cast<const int>(DataLength + NULL_TERMINATE_LENGTH), 
 			nullptr, 
 			nullptr) == 0)
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
+	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), BufferPointer, DataLength + NULL_TERMINATE_LENGTH) == static_cast<const size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
@@ -235,7 +235,7 @@ void GetItemFromString(
 			if (NameString.empty())
 			{
 				if (IsKeepEmptyItem)
-					ItemData.push_back(NameString);
+					ItemData.emplace_back(NameString);
 
 				break;
 			}
@@ -245,11 +245,11 @@ void GetItemFromString(
 					CaseConvert(NameString, false);
 
 			//Add character to the end.
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				if (IsKeepEmptyItem && WholeString.at(Index) == SeparatedSign)
 				{
 					NameString.clear();
-					ItemData.push_back(NameString);
+					ItemData.emplace_back(NameString);
 				}
 
 				break;
@@ -265,12 +265,12 @@ void GetItemFromString(
 					CaseConvert(NameString, false);
 
 			//Add character to the end.
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				NameString.clear();
 			}
 			else if (IsKeepEmptyItem)
 			{
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				NameString.clear();
 			}
 		}
@@ -308,7 +308,7 @@ void GetItemFromString(
 			if (NameString.empty())
 			{
 				if (IsKeepEmptyItem)
-					ItemData.push_back(NameString);
+					ItemData.emplace_back(NameString);
 
 				break;
 			}
@@ -318,11 +318,11 @@ void GetItemFromString(
 					CaseConvert(NameString, false);
 
 			//Add character to the end.
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				if (IsKeepEmptyItem && WholeString.at(Index) == SeparatedSign)
 				{
 					NameString.clear();
-					ItemData.push_back(NameString);
+					ItemData.emplace_back(NameString);
 				}
 
 				break;
@@ -338,12 +338,12 @@ void GetItemFromString(
 					CaseConvert(NameString, false);
 
 			//Add character to the end.
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				NameString.clear();
 			}
 			else if (IsKeepEmptyItem)
 			{
-				ItemData.push_back(NameString);
+				ItemData.emplace_back(NameString);
 				NameString.clear();
 			}
 		}

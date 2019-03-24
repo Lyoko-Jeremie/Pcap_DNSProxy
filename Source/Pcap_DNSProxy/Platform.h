@@ -284,6 +284,7 @@
 #include <queue>                   //Queue and priority_queue container adaptor support
 #include <random>                  //Random number generation facilities support
 #include <regex>                   //Regular expressions are a standardized way to express patterns to be matched against sequences of characters support
+#include <stack>                   //Stack container support
 #include <thread>                  //Thread support
 #include <unordered_map>           //Unordered_map and unordered_multimap container support
 #include <unordered_set>           //Unordered_set and unordered_multiset container support
@@ -579,10 +580,10 @@
 	#error "The version of LibEvent is too old."
 #endif
 
-//LibSodium, require level 10 + 1 and above.
+//LibSodium, require 1.0.17 and above.
 #if defined(ENABLE_LIBSODIUM)
 #define VERSION_REQUIRE_LIBSODIUM_MAJOR   10
-#define VERSION_REQUIRE_LIBSODIUM_MINOR   1
+#define VERSION_REQUIRE_LIBSODIUM_MINOR   2
 #if !(SODIUM_LIBRARY_VERSION_MAJOR >= VERSION_REQUIRE_LIBSODIUM_MAJOR && SODIUM_LIBRARY_VERSION_MINOR >= VERSION_REQUIRE_LIBSODIUM_MINOR)
 	#error "The version of LibSodium is too old."
 #endif

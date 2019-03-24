@@ -1583,43 +1583,45 @@ typedef struct _ipv6_psd_hdr_
 //About this list, please visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
 //Port and Flags definition
 #ifndef IPPORT_DNS
-	#define IPPORT_DNS                   53U          //Standard DNS Port
+	#define IPPORT_DNS                   53U                                  //Standard DNS Port
 #endif
 #ifndef IPPORT_MDNS
-	#define IPPORT_MDNS                  5353U        //Multicast Domain Name System/mDNS Port
+	#define IPPORT_MDNS                  5353U                                //Multicast Domain Name System/mDNS Port
 #endif
 #ifndef IPPORT_LLMNR
-	#define IPPORT_LLMNR                 5355U        //Link-Local Multicast Name Resolution/LLMNR Port
+	#define IPPORT_LLMNR                 5355U                                //Link-Local Multicast Name Resolution/LLMNR Port
 #endif
-#define DNS_FLAG_REQUEST_STANDARD        0x0100       //Standard request
-#define DNS_FLAG_SQR_NE                  0x8180       //Standard query response and No Error.
-#define DNS_FLAG_SQR_NEA                 0x8580       //Standard query response, No Error and Authoritative.
-#define DNS_FLAG_SQR_NETC                0x8380       //Standard query response and No Error, but Truncated.
-#define DNS_FLAG_SQR_FE                  0x8181       //Standard query response, Format Error
-#define DNS_FLAG_SQR_SF                  0x8182       //Standard query response, Server failure
-#define DNS_FLAG_SQR_SNH                 0x8183       //Standard query response, No Such Name
-#define DNS_FLAG_GET_BIT_RESPONSE        0x8000       //Get Response bit in DNS flags.
-#define DNS_FLAG_GET_BIT_OPCODE          0x7800       //Get OPCode in DNS flags.
-#define DNS_FLAG_GET_BIT_AA              0x0400       //Get Authoritative bit in DNS flags.
-#define DNS_FLAG_GET_BIT_TC              0x0200       //Get Truncated bit in DNS flags.
-#define DNS_FLAG_GET_BIT_RD              0x0100       //Get Recursion Desired bit in DNS flags.
-#define DNS_FLAG_GET_BIT_RA              0x0080       //Get Recursion Available bit in DNS flags.
-#define DNS_FLAG_GET_BIT_Z               0x0040       //Get Reserved bit in DNS flags.
-#define DNS_FLAG_GET_BIT_AD              0x0020       //Get Authentic Data bit in DNS flags.
-#define DNS_FLAG_GET_BIT_CD              0x0010       //Get Checking Disabled bit in DNS flags.
-#define DNS_FLAG_GET_BIT_RCODE           0x000F       //Get RCode in DNS flags.
-#define DNS_FLAG_GET_BIT_SERVER_FIXED    0xF8C0       //Get all bits without AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, AD/Authenticated Data, CD/Checking Disabled, and RCode/Return Code in DNS flags.
-#define DNS_FLAG_SET_R                   0x8000       //Set Response bit in DNS flags.
-#define DNS_FLAG_SET_R_TC                0x8200       //Set Response bit and Truncated bit in DNS flags.
-#define DNS_FLAG_SET_R_A                 0x8580       //Set Response bit and Authoritative bit in DNS flags.
-#define DNS_FLAG_SET_R_FE                0x8001       //Set Response bit and Format Error RCode in DNS flags.
-#define DNS_FLAG_SET_R_SNH               0x8003       //Set Response bit and No Such Name RCode in DNS flags.
-#define DNS_POINTER_8_BITS               0xC0         //DNS compression pointer(11000000)
-#define DNS_POINTER_16_BITS              0xC000       //DNS compression pointer(1100000000000000)
-#define DNS_POINTER_8_BIT_STRING         ('\xC0')     //DNS compression pointer string
-#define DNS_POINTER_BIT_GET_LOCATE       0x3FFF       //Get location of DNS compression pointer(00111111111111111)
-#define DNS_POINTER_QUERY                0xC00C       //Pointer of first query
-#define DNS_RECORD_TTL_GET_BIT_HIGHEST   0x80000000   //Get highest 1 bit in TTL.
+#define DNS_FLAG_REQUEST_STANDARD        0x0100                           //Standard request
+#define DNS_FLAG_SQR_NE                  0x8180                           //Standard query response and No Error.
+#define DNS_FLAG_SQR_NEA                 0x8580                           //Standard query response, No Error and Authoritative.
+#define DNS_FLAG_SQR_NETC                0x8380                           //Standard query response and No Error, but Truncated.
+#define DNS_FLAG_SQR_FE                  0x8181                           //Standard query response, Format Error
+#define DNS_FLAG_SQR_SF                  0x8182                           //Standard query response, Server failure
+#define DNS_FLAG_SQR_SNH                 0x8183                           //Standard query response, No Such Name
+#define DNS_FLAG_GET_BIT_RESPONSE        0x8000                           //Get Response bit in DNS flags.
+#define DNS_FLAG_GET_BIT_OPCODE          0x7800                           //Get OPCode in DNS flags.
+#define DNS_FLAG_GET_BIT_AA              0x0400                           //Get Authoritative bit in DNS flags.
+#define DNS_FLAG_GET_BIT_TC              0x0200                           //Get Truncated bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RD              0x0100                           //Get Recursion Desired bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RA              0x0080                           //Get Recursion Available bit in DNS flags.
+#define DNS_FLAG_GET_BIT_Z               0x0040                           //Get Reserved bit in DNS flags.
+#define DNS_FLAG_GET_BIT_AD              0x0020                           //Get Authentic Data bit in DNS flags.
+#define DNS_FLAG_GET_BIT_CD              0x0010                           //Get Checking Disabled bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RCODE           0x000F                           //Get RCode in DNS flags.
+#define DNS_FLAG_GET_BIT_SERVER_FIXED    0xF8C0                           //Get all bits without AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, AD/Authenticated Data, CD/Checking Disabled, and RCode/Return Code in DNS flags.
+#define DNS_FLAG_SET_R                   0x8000                           //Set Response bit in DNS flags.
+#define DNS_FLAG_SET_R_TC                0x8200                           //Set Response bit and Truncated bit in DNS flags.
+#define DNS_FLAG_SET_R_A                 0x8580                           //Set Response bit and Authoritative bit in DNS flags.
+#define DNS_FLAG_SET_R_FE                0x8001                           //Set Response bit and Format Error RCode in DNS flags.
+#define DNS_FLAG_SET_R_SNH               0x8003                           //Set Response bit and No Such Name RCode in DNS flags.
+#define DNS_LABEL_GET_HIGH_2_BITS        0xC0                             //Get high 2 bits in label sign(11000000)
+#define DNS_LABEL_NORMAL_8_BITS          0                                //DNS normal label(00000000)
+#define DNS_LABEL_EXTENDED_8_BITS        0x40                             //DNS extended label(01000000)
+#define DNS_LABEL_POINTER_8_BITS         0xC0                             //DNS compression pointer in 8-bit(11000000)
+#define DNS_LABEL_POINTER_16_BITS        0xC000                           //DNS compression pointer in 16-bit(1100000000000000)
+#define DNS_LABEL_POINTER_GET_LOCATION   0x3FFF                           //Get location of DNS compression pointer(00111111111111111)
+#define DNS_LABEL_POINTER_MAXSIZE        DNS_LABEL_POINTER_GET_LOCATION   //DNS compression pointer maximum location in 16-bit(00111111111111111)
+#define DNS_RECORD_TTL_GET_BIT_HIGHEST   0x80000000                       //Get highest 1 bit in TTL.
 
 //OPCode definition
 #ifndef DNS_OPCODE_QUERY

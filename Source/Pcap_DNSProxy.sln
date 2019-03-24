@@ -273,7 +273,123 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenSSL", "OpenSSL", "{C877
 		Dependency\OpenSSL\LibSSL_macOS.a = Dependency\OpenSSL\LibSSL_macOS.a
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{FF4AA411-F158-450E-B222-AC0D365FA443}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npcap", "Npcap", "{42645084-F768-449A-A925-7BE959132D66}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Packet_x64.lib = Dependency\Npcap\Packet_x64.lib
+		Dependency\Npcap\Packet_x86.lib = Dependency\Npcap\Packet_x86.lib
+		Dependency\Npcap\WPCAP_x64.lib = Dependency\Npcap\WPCAP_x64.lib
+		Dependency\Npcap\WPCAP_x86.lib = Dependency\Npcap\WPCAP_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{53707539-5D83-44B0-85CB-A1409708CB87}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\Packet32.h = Dependency\Npcap\Include\Packet32.h
+		Dependency\Npcap\Include\pcap-bpf.h = Dependency\Npcap\Include\pcap-bpf.h
+		Dependency\Npcap\Include\pcap-namedb.h = Dependency\Npcap\Include\pcap-namedb.h
+		Dependency\Npcap\Include\pcap-stdinc.h = Dependency\Npcap\Include\pcap-stdinc.h
+		Dependency\Npcap\Include\pcap.h = Dependency\Npcap\Include\pcap.h
+		Dependency\Npcap\Include\remote-ext.h = Dependency\Npcap\Include\remote-ext.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47D0EC6-B602-401E-B860-5BB87FD7E589}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\pcap\bluetooth.h = Dependency\Npcap\Include\pcap\bluetooth.h
+		Dependency\Npcap\Include\pcap\bpf.h = Dependency\Npcap\Include\pcap\bpf.h
+		Dependency\Npcap\Include\pcap\can_socketcan.h = Dependency\Npcap\Include\pcap\can_socketcan.h
+		Dependency\Npcap\Include\pcap\dlt.h = Dependency\Npcap\Include\pcap\dlt.h
+		Dependency\Npcap\Include\pcap\export-defs.h = Dependency\Npcap\Include\pcap\export-defs.h
+		Dependency\Npcap\Include\pcap\ipnet.h = Dependency\Npcap\Include\pcap\ipnet.h
+		Dependency\Npcap\Include\pcap\namedb.h = Dependency\Npcap\Include\pcap\namedb.h
+		Dependency\Npcap\Include\pcap\nflog.h = Dependency\Npcap\Include\pcap\nflog.h
+		Dependency\Npcap\Include\pcap\pcap.h = Dependency\Npcap\Include\pcap\pcap.h
+		Dependency\Npcap\Include\pcap\sll.h = Dependency\Npcap\Include\pcap\sll.h
+		Dependency\Npcap\Include\pcap\usb.h = Dependency\Npcap\Include\pcap\usb.h
+		Dependency\Npcap\Include\pcap\vlan.h = Dependency\Npcap\Include\pcap\vlan.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{D2883F98-9F41-43A6-B417-6272FF771999}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{D3FC1577-B576-4BAB-8239-3727498B66D1}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Documents\ReadMe.en.md = Auxiliary\Documents\ReadMe.en.md
+		Auxiliary\Documents\ReadMe.zh-Hans.md = Auxiliary\Documents\ReadMe.zh-Hans.md
+		Auxiliary\Documents\ReadMe.zh-Hant.md = Auxiliary\Documents\ReadMe.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Markdown", "Markdown", "{62FADAF0-0B5B-4C34-BC8B-6EB5A3CA9F5F}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Markdown\.gitattributes = Auxiliary\Markdown\.gitattributes
+		Auxiliary\Markdown\ISSUE_TEMPLATE.md = Auxiliary\Markdown\ISSUE_TEMPLATE.md
+		Auxiliary\Markdown\LICENSE = Auxiliary\Markdown\LICENSE
+		Auxiliary\Markdown\README.md = Auxiliary\Markdown\README.md
+		Auxiliary\Markdown\README.zh-Hans.md = Auxiliary\Markdown\README.zh-Hans.md
+		Auxiliary\Markdown\README.zh-Hant.md = Auxiliary\Markdown\README.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{996064CC-05DD-41AB-B350-C5A31A8D2ECB}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Scripts\CMake_Build.sh = Auxiliary\Scripts\CMake_Build.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{250A61FB-7789-486E-88D9-2D01830C2558}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Npcap-0.99-r9.exe = Auxiliary\Tools\Npcap-0.99-r9.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{15D309AE-B803-4815-AEDF-BCD597081883}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Support\CCase.exe = Auxiliary\Tools\Support\CCase.exe
+		Auxiliary\Tools\Support\curl.exe = Auxiliary\Tools\Support\curl.exe
+		Auxiliary\Tools\Support\md5.exe = Auxiliary\Tools\Support\md5.exe
+		Auxiliary\Tools\Support\sed.exe = Auxiliary\Tools\Support\sed.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{BCCFFD87-72E3-4628-8E6B-6ACF521D99A9}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_Routing\Log_Lib = Auxiliary\Tools\Update_Routing\Log_Lib
+		Auxiliary\Tools\Update_Routing\ReadMe.md = Auxiliary\Tools\Update_Routing\ReadMe.md
+		Auxiliary\Tools\Update_Routing\ReadMe.zh-Hans.md = Auxiliary\Tools\Update_Routing\ReadMe.zh-Hans.md
+		Auxiliary\Tools\Update_Routing\ReadMe.zh-Hant.md = Auxiliary\Tools\Update_Routing\ReadMe.zh-Hant.md
+		Auxiliary\Tools\Update_Routing\Update.bat = Auxiliary\Tools\Update_Routing\Update.bat
+		Auxiliary\Tools\Update_Routing\Update_Big5.bat = Auxiliary\Tools\Update_Routing\Update_Big5.bat
+		Auxiliary\Tools\Update_Routing\Update_GB2312.bat = Auxiliary\Tools\Update_Routing\Update_GB2312.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{67AFD69B-237D-4E14-B99B-71EF5BDF65BD}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat = Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{3CDB057C-0734-4BAA-A952-7DE18C78C3F3}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H
+		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H
+		Dependency\OpenSSL\Include\internal\bio.h = Dependency\OpenSSL\Include\internal\bio.h
+		Dependency\OpenSSL\Include\internal\comp.h = Dependency\OpenSSL\Include\internal\comp.h
+		Dependency\OpenSSL\Include\internal\conf.h = Dependency\OpenSSL\Include\internal\conf.h
+		Dependency\OpenSSL\Include\internal\constant_time_locl.h = Dependency\OpenSSL\Include\internal\constant_time_locl.h
+		Dependency\OpenSSL\Include\internal\cryptlib.h = Dependency\OpenSSL\Include\internal\cryptlib.h
+		Dependency\OpenSSL\Include\internal\dane.h = Dependency\OpenSSL\Include\internal\dane.h
+		Dependency\OpenSSL\Include\internal\dso.h = Dependency\OpenSSL\Include\internal\dso.h
+		Dependency\OpenSSL\Include\internal\dsoerr.h = Dependency\OpenSSL\Include\internal\dsoerr.h
+		Dependency\OpenSSL\Include\internal\err.h = Dependency\OpenSSL\Include\internal\err.h
+		Dependency\OpenSSL\Include\internal\nelem.h = Dependency\OpenSSL\Include\internal\nelem.h
+		Dependency\OpenSSL\Include\internal\numbers.h = Dependency\OpenSSL\Include\internal\numbers.h
+		Dependency\OpenSSL\Include\internal\o_dir.h = Dependency\OpenSSL\Include\internal\o_dir.h
+		Dependency\OpenSSL\Include\internal\o_str.h = Dependency\OpenSSL\Include\internal\o_str.h
+		Dependency\OpenSSL\Include\internal\refcount.h = Dependency\OpenSSL\Include\internal\refcount.h
+		Dependency\OpenSSL\Include\internal\sockets.h = Dependency\OpenSSL\Include\internal\sockets.h
+		Dependency\OpenSSL\Include\internal\sslconf.h = Dependency\OpenSSL\Include\internal\sslconf.h
+		Dependency\OpenSSL\Include\internal\thread_once.h = Dependency\OpenSSL\Include\internal\thread_once.h
+		Dependency\OpenSSL\Include\internal\tsan_assist.h = Dependency\OpenSSL\Include\internal\tsan_assist.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{29473DFB-2FFD-4894-8E33-10DF7A1F0464}"
 	ProjectSection(SolutionItems) = preProject
 		Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_EPILOGUE.H
 		Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\Include\openssl\__DECC_INCLUDE_PROLOGUE.H
@@ -383,71 +499,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{FF4A
 		Dependency\OpenSSL\Include\openssl\x509v3err.h = Dependency\OpenSSL\Include\openssl\x509v3err.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{9B810CD6-9FF4-4CC2-A30C-E53C6A223C52}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_EPILOGUE.H
-		Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\Include\internal\__DECC_INCLUDE_PROLOGUE.H
-		Dependency\OpenSSL\Include\internal\bio.h = Dependency\OpenSSL\Include\internal\bio.h
-		Dependency\OpenSSL\Include\internal\comp.h = Dependency\OpenSSL\Include\internal\comp.h
-		Dependency\OpenSSL\Include\internal\conf.h = Dependency\OpenSSL\Include\internal\conf.h
-		Dependency\OpenSSL\Include\internal\constant_time_locl.h = Dependency\OpenSSL\Include\internal\constant_time_locl.h
-		Dependency\OpenSSL\Include\internal\cryptlib.h = Dependency\OpenSSL\Include\internal\cryptlib.h
-		Dependency\OpenSSL\Include\internal\dane.h = Dependency\OpenSSL\Include\internal\dane.h
-		Dependency\OpenSSL\Include\internal\dso.h = Dependency\OpenSSL\Include\internal\dso.h
-		Dependency\OpenSSL\Include\internal\dsoerr.h = Dependency\OpenSSL\Include\internal\dsoerr.h
-		Dependency\OpenSSL\Include\internal\err.h = Dependency\OpenSSL\Include\internal\err.h
-		Dependency\OpenSSL\Include\internal\nelem.h = Dependency\OpenSSL\Include\internal\nelem.h
-		Dependency\OpenSSL\Include\internal\numbers.h = Dependency\OpenSSL\Include\internal\numbers.h
-		Dependency\OpenSSL\Include\internal\o_dir.h = Dependency\OpenSSL\Include\internal\o_dir.h
-		Dependency\OpenSSL\Include\internal\o_str.h = Dependency\OpenSSL\Include\internal\o_str.h
-		Dependency\OpenSSL\Include\internal\refcount.h = Dependency\OpenSSL\Include\internal\refcount.h
-		Dependency\OpenSSL\Include\internal\sockets.h = Dependency\OpenSSL\Include\internal\sockets.h
-		Dependency\OpenSSL\Include\internal\sslconf.h = Dependency\OpenSSL\Include\internal\sslconf.h
-		Dependency\OpenSSL\Include\internal\thread_once.h = Dependency\OpenSSL\Include\internal\thread_once.h
-		Dependency\OpenSSL\Include\internal\tsan_assist.h = Dependency\OpenSSL\Include\internal\tsan_assist.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npcap", "Npcap", "{42645084-F768-449A-A925-7BE959132D66}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\Npcap\Packet_x64.lib = Dependency\Npcap\Packet_x64.lib
-		Dependency\Npcap\Packet_x86.lib = Dependency\Npcap\Packet_x86.lib
-		Dependency\Npcap\WPCAP_x64.lib = Dependency\Npcap\WPCAP_x64.lib
-		Dependency\Npcap\WPCAP_x86.lib = Dependency\Npcap\WPCAP_x86.lib
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{53707539-5D83-44B0-85CB-A1409708CB87}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\Npcap\Include\Packet32.h = Dependency\Npcap\Include\Packet32.h
-		Dependency\Npcap\Include\pcap-bpf.h = Dependency\Npcap\Include\pcap-bpf.h
-		Dependency\Npcap\Include\pcap-namedb.h = Dependency\Npcap\Include\pcap-namedb.h
-		Dependency\Npcap\Include\pcap-stdinc.h = Dependency\Npcap\Include\pcap-stdinc.h
-		Dependency\Npcap\Include\pcap.h = Dependency\Npcap\Include\pcap.h
-		Dependency\Npcap\Include\remote-ext.h = Dependency\Npcap\Include\remote-ext.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47D0EC6-B602-401E-B860-5BB87FD7E589}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\Npcap\Include\pcap\bluetooth.h = Dependency\Npcap\Include\pcap\bluetooth.h
-		Dependency\Npcap\Include\pcap\bpf.h = Dependency\Npcap\Include\pcap\bpf.h
-		Dependency\Npcap\Include\pcap\can_socketcan.h = Dependency\Npcap\Include\pcap\can_socketcan.h
-		Dependency\Npcap\Include\pcap\dlt.h = Dependency\Npcap\Include\pcap\dlt.h
-		Dependency\Npcap\Include\pcap\export-defs.h = Dependency\Npcap\Include\pcap\export-defs.h
-		Dependency\Npcap\Include\pcap\ipnet.h = Dependency\Npcap\Include\pcap\ipnet.h
-		Dependency\Npcap\Include\pcap\namedb.h = Dependency\Npcap\Include\pcap\namedb.h
-		Dependency\Npcap\Include\pcap\nflog.h = Dependency\Npcap\Include\pcap\nflog.h
-		Dependency\Npcap\Include\pcap\pcap.h = Dependency\Npcap\Include\pcap\pcap.h
-		Dependency\Npcap\Include\pcap\sll.h = Dependency\Npcap\Include\pcap\sll.h
-		Dependency\Npcap\Include\pcap\usb.h = Dependency\Npcap\Include\pcap\usb.h
-		Dependency\Npcap\Include\pcap\vlan.h = Dependency\Npcap\Include\pcap\vlan.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{D2883F98-9F41-43A6-B417-6272FF771999}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -480,13 +531,20 @@ Global
 		{B6D1EBD9-9E67-44D0-947E-D7BE96D21B3E} = {4D197AA5-DBB8-482C-9028-5E8181936371}
 		{7C45985B-0FE7-483D-B790-91EBBC22B630} = {0544F017-08B3-4A9B-A6AB-B5231A9AA09F}
 		{C87764FC-B3CE-4464-9CA2-389DD7C3E3CC} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
-		{FF4AA411-F158-450E-B222-AC0D365FA443} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
-		{9B810CD6-9FF4-4CC2-A30C-E53C6A223C52} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
 		{42645084-F768-449A-A925-7BE959132D66} = {58893CCA-04E3-4D8F-9D25-3720EFE9F9B6}
 		{53707539-5D83-44B0-85CB-A1409708CB87} = {42645084-F768-449A-A925-7BE959132D66}
 		{B47D0EC6-B602-401E-B860-5BB87FD7E589} = {53707539-5D83-44B0-85CB-A1409708CB87}
 		{FF40A2D8-8CA3-4392-84C7-A5754C98A2E3} = {C87764FC-B3CE-4464-9CA2-389DD7C3E3CC}
 		{D2883F98-9F41-43A6-B417-6272FF771999} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
+		{D3FC1577-B576-4BAB-8239-3727498B66D1} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
+		{62FADAF0-0B5B-4C34-BC8B-6EB5A3CA9F5F} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
+		{996064CC-05DD-41AB-B350-C5A31A8D2ECB} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
+		{250A61FB-7789-486E-88D9-2D01830C2558} = {CF55D226-2035-48C6-ABDA-7186B4EAA9B4}
+		{15D309AE-B803-4815-AEDF-BCD597081883} = {250A61FB-7789-486E-88D9-2D01830C2558}
+		{BCCFFD87-72E3-4628-8E6B-6ACF521D99A9} = {250A61FB-7789-486E-88D9-2D01830C2558}
+		{67AFD69B-237D-4E14-B99B-71EF5BDF65BD} = {250A61FB-7789-486E-88D9-2D01830C2558}
+		{3CDB057C-0734-4BAA-A952-7DE18C78C3F3} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
+		{29473DFB-2FFD-4894-8E33-10DF7A1F0464} = {FF40A2D8-8CA3-4392-84C7-A5754C98A2E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B1D403CF-FFF8-44B3-9E46-FF704DBA2284}

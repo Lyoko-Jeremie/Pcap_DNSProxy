@@ -38,7 +38,11 @@
 
 //Codepage
 #define CODEPAGE_ASCII                                1U                          //ANSI
-#define CODEPAGE_UTF_8                                65001U                      //UTF-8
+#ifndef CP_UTF8
+	#define CODEPAGE_UTF_8                                65001U                      //UTF-8
+#else
+	#define CODEPAGE_UTF_8                                CP_UTF8
+#endif
 #define CODEPAGE_UTF_16_LE                            1200U                       //UTF-16 Little Endian/LE
 #define CODEPAGE_UTF_16_BE                            1201U                       //UTF-16 Big Endian/BE
 #define CODEPAGE_UTF_32_LE                            12000U                      //UTF-32 Little Endian/LE

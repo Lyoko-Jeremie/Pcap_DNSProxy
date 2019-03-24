@@ -359,7 +359,7 @@ bool SetSocketAttribute(
 			}
 
 		//TCP keepalive settings
-/* No need to set interval keepalive packet and timeout, use system default. 
+/* No need to set interval keepalive packet and timeout, use system default settings.
 			tcp_keepalive AliveTransport_IN;
 			tcp_keepalive AliveTransport_OUT;
 			memset(&AliveTransport_IN, 0, sizeof(tcp_keepalive));

@@ -26,8 +26,8 @@
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2019 Chengr28"   //Copyright message
 #define VERSION_CONFIG_COUNT                          2U                                    //Version count: Major and Minor
 #define VERSION_CONFIG_MAJOR                          0                                     //Version: Major
-#define VERSION_CONFIG_MINOR                          45U                                   //Version: Minor
+#define VERSION_CONFIG_MINOR                          50U                                   //Version: Minor
 #define VERSION_CONFIG_MAXSIZE                        8U                                    //Version size
-#define VERSION_DETACH                                0,4,9,13
-#define VERSION_FULL                                  L"0.4.9.13"
+#define VERSION_DETACH                                0,4,9,14
+#define VERSION_FULL                                  L"0.4.9.14"
 #endif

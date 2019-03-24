@@ -51,6 +51,29 @@ bool PacketQueryToString(
 	std::string &StringName);
 size_t GetStringToDomainSize(
 	const size_t StringLength);
+size_t StringToPacketQuery(
+	const std::string &StringName, 
+	uint8_t * const PacketBuffer, 
+	const size_t PacketSize);
+bool BuildPacketQueryStack(
+	std::stack<std::pair<std::string, uint16_t>> &NameStack, 
+	const uint8_t * const PacketBuffer, 
+	const size_t PacketLength, 
+	const size_t NameOffset, 
+	const size_t NameSize, 
+	std::vector<uint16_t> * PointerAlreadyUse);
+bool UpdatePacketQueryTree(
+	std::vector<std::unordered_map<std::string, std::pair<uint16_t, size_t>>> &CompressionTree, 
+	const uint8_t * const PacketBuffer, 
+	const size_t PacketLength, 
+	const size_t NameOffset, 
+	const size_t NameSize);
+size_t PacketQueryCompression(
+	std::vector<std::unordered_map<std::string, std::pair<uint16_t, size_t>>> &CompressionTree, 
+	const uint8_t * const PacketBuffer, 
+	const size_t PacketLength, 
+	const size_t NameOffset, 
+	const size_t NameSize);
 
 //Destructor.cpp
 void ReleaseTemporaryResource(
@@ -68,6 +91,10 @@ bool CheckLibraryVersion(
 	void);
 bool LoadPathFileName(
 	void);
+#if defined(PLATFORM_WIN)
+bool SetConsoleCodepage(
+	void);
+#endif
 bool SetScreenBuffer(
 	void);
 #if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
@@ -149,7 +176,7 @@ bool SetSocketAttribute(
 
 //PrintLog.cpp
 void PrintToScreen(
-	const bool IsInnerLock, 
+	const bool IsInternalLock, 
 	const bool IsStandardOut, 
 	const wchar_t * const Format, 
 	...
@@ -193,11 +220,11 @@ bool LoadService(
 
 //Text.cpp
 bool MBS_To_WCS_String(
-	const uint8_t * const Buffer, 
+	const uint8_t * const BufferPointer, 
 	const size_t BufferSize, 
 	std::wstring &Target);
 bool WCS_To_MBS_String(
-	const wchar_t * const Buffer, 
+	const wchar_t * const BufferPointer, 
 	const size_t BufferSize, 
 	std::string &Target);
 bool IsDigit(

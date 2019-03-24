@@ -158,13 +158,11 @@ DWORD WINAPI ServiceController(
 	switch(ControlCode)
 	{
 	//Handle the will be shutdown signal.
-	#if !defined(PLATFORM_WIN_XP)
 		case SERVICE_CONTROL_PRESHUTDOWN:
 		{
 			TerminateService();
 			return EXIT_SUCCESS;
 		}
-	#endif
 	//Handle the shutdown signal.
 		case SERVICE_CONTROL_SHUTDOWN:
 		{

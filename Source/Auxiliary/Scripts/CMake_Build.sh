@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 
 # This code is part of Pcap_DNSProxy
-# Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+# Pcap_DNSProxy, a local DNS server based on packet capturing
 # Copyright (C) 2012-2019 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ mkdir Release
 chmod -R 755 Auxiliary/Scripts
 
 # Set thread number variable.
+## FreeBSD and macOS will use sysctl to get thread number.
 if (uname -s | grep -iq "FreeBSD" || uname -s | grep -iq "Darwin"); then
 	ThreadNum=`sysctl -n hw.ncpu`
 else 

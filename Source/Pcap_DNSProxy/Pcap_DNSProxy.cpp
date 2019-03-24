@@ -63,6 +63,11 @@ bool LoadPrepareProcess(
 //Load path and file name.
 	if (!LoadPathFileName())
 		return false;
+#if defined(PLATFORM_WIN)
+//Set console codepage.
+	else if (!SetConsoleCodepage())
+		return false;
+#endif
 //Set screen to no any buffers.
 	else if (!SetScreenBuffer())
 		return false;

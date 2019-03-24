@@ -1,219 +1,229 @@
 :: Pcap_DNSProxy service control batch
-:: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+:: Pcap_DNSProxy, a local DNS server based on packet capturing
 :: 
 :: Contributions: Hugo Chan, Syrone Wong, Stzx, Chengr28
 :: 
 
 
-@echo off
+@CHCP 65001
+@ECHO off
+CLS
 
 
 :: Administrative permission check
-net session >NUL 2>NUL
-if ERRORLEVEL 1 (
-	color 4F
-	echo Please run as Administrator.
-	echo.
-	pause & break
-	echo.
-	cls
+net session >nul 2>nul
+IF ERRORLEVEL 1 (
+	COLOR 4F
+	ECHO Please run as Administrator.
+	ECHO.
+	PAUSE & BREAK
+	ECHO.
+	CLS
 )
 
 
-:: Processor architecture and system version check
-set Architecture=
-if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-	set Architecture=_x86
+:: Processor architecture check
+SET Architecture=
+IF %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
+	SET Architecture=_x86
 )
-ver | findstr /L /I " 5." >NUL
-if not ERRORLEVEL 1 (
-	set Architecture=_XP
-)
-set Executable=Pcap_DNSProxy%Architecture%.exe
-set ServiceName=PcapDNSProxyService
+SET Executable=Pcap_DNSProxy%Architecture%.exe
+SET ServiceName=PcapDNSProxyService
 
 
 :: Command
-set Command=%~1
-if not "%Command%" == "" (
-	goto CASE_%Command%
+SET Command=%~1
+IF NOT "%Command%" == "" (
+	GOTO CASE_%Command%
 )
 
 
 :: Choice
 :CHOICE
-echo Pcap_DNSProxy service control batch
-echo.
-echo 1: Install service
-echo 2: Uninstall service
-echo 3: Start service
-echo 4: Stop service
-echo 5: Restart service
-echo 6: Flush domain cache in Pcap_DNSProxy
-echo 7: Flush domain cache in system only
-echo 8: Exit
-echo.
-set /P UserChoice="Choose: "
-set UserChoice=CASE_%UserChoice%
-cd /D "%~dp0"
-cls
-goto %UserChoice%
+ECHO Pcap_DNSProxy service control batch
+ECHO.
+ECHO 1: Install service
+ECHO 2: Uninstall service
+ECHO 3: Start service
+ECHO 4: Stop service
+ECHO 5: Restart service
+ECHO 6: Flush domain cache in Pcap_DNSProxy
+ECHO 7: Flush domain cache in system only
+ECHO 8: Exit
+ECHO.
+SET /P UserChoice="Choose: "
+SET UserChoice=CASE_%UserChoice%
+CD /D "%~dp0"
+CLS
+GOTO %UserChoice%
 
 
 :: Service install
 :CASE_1
-	call :DELETE_SERVICE
-	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROCESS
-	ping 127.0.0.1 -n 3 >NUL
+	CALL :DELETE_SERVICE
+	ping 127.0.0.1 -n 3 >nul
+	CALL :KILL_PROCESS
+	ping 127.0.0.1 -n 3 >nul
 	sc create %ServiceName% binPath= "%~dp0%Executable%" DisplayName= "PcapDNSProxy Service" start= auto
 	%Executable% --firewall-test
-	sc description %ServiceName% "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
+	sc description %ServiceName% "Pcap_DNSProxy, a local DNS server based on packet capturing"
 	sc failure %ServiceName% reset= 0 actions= restart/5000/restart/10000//
 	sc start %ServiceName%
-	ipconfig /flushdns
-	call :CHECK_PROCESS
-	if "%Command%" == "" (
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	IF %ERRORLEVEL% EQU 0 (
+		ipconfig /flushdns
+	)
+	CALL :CHECK_PROCESS
+	IF "%Command%" == "" (
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Service uninstall
 :CASE_2
-	call :DELETE_SERVICE
-	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROCESS
+	CALL :DELETE_SERVICE
+	ping 127.0.0.1 -n 3 >nul
+	CALL :KILL_PROCESS
 	ipconfig /flushdns
-	if "%Command%" == "" (
-		echo.
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	IF "%Command%" == "" (
+		ECHO.
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Service start
 :CASE_3
-	sc start %ServiceName%
-	ping 127.0.0.1 -n 3 >NUL
-	ipconfig /flushdns
-	ping 127.0.0.1 -n 3 >NUL
-	call :CHECK_PROCESS
-	if "%Command%" == "" (
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	sc query %ServiceName% >nul
+	IF %ERRORLEVEL% EQU 0 (
+		CALL :START_SERVICE
+	) ELSE (
+		COLOR 4F
+		ECHO The service seems not installed.
+		ECHO.
+	)
+	IF "%Command%" == "" (
+		PAUSE
+		COLOR
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Service stop
 :CASE_4
-	sc stop %ServiceName%
-	ping 127.0.0.1 -n 3 >NUL
+	CALL :STOP_SERVICE
+	ping 127.0.0.1 -n 3 >nul
 	ipconfig /flushdns
-	if "%Command%" == "" (
-		echo.
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	IF "%Command%" == "" (
+		ECHO.
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Service restart
 :CASE_5
-	sc stop %ServiceName%
-	ping 127.0.0.1 -n 3 >NUL
-	call :KILL_PROCESS
-	ping 127.0.0.1 -n 3 >NUL
-	sc start %ServiceName%
-	ping 127.0.0.1 -n 3 >NUL
-	ipconfig /flushdns
-	call :CHECK_PROCESS
-	if "%Command%" == "" (
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	CALL :STOP_SERVICE
+	ping 127.0.0.1 -n 3 >nul
+	CALL :KILL_PROCESS
+	ping 127.0.0.1 -n 3 >nul
+	CALL :START_SERVICE
+	IF "%Command%" == "" (
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Flush domain cache(Pcap_DNSProxy)
 :CASE_6
-	call :CHECK_PROCESS
+	CALL :CHECK_PROCESS
 	%Executable% --flush-dns
-	if "%Command%" == "" (
-		echo.
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	IF "%Command%" == "" (
+		ECHO.
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Flush domain cache(System)
 :CASE_7
 	ipconfig /flushdns
-	if "%Command%" == "" (
-		echo.
-		pause
-		cls
-		goto :CHOICE
-	) else (
-		exit
+	IF "%Command%" == "" (
+		ECHO.
+		PAUSE
+		CLS
+		GOTO CHOICE
+	) ELSE (
+		EXIT
 	)
 
 
 :: Exit
 :CASE_8
-	color
-	exit
+	COLOR
+	EXIT
 
 
 :: Process check
 :CHECK_PROCESS
-	tasklist | findstr /L /I "%Executable%" >NUL
-	if %ERRORLEVEL% EQU 1 (
-		color 4F
-		echo.
-		echo The program is not running, please check the configurations and error log.
-		echo.
-		pause
-		color 07
-		cls
-		goto :CHOICE
+	tasklist | findstr /L /I "%Executable%" >nul
+	IF %ERRORLEVEL% NEQ 0 (
+		COLOR 4F
+		ECHO.
+		ECHO The program is not running, please check the configurations and error log.
+		ECHO.
+		PAUSE
+		COLOR
+		CLS
+		GOTO CHOICE
 	)
-	echo.
-	goto :EOF
+	ECHO.
+	GOTO EOF
 
 
 :: Process kill
 :KILL_PROCESS
-	tasklist | findstr /L /I "%Executable%" >NUL
-	if %ERRORLEVEL% EQU 0 (
-		taskkill /F /IM %Executable% >NUL
-		goto :EOF
+	tasklist | findstr /L /I "%Executable%" >nul && taskkill /F /IM %Executable% >nul
+	GOTO EOF
+
+
+:: Service start
+:START_SERVICE
+	sc query %ServiceName% >nul && ( sc query %ServiceName% | find "RUNNING" >nul || sc start %ServiceName% )
+	IF %ERRORLEVEL% EQU 0 (
+		ping 127.0.0.1 -n 3 >nul
+		ipconfig /flushdns
+		ping 127.0.0.1 -n 3 >nul
+		CALL :CHECK_PROCESS
 	)
-	goto :EOF
+	GOTO EOF
+
+
+:: Service stop
+:STOP_SERVICE
+	sc query %ServiceName% >nul && ( sc query %ServiceName% | find "STOPPED" >nul || sc stop %ServiceName% )
+	GOTO EOF
 
 
 :: Service delete
 :DELETE_SERVICE
-	sc query %ServiceName% >NUL
-	if %ERRORLEVEL% EQU 0 (
-		sc stop %ServiceName%
-		sc delete %ServiceName%
-		goto :EOF
-	)
-	goto :EOF
+	sc query %ServiceName% >nul && ( sc query %ServiceName% | find "STOPPED" >nul || sc stop %ServiceName% ) && sc delete %ServiceName%
+	GOTO EOF

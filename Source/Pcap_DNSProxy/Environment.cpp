@@ -195,6 +195,21 @@ bool LoadPathFileName(
 	return true;
 }
 
+#if defined(PLATFORM_WIN)
+//Set console codepage.
+bool SetConsoleCodepage(
+	void)
+{
+	if (SetConsoleCP(CP_UTF8) == 0 || SetConsoleOutputCP(CP_UTF8) == 0)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console codepage error", GetLastError(), nullptr, 0);
+		return false;
+	}
+
+	return true;
+}
+#endif
+
 //Set screen to no any buffers
 bool SetScreenBuffer(
 	void)
@@ -243,7 +258,7 @@ bool FileNameInit(
 //The path is full path name including module name from file name initialization.
 //The path is location path not including module name from set path command.
 	GlobalRunningStatus.Path_Global_WCS->clear();
-	GlobalRunningStatus.Path_Global_WCS->push_back(OriginalPath);
+	GlobalRunningStatus.Path_Global_WCS->emplace_back(OriginalPath);
 	if (GlobalRunningStatus.Path_Global_WCS->front().rfind(L"\\") == std::wstring::npos)
 		return false;
 	else if (GlobalRunningStatus.Path_Global_WCS->front().rfind(L"\\") + 1U < GlobalRunningStatus.Path_Global_WCS->front().length())
@@ -259,12 +274,12 @@ bool FileNameInit(
 #elif (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //The path is location path with slash not including module name at the end of this process, like "/xxx/".
 	GlobalRunningStatus.Path_Global_MBS->clear();
-	GlobalRunningStatus.Path_Global_MBS->push_back(OriginalPath);
+	GlobalRunningStatus.Path_Global_MBS->emplace_back(OriginalPath);
 	std::wstring StringTemp;
 	if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OriginalPath.c_str()), PATH_MAX + NULL_TERMINATE_LENGTH, StringTemp))
 		return false;
 	GlobalRunningStatus.Path_Global_WCS->clear();
-	GlobalRunningStatus.Path_Global_WCS->push_back(StringTemp);
+	GlobalRunningStatus.Path_Global_WCS->emplace_back(StringTemp);
 	StringTemp.clear();
 #endif
 
