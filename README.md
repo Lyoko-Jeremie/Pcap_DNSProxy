@@ -1,13 +1,13 @@
 ﻿Pcap_DNSProxy
 =====
-Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+Pcap_DNSProxy, a local DNS server based on packet capturing
 
 ### Releases
 [![GitHub release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy.svg)](https://github.com/chengr28/Pcap_DNSProxy/releases/latest)
 [![GitHub (pre-)release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy/all.svg?label=pre-release)](https://github.com/chengr28/Pcap_DNSProxy/releases)
 
 ### Usage
-**Please visit [Documents folder](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) to read detail introduction.**
+**Please visit [Documents folder](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Pcap_DNSProxy/Documents) to read detail introduction.**
 * [简体中文介绍](README.zh-Hans.md)
 * [繁體中文介紹](README.zh-Hant.md)
 
@@ -24,12 +24,11 @@ Pcap_DNSProxy is a tool based on WinPcap/LibPcap which can filter DNS poisoning.
 
 ### Platform
 * Windows
-  * **64-bit/x64: Windows Vista/2008 and later.**
-  * **32-bit/x86: Windows XP SP3/2003 SP2 and later.**
+  * **Windows 7/2008 and later**
 * FreeBSD/Linux
-  * FreeBSD/Linux which support all [dependency packages](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents).
+  * Support [dependency packages](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Pcap_DNSProxy/Documents).
 * macOS
-  * **64-bit Mac OS X 10.8(Mountain Lion) and later.**
+  * **OS X 10.9 Mavericks and later**
 * OpenWrt/LEDE
   * **Please visit [openwrt-Pcap_DNSProxy project](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy).**
 * Supported types of network devices in capture module

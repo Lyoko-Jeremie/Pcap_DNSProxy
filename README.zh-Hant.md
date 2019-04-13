@@ -1,13 +1,13 @@
 ﻿Pcap_DNSProxy
 =====
-Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+Pcap_DNSProxy, a local DNS server based on packet capturing
 
 ### Releases
 [![GitHub release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy.svg)](https://github.com/chengr28/Pcap_DNSProxy/releases/latest)
 [![GitHub (pre-)release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy/all.svg?label=pre-release)](https://github.com/chengr28/Pcap_DNSProxy/releases)
 
 ### Usage
-**說明文檔參見專案 [Documents 資料夾](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的內容**
+**說明文檔參見專案 [Documents 資料夾](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Pcap_DNSProxy/Documents) 的內容**
 
 ### Summary
 Pcap_DNSProxy 是一個基於 WinPcap/LibPcap 用於過濾 DNS 投毒污染的工具，提供便捷和強大的包含正則運算式的修改 Hosts 的方法，以及對 DNSCurve/DNSCrypt 協定、並行和 TCP 協定請求的支援。多伺服器並行請求功能，更可提高在惡劣網路環境下網域名稱解析的可靠性：
@@ -22,15 +22,14 @@ Pcap_DNSProxy 是一個基於 WinPcap/LibPcap 用於過濾 DNS 投毒污染的�
 
 ### Platform
 * Windows
-  * **64位/x64版本：Windows Vista/2008 以及更新的版本**
-  * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
+  * **Windows 7/2008 以及更新的版本**
 * FreeBSD/Linux
-  * 支援 [編譯所需依賴包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 FreeBSD/Linux 版本
+  * 支援 [編譯所需依賴包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Pcap_DNSProxy/Documents) 的版本
 * macOS
-  * **支援 64 位 Mac OS X 10.8(Mountain Lion) 以及更新的 macOS 版本**
+  * **支援 OS X 10.9 Mavericks 以及更新的版本**
 * OpenWrt/LEDE
   * **參見 [openwrt-Pcap_DNSProxy 專案](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)**
-* 本工具**抓包模組**所支援的網路類型
+* 本工具抓包模組所支援的網路類型
   * 網路裝置類型為 Ethernet 和 Apple IEEE 1394/FireWire 的網路
   * 原生 IPv4/PPPoE 和 IPv6/PPPoEv6 網路
 
