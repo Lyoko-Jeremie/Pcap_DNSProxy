@@ -1,0 +1,288 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pcap_DNSProxy", "Pcap_DNSProxy", "{2F2889DE-2C4A-4541-ABB6-0151FF9C8F57}"
+	ProjectSection(SolutionItems) = preProject
+		CMakeLists.txt = CMakeLists.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{78DC719C-A780-4923-9BD9-4D7459A5113B}"
+	ProjectSection(SolutionItems) = preProject
+		Documents\ReadMe.en.md = Documents\ReadMe.en.md
+		Documents\ReadMe.zh-Hans.md = Documents\ReadMe.zh-Hans.md
+		Documents\ReadMe.zh-Hant.md = Documents\ReadMe.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auxiliary", "Auxiliary", "{DF5DC787-4096-415B-A89A-5587F59A7F07}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{AB58BBB1-EA77-4DE8-B59F-87D024F99AB9}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\ExampleConfig\Routing.txt = Auxiliary\ExampleConfig\Routing.txt
+		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
+		Auxiliary\ExampleConfig\WhiteList.txt = Auxiliary\ExampleConfig\WhiteList.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Markdown", "Markdown", "{ACC027A7-5883-4FD5-ADFA-D3FD9D195562}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Markdown\.gitattributes = Auxiliary\Markdown\.gitattributes
+		Auxiliary\Markdown\ISSUE_TEMPLATE.md = Auxiliary\Markdown\ISSUE_TEMPLATE.md
+		Auxiliary\Markdown\LICENSE = Auxiliary\Markdown\LICENSE
+		Auxiliary\Markdown\README.md = Auxiliary\Markdown\README.md
+		Auxiliary\Markdown\README.zh-Hans.md = Auxiliary\Markdown\README.zh-Hans.md
+		Auxiliary\Markdown\README.zh-Hant.md = Auxiliary\Markdown\README.zh-Hant.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{E8CDFBA2-D5BF-4DB7-B20E-D26942AEFDA6}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Scripts\CMake_Build.sh = Auxiliary\Scripts\CMake_Build.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2D2D5AA0-2B23-4311-89D1-FE7B3E020CC4}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Hash.bat = Auxiliary\Tools\Hash.bat
+		Auxiliary\Tools\Npcap-0.992.exe = Auxiliary\Tools\Npcap-0.992.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binary", "Binary", "{773F265C-82FC-4E88-AD78-C1A231F55D5D}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Binary\CCase.exe = Auxiliary\Tools\Binary\CCase.exe
+		Auxiliary\Tools\Binary\curl.exe = Auxiliary\Tools\Binary\curl.exe
+		Auxiliary\Tools\Binary\md5.exe = Auxiliary\Tools\Binary\md5.exe
+		Auxiliary\Tools\Binary\sed.exe = Auxiliary\Tools\Binary\sed.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{BF298153-24C0-4A7A-8379-22631340B4B2}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_Routing\Log_Lib = Auxiliary\Tools\Update_Routing\Log_Lib
+		Auxiliary\Tools\Update_Routing\ReadMe.md = Auxiliary\Tools\Update_Routing\ReadMe.md
+		Auxiliary\Tools\Update_Routing\ReadMe.zh-Hans.md = Auxiliary\Tools\Update_Routing\ReadMe.zh-Hans.md
+		Auxiliary\Tools\Update_Routing\ReadMe.zh-Hant.md = Auxiliary\Tools\Update_Routing\ReadMe.zh-Hant.md
+		Auxiliary\Tools\Update_Routing\Update.bat = Auxiliary\Tools\Update_Routing\Update.bat
+		Auxiliary\Tools\Update_Routing\Update_Big5.bat = Auxiliary\Tools\Update_Routing\Update_Big5.bat
+		Auxiliary\Tools\Update_Routing\Update_GB2312.bat = Auxiliary\Tools\Update_Routing\Update_GB2312.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{52A0DBD7-33B6-4A10-8D0F-01800CCFEF7E}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat = Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{AACC750A-9542-4A5A-BD76-07E9E2075E8F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibEvent", "LibEvent", "{9AFCB852-71EF-413E-A6F8-D97A6E28BB63}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibEvent\LibEvent_Core_x64.lib = Dependency\LibEvent\LibEvent_Core_x64.lib
+		Dependency\LibEvent\LibEvent_Core_x86.lib = Dependency\LibEvent\LibEvent_Core_x86.lib
+		Dependency\LibEvent\LibEvent_Extras_x64.lib = Dependency\LibEvent\LibEvent_Extras_x64.lib
+		Dependency\LibEvent\LibEvent_Extras_x86.lib = Dependency\LibEvent\LibEvent_Extras_x86.lib
+		Dependency\LibEvent\LibEvent_x64.lib = Dependency\LibEvent\LibEvent_x64.lib
+		Dependency\LibEvent\LibEvent_x86.lib = Dependency\LibEvent\LibEvent_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{33A8E1BE-984F-48A6-BE7F-43DC7B72D30F}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\LibSodium_x64.lib = Dependency\LibSodium\LibSodium_x64.lib
+		Dependency\LibSodium\LibSodium_x86.lib = Dependency\LibSodium\LibSodium_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npcap", "Npcap", "{377E2FEE-C7F5-431F-B66A-A1237A6EBFDF}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Packet_x64.lib = Dependency\Npcap\Packet_x64.lib
+		Dependency\Npcap\Packet_x86.lib = Dependency\Npcap\Packet_x86.lib
+		Dependency\Npcap\WPCAP_x64.lib = Dependency\Npcap\WPCAP_x64.lib
+		Dependency\Npcap\WPCAP_x86.lib = Dependency\Npcap\WPCAP_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{8C5DABE9-1CC1-4B7F-BD36-054E27FAE7C5}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\Packet32.h = Dependency\Npcap\Include\Packet32.h
+		Dependency\Npcap\Include\pcap-bpf.h = Dependency\Npcap\Include\pcap-bpf.h
+		Dependency\Npcap\Include\pcap-namedb.h = Dependency\Npcap\Include\pcap-namedb.h
+		Dependency\Npcap\Include\pcap-stdinc.h = Dependency\Npcap\Include\pcap-stdinc.h
+		Dependency\Npcap\Include\pcap.h = Dependency\Npcap\Include\pcap.h
+		Dependency\Npcap\Include\remote-ext.h = Dependency\Npcap\Include\remote-ext.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{42C243A7-ACC2-4C51-9862-42E27779F484}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\Npcap\Include\pcap\bluetooth.h = Dependency\Npcap\Include\pcap\bluetooth.h
+		Dependency\Npcap\Include\pcap\bpf.h = Dependency\Npcap\Include\pcap\bpf.h
+		Dependency\Npcap\Include\pcap\can_socketcan.h = Dependency\Npcap\Include\pcap\can_socketcan.h
+		Dependency\Npcap\Include\pcap\dlt.h = Dependency\Npcap\Include\pcap\dlt.h
+		Dependency\Npcap\Include\pcap\export-defs.h = Dependency\Npcap\Include\pcap\export-defs.h
+		Dependency\Npcap\Include\pcap\ipnet.h = Dependency\Npcap\Include\pcap\ipnet.h
+		Dependency\Npcap\Include\pcap\namedb.h = Dependency\Npcap\Include\pcap\namedb.h
+		Dependency\Npcap\Include\pcap\nflog.h = Dependency\Npcap\Include\pcap\nflog.h
+		Dependency\Npcap\Include\pcap\pcap.h = Dependency\Npcap\Include\pcap\pcap.h
+		Dependency\Npcap\Include\pcap\sll.h = Dependency\Npcap\Include\pcap\sll.h
+		Dependency\Npcap\Include\pcap\usb.h = Dependency\Npcap\Include\pcap\usb.h
+		Dependency\Npcap\Include\pcap\vlan.h = Dependency\Npcap\Include\pcap\vlan.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{E03CC523-3272-4EC9-A141-92B2A5EF320A}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibEvent\Include\evdns.h = Dependency\LibEvent\Include\evdns.h
+		Dependency\LibEvent\Include\event.h = Dependency\LibEvent\Include\event.h
+		Dependency\LibEvent\Include\evhttp.h = Dependency\LibEvent\Include\evhttp.h
+		Dependency\LibEvent\Include\evrpc.h = Dependency\LibEvent\Include\evrpc.h
+		Dependency\LibEvent\Include\evutil.h = Dependency\LibEvent\Include\evutil.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "event2", "event2", "{D90E36B8-FB9F-4DD9-87F4-6D665EABECEC}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibEvent\Include\event2\buffer.h = Dependency\LibEvent\Include\event2\buffer.h
+		Dependency\LibEvent\Include\event2\buffer_compat.h = Dependency\LibEvent\Include\event2\buffer_compat.h
+		Dependency\LibEvent\Include\event2\bufferevent.h = Dependency\LibEvent\Include\event2\bufferevent.h
+		Dependency\LibEvent\Include\event2\bufferevent_compat.h = Dependency\LibEvent\Include\event2\bufferevent_compat.h
+		Dependency\LibEvent\Include\event2\bufferevent_ssl.h = Dependency\LibEvent\Include\event2\bufferevent_ssl.h
+		Dependency\LibEvent\Include\event2\bufferevent_struct.h = Dependency\LibEvent\Include\event2\bufferevent_struct.h
+		Dependency\LibEvent\Include\event2\dns.h = Dependency\LibEvent\Include\event2\dns.h
+		Dependency\LibEvent\Include\event2\dns_compat.h = Dependency\LibEvent\Include\event2\dns_compat.h
+		Dependency\LibEvent\Include\event2\dns_struct.h = Dependency\LibEvent\Include\event2\dns_struct.h
+		Dependency\LibEvent\Include\event2\event-config.h = Dependency\LibEvent\Include\event2\event-config.h
+		Dependency\LibEvent\Include\event2\event.h = Dependency\LibEvent\Include\event2\event.h
+		Dependency\LibEvent\Include\event2\event_compat.h = Dependency\LibEvent\Include\event2\event_compat.h
+		Dependency\LibEvent\Include\event2\event_struct.h = Dependency\LibEvent\Include\event2\event_struct.h
+		Dependency\LibEvent\Include\event2\http.h = Dependency\LibEvent\Include\event2\http.h
+		Dependency\LibEvent\Include\event2\http_compat.h = Dependency\LibEvent\Include\event2\http_compat.h
+		Dependency\LibEvent\Include\event2\http_struct.h = Dependency\LibEvent\Include\event2\http_struct.h
+		Dependency\LibEvent\Include\event2\keyvalq_struct.h = Dependency\LibEvent\Include\event2\keyvalq_struct.h
+		Dependency\LibEvent\Include\event2\listener.h = Dependency\LibEvent\Include\event2\listener.h
+		Dependency\LibEvent\Include\event2\rpc.h = Dependency\LibEvent\Include\event2\rpc.h
+		Dependency\LibEvent\Include\event2\rpc_compat.h = Dependency\LibEvent\Include\event2\rpc_compat.h
+		Dependency\LibEvent\Include\event2\rpc_struct.h = Dependency\LibEvent\Include\event2\rpc_struct.h
+		Dependency\LibEvent\Include\event2\tag.h = Dependency\LibEvent\Include\event2\tag.h
+		Dependency\LibEvent\Include\event2\tag_compat.h = Dependency\LibEvent\Include\event2\tag_compat.h
+		Dependency\LibEvent\Include\event2\thread.h = Dependency\LibEvent\Include\event2\thread.h
+		Dependency\LibEvent\Include\event2\util.h = Dependency\LibEvent\Include\event2\util.h
+		Dependency\LibEvent\Include\event2\visibility.h = Dependency\LibEvent\Include\event2\visibility.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{08933636-7234-4C30-97D1-361D8E9FE98E}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\Include\core.h = Dependency\LibSodium\Include\core.h
+		Dependency\LibSodium\Include\crypto_aead_aes256gcm.h = Dependency\LibSodium\Include\crypto_aead_aes256gcm.h
+		Dependency\LibSodium\Include\crypto_aead_chacha20poly1305.h = Dependency\LibSodium\Include\crypto_aead_chacha20poly1305.h
+		Dependency\LibSodium\Include\crypto_aead_xchacha20poly1305.h = Dependency\LibSodium\Include\crypto_aead_xchacha20poly1305.h
+		Dependency\LibSodium\Include\crypto_auth.h = Dependency\LibSodium\Include\crypto_auth.h
+		Dependency\LibSodium\Include\crypto_auth_hmacsha256.h = Dependency\LibSodium\Include\crypto_auth_hmacsha256.h
+		Dependency\LibSodium\Include\crypto_auth_hmacsha512.h = Dependency\LibSodium\Include\crypto_auth_hmacsha512.h
+		Dependency\LibSodium\Include\crypto_auth_hmacsha512256.h = Dependency\LibSodium\Include\crypto_auth_hmacsha512256.h
+		Dependency\LibSodium\Include\crypto_box.h = Dependency\LibSodium\Include\crypto_box.h
+		Dependency\LibSodium\Include\crypto_box_curve25519xchacha20poly1305.h = Dependency\LibSodium\Include\crypto_box_curve25519xchacha20poly1305.h
+		Dependency\LibSodium\Include\crypto_box_curve25519xsalsa20poly1305.h = Dependency\LibSodium\Include\crypto_box_curve25519xsalsa20poly1305.h
+		Dependency\LibSodium\Include\crypto_core_ed25519.h = Dependency\LibSodium\Include\crypto_core_ed25519.h
+		Dependency\LibSodium\Include\crypto_core_hchacha20.h = Dependency\LibSodium\Include\crypto_core_hchacha20.h
+		Dependency\LibSodium\Include\crypto_core_hsalsa20.h = Dependency\LibSodium\Include\crypto_core_hsalsa20.h
+		Dependency\LibSodium\Include\crypto_core_salsa20.h = Dependency\LibSodium\Include\crypto_core_salsa20.h
+		Dependency\LibSodium\Include\crypto_core_salsa2012.h = Dependency\LibSodium\Include\crypto_core_salsa2012.h
+		Dependency\LibSodium\Include\crypto_core_salsa208.h = Dependency\LibSodium\Include\crypto_core_salsa208.h
+		Dependency\LibSodium\Include\crypto_generichash.h = Dependency\LibSodium\Include\crypto_generichash.h
+		Dependency\LibSodium\Include\crypto_generichash_blake2b.h = Dependency\LibSodium\Include\crypto_generichash_blake2b.h
+		Dependency\LibSodium\Include\crypto_hash.h = Dependency\LibSodium\Include\crypto_hash.h
+		Dependency\LibSodium\Include\crypto_hash_sha256.h = Dependency\LibSodium\Include\crypto_hash_sha256.h
+		Dependency\LibSodium\Include\crypto_hash_sha512.h = Dependency\LibSodium\Include\crypto_hash_sha512.h
+		Dependency\LibSodium\Include\crypto_kdf.h = Dependency\LibSodium\Include\crypto_kdf.h
+		Dependency\LibSodium\Include\crypto_kdf_blake2b.h = Dependency\LibSodium\Include\crypto_kdf_blake2b.h
+		Dependency\LibSodium\Include\crypto_kx.h = Dependency\LibSodium\Include\crypto_kx.h
+		Dependency\LibSodium\Include\crypto_onetimeauth.h = Dependency\LibSodium\Include\crypto_onetimeauth.h
+		Dependency\LibSodium\Include\crypto_onetimeauth_poly1305.h = Dependency\LibSodium\Include\crypto_onetimeauth_poly1305.h
+		Dependency\LibSodium\Include\crypto_pwhash.h = Dependency\LibSodium\Include\crypto_pwhash.h
+		Dependency\LibSodium\Include\crypto_pwhash_argon2i.h = Dependency\LibSodium\Include\crypto_pwhash_argon2i.h
+		Dependency\LibSodium\Include\crypto_pwhash_argon2id.h = Dependency\LibSodium\Include\crypto_pwhash_argon2id.h
+		Dependency\LibSodium\Include\crypto_pwhash_scryptsalsa208sha256.h = Dependency\LibSodium\Include\crypto_pwhash_scryptsalsa208sha256.h
+		Dependency\LibSodium\Include\crypto_scalarmult.h = Dependency\LibSodium\Include\crypto_scalarmult.h
+		Dependency\LibSodium\Include\crypto_scalarmult_curve25519.h = Dependency\LibSodium\Include\crypto_scalarmult_curve25519.h
+		Dependency\LibSodium\Include\crypto_scalarmult_ed25519.h = Dependency\LibSodium\Include\crypto_scalarmult_ed25519.h
+		Dependency\LibSodium\Include\crypto_secretbox.h = Dependency\LibSodium\Include\crypto_secretbox.h
+		Dependency\LibSodium\Include\crypto_secretbox_xchacha20poly1305.h = Dependency\LibSodium\Include\crypto_secretbox_xchacha20poly1305.h
+		Dependency\LibSodium\Include\crypto_secretbox_xsalsa20poly1305.h = Dependency\LibSodium\Include\crypto_secretbox_xsalsa20poly1305.h
+		Dependency\LibSodium\Include\crypto_secretstream_xchacha20poly1305.h = Dependency\LibSodium\Include\crypto_secretstream_xchacha20poly1305.h
+		Dependency\LibSodium\Include\crypto_shorthash.h = Dependency\LibSodium\Include\crypto_shorthash.h
+		Dependency\LibSodium\Include\crypto_shorthash_siphash24.h = Dependency\LibSodium\Include\crypto_shorthash_siphash24.h
+		Dependency\LibSodium\Include\crypto_sign.h = Dependency\LibSodium\Include\crypto_sign.h
+		Dependency\LibSodium\Include\crypto_sign_ed25519.h = Dependency\LibSodium\Include\crypto_sign_ed25519.h
+		Dependency\LibSodium\Include\crypto_sign_edwards25519sha512batch.h = Dependency\LibSodium\Include\crypto_sign_edwards25519sha512batch.h
+		Dependency\LibSodium\Include\crypto_stream.h = Dependency\LibSodium\Include\crypto_stream.h
+		Dependency\LibSodium\Include\crypto_stream_chacha20.h = Dependency\LibSodium\Include\crypto_stream_chacha20.h
+		Dependency\LibSodium\Include\crypto_stream_salsa20.h = Dependency\LibSodium\Include\crypto_stream_salsa20.h
+		Dependency\LibSodium\Include\crypto_stream_salsa2012.h = Dependency\LibSodium\Include\crypto_stream_salsa2012.h
+		Dependency\LibSodium\Include\crypto_stream_salsa208.h = Dependency\LibSodium\Include\crypto_stream_salsa208.h
+		Dependency\LibSodium\Include\crypto_stream_xchacha20.h = Dependency\LibSodium\Include\crypto_stream_xchacha20.h
+		Dependency\LibSodium\Include\crypto_stream_xsalsa20.h = Dependency\LibSodium\Include\crypto_stream_xsalsa20.h
+		Dependency\LibSodium\Include\crypto_verify_16.h = Dependency\LibSodium\Include\crypto_verify_16.h
+		Dependency\LibSodium\Include\crypto_verify_32.h = Dependency\LibSodium\Include\crypto_verify_32.h
+		Dependency\LibSodium\Include\crypto_verify_64.h = Dependency\LibSodium\Include\crypto_verify_64.h
+		Dependency\LibSodium\Include\export.h = Dependency\LibSodium\Include\export.h
+		Dependency\LibSodium\Include\randombytes.h = Dependency\LibSodium\Include\randombytes.h
+		Dependency\LibSodium\Include\randombytes_nativeclient.h = Dependency\LibSodium\Include\randombytes_nativeclient.h
+		Dependency\LibSodium\Include\randombytes_salsa20_random.h = Dependency\LibSodium\Include\randombytes_salsa20_random.h
+		Dependency\LibSodium\Include\randombytes_sysrandom.h = Dependency\LibSodium\Include\randombytes_sysrandom.h
+		Dependency\LibSodium\Include\runtime.h = Dependency\LibSodium\Include\runtime.h
+		Dependency\LibSodium\Include\sodium.h = Dependency\LibSodium\Include\sodium.h
+		Dependency\LibSodium\Include\utils.h = Dependency\LibSodium\Include\utils.h
+		Dependency\LibSodium\Include\version.h = Dependency\LibSodium\Include\version.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{4A280CB8-DC87-4FAD-BE0C-4752C79DC69E}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\Include\private\chacha20_ietf_ext.h = Dependency\LibSodium\Include\private\chacha20_ietf_ext.h
+		Dependency\LibSodium\Include\private\common.h = Dependency\LibSodium\Include\private\common.h
+		Dependency\LibSodium\Include\private\ed25519_ref10.h = Dependency\LibSodium\Include\private\ed25519_ref10.h
+		Dependency\LibSodium\Include\private\ed25519_ref10_fe_25_5.h = Dependency\LibSodium\Include\private\ed25519_ref10_fe_25_5.h
+		Dependency\LibSodium\Include\private\ed25519_ref10_fe_51.h = Dependency\LibSodium\Include\private\ed25519_ref10_fe_51.h
+		Dependency\LibSodium\Include\private\implementations.h = Dependency\LibSodium\Include\private\implementations.h
+		Dependency\LibSodium\Include\private\mutex.h = Dependency\LibSodium\Include\private\mutex.h
+		Dependency\LibSodium\Include\private\sse2_64_32.h = Dependency\LibSodium\Include\private\sse2_64_32.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.ActiveCfg = Debug|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.Build.0 = Debug|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.ActiveCfg = Debug|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.Build.0 = Debug|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.ActiveCfg = Release|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.Build.0 = Release|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.ActiveCfg = Release|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9221C40D-99FA-447B-BB53-767F9C6945EB} = {2F2889DE-2C4A-4541-ABB6-0151FF9C8F57}
+		{78DC719C-A780-4923-9BD9-4D7459A5113B} = {2F2889DE-2C4A-4541-ABB6-0151FF9C8F57}
+		{DF5DC787-4096-415B-A89A-5587F59A7F07} = {2F2889DE-2C4A-4541-ABB6-0151FF9C8F57}
+		{AB58BBB1-EA77-4DE8-B59F-87D024F99AB9} = {DF5DC787-4096-415B-A89A-5587F59A7F07}
+		{ACC027A7-5883-4FD5-ADFA-D3FD9D195562} = {DF5DC787-4096-415B-A89A-5587F59A7F07}
+		{E8CDFBA2-D5BF-4DB7-B20E-D26942AEFDA6} = {DF5DC787-4096-415B-A89A-5587F59A7F07}
+		{2D2D5AA0-2B23-4311-89D1-FE7B3E020CC4} = {DF5DC787-4096-415B-A89A-5587F59A7F07}
+		{773F265C-82FC-4E88-AD78-C1A231F55D5D} = {2D2D5AA0-2B23-4311-89D1-FE7B3E020CC4}
+		{BF298153-24C0-4A7A-8379-22631340B4B2} = {2D2D5AA0-2B23-4311-89D1-FE7B3E020CC4}
+		{52A0DBD7-33B6-4A10-8D0F-01800CCFEF7E} = {2D2D5AA0-2B23-4311-89D1-FE7B3E020CC4}
+		{AACC750A-9542-4A5A-BD76-07E9E2075E8F} = {2F2889DE-2C4A-4541-ABB6-0151FF9C8F57}
+		{9AFCB852-71EF-413E-A6F8-D97A6E28BB63} = {AACC750A-9542-4A5A-BD76-07E9E2075E8F}
+		{33A8E1BE-984F-48A6-BE7F-43DC7B72D30F} = {AACC750A-9542-4A5A-BD76-07E9E2075E8F}
+		{377E2FEE-C7F5-431F-B66A-A1237A6EBFDF} = {AACC750A-9542-4A5A-BD76-07E9E2075E8F}
+		{8C5DABE9-1CC1-4B7F-BD36-054E27FAE7C5} = {377E2FEE-C7F5-431F-B66A-A1237A6EBFDF}
+		{42C243A7-ACC2-4C51-9862-42E27779F484} = {8C5DABE9-1CC1-4B7F-BD36-054E27FAE7C5}
+		{E03CC523-3272-4EC9-A141-92B2A5EF320A} = {9AFCB852-71EF-413E-A6F8-D97A6E28BB63}
+		{D90E36B8-FB9F-4DD9-87F4-6D665EABECEC} = {E03CC523-3272-4EC9-A141-92B2A5EF320A}
+		{08933636-7234-4C30-97D1-361D8E9FE98E} = {33A8E1BE-984F-48A6-BE7F-43DC7B72D30F}
+		{4A280CB8-DC87-4FAD-BE0C-4752C79DC69E} = {08933636-7234-4C30-97D1-361D8E9FE98E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1D403CF-FFF8-44B3-9E46-FF704DBA2284}
+	EndGlobalSection
+EndGlobal

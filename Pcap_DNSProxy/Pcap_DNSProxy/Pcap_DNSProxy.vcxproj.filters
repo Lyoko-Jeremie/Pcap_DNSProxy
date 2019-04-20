@@ -64,6 +64,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
     <ClInclude Include="Include\Buffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -129,9 +132,6 @@
     </ClInclude>
     <ClInclude Include="Include\Version.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>资源文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -47,7 +47,7 @@ if !(echo "$*" | grep -iq -e "--disable-tls"); then
 	CMakeShell="${CMakeShell}-DENABLE_TLS=ON "
 fi
 if (echo "$*" | grep -iq -e "--enable-static"); then
-	CMakeShell="${CMakeShell}-DSTATIC_LIB=ON "
+	CMakeShell="${CMakeShell}-DENABLE_STATIC_LIB=ON "
 fi
 CMakeShell="${CMakeShell}../Pcap_DNSProxy"
 ${CMakeShell}

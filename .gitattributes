@@ -5,16 +5,10 @@
 *.rc text eol=crlf
 *.sln text eol=crlf
 *.vcxproj text eol=crlf
-Pcap_DNSProxy/Documents/*.txt text eol=crlf
 
 # Newline format in FreeBSD/Linux/macOS(LF)
-*.pbxproj text eol=lf
 *.plist text eol=lf
 *.service text eol=lf
-*.xcscheme text eol=lf
-*.xcsettings eol=lf
-*.xcworkspacedata eol=lf
+*.sh text eol=lf
 Pcap_DNSProxy/CMakeLists.txt text eol=lf
-Pcap_DNSProxy/Auxiliary/Scripts/* text eol=lf
 Pcap_DNSProxy/Pcap_DNSProxy/CMakeLists.txt text eol=lf
-Pcap_DNSProxy/Pcap_DNSProxy.xcodeproj/* eol=lf

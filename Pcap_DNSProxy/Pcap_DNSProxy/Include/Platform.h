@@ -289,12 +289,12 @@
 #include <unordered_map>           //Unordered_map and unordered_multimap container support
 #include <unordered_set>           //Unordered_set and unordered_multiset container support
 
-//Library header
 #if defined(PLATFORM_WIN)
+//Library header
 //LibEvent
-	#include "../../Dependency/LibEvent/Include_Windows/event2/event.h"
-	#include "../../Dependency/LibEvent/Include_Windows/event2/buffer.h"
-	#include "../../Dependency/LibEvent/Include_Windows/event2/bufferevent.h"
+	#include "../../Dependency/LibEvent/Include/event2/event.h"
+	#include "../../Dependency/LibEvent/Include/event2/buffer.h"
+	#include "../../Dependency/LibEvent/Include/event2/bufferevent.h"
 
 //LibSodium
 #ifndef ENABLE_LIBSODIUM
@@ -304,10 +304,10 @@
 #endif
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#include "../../Dependency/LibSodium/Include_Windows/sodium.h"
+	#include "../../Dependency/LibSodium/Include/sodium.h"
 #endif
 
-//Npcap header
+//Npcap
 #ifndef ENABLE_PCAP
 	#define ENABLE_PCAP
 #ifndef WPCAP
@@ -366,8 +366,8 @@
 	#pragma comment(lib, "../Dependency/LibSodium/LibSodium_x64.lib")
 #endif
 #if defined(ENABLE_PCAP)
-	#pragma comment(lib, "../Dependency/Npcap/WPCAP_x64.lib")
 	#pragma comment(lib, "../Dependency/Npcap/Packet_x64.lib")
+	#pragma comment(lib, "../Dependency/Npcap/WPCAP_x64.lib")
 #endif
 #elif defined(PLATFORM_WIN32)
 	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_Core_x86.lib")
@@ -375,8 +375,8 @@
 	#pragma comment(lib, "../Dependency/LibSodium/LibSodium_x86.lib")
 #endif
 #if defined(ENABLE_PCAP)
-	#pragma comment(lib, "../Dependency/Npcap/WPCAP_x86.lib")
 	#pragma comment(lib, "../Dependency/Npcap/Packet_x86.lib")
+	#pragma comment(lib, "../Dependency/Npcap/WPCAP_x86.lib")
 #endif
 #endif
 
@@ -432,7 +432,6 @@
 #endif
 
 //Library header
-#if (defined(PLATFORM_FREEBSD) || defined(PLATFORM_LINUX))
 //LibEvent
 	#include <event2/event.h>
 	#include <event2/buffer.h>
@@ -440,6 +439,11 @@
 
 //LibSodium
 #if defined(ENABLE_LIBSODIUM)
+#if defined(PLATFORM_MACOS)
+#ifndef SODIUM_STATIC
+	#define SODIUM_STATIC
+#endif
+#endif
 	#include <sodium.h>
 #endif
 
@@ -455,70 +459,6 @@
 	#include <openssl/err.h>
 	#include <openssl/ssl.h>
 	#include <openssl/x509v3.h>
-#endif
-#elif defined(PLATFORM_MACOS)
-//LibEvent
-#if defined(PLATFORM_MACOS_XCODE)
-	#include "../../Dependency/LibEvent/Include_macOS/event2/event.h"
-	#include "../../Dependency/LibEvent/Include_macOS/event2/buffer.h"
-	#include "../../Dependency/LibEvent/Include_macOS/event2/bufferevent.h"
-	#pragma comment(lib, "../../Dependency/LibEvent/LibEvent_Core_macOS.a")
-#else
-	#include <event2/event.h>
-	#include <event2/buffer.h>
-	#include <event2/bufferevent.h>
-#endif
-
-//LibSodium
-#if defined(PLATFORM_MACOS_XCODE)
-#ifndef ENABLE_LIBSODIUM
-	#define ENABLE_LIBSODIUM
-#endif
-#ifndef SODIUM_STATIC
-	#define SODIUM_STATIC
-#endif
-	#include "../../Dependency/LibSodium/Include_macOS/sodium.h"
-	#pragma comment(lib, "../../Dependency/LibSodium/LibSodium_macOS.a")
-#else
-#if defined(ENABLE_LIBSODIUM)
-#ifndef SODIUM_STATIC
-	#define SODIUM_STATIC
-#endif
-	#include <sodium.h>
-#endif
-#endif
-
-//LibPcap
-#if defined(PLATFORM_MACOS_XCODE)
-#ifndef ENABLE_PCAP
-	#define ENABLE_PCAP
-#endif
-#endif
-#if defined(ENABLE_PCAP)
-	#include <pcap/pcap.h>
-#endif
-
-//OpenSSL
-#if defined(PLATFORM_MACOS_XCODE)
-#ifndef ENABLE_TLS
-	#define ENABLE_TLS
-#endif
-	#include "../../Dependency/OpenSSL/Include/openssl/bio.h"
-	#include "../../Dependency/OpenSSL/Include/openssl/conf.h"
-	#include "../../Dependency/OpenSSL/Include/openssl/err.h"
-	#include "../../Dependency/OpenSSL/Include/openssl/ssl.h"
-	#include "../../Dependency/OpenSSL/Include/openssl/x509v3.h"
-	#pragma comment(lib, "../../Dependency/OpenSSL/LibCrypto_macOS.a")
-	#pragma comment(lib, "../../Dependency/OpenSSL/LibSSL_macOS.a")
-#else
-#if defined(ENABLE_TLS)
-	#include <openssl/bio.h>
-	#include <openssl/conf.h>
-	#include <openssl/err.h>
-	#include <openssl/ssl.h>
-	#include <openssl/x509v3.h>
-#endif
-#endif
 #endif
 
 //Conditional define for TCP Fast Open
