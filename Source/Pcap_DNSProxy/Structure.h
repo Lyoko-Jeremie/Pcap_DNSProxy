@@ -2801,7 +2801,7 @@ typedef struct _dns_record_caa_
 #if defined(ENABLE_LIBSODIUM)
 // About DNSCurve standards: 
 // DNSCurve: Usable security for DNS(https://dnscurve.org)
-// DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
+// DNSCrypt, A protocol to improve DNS security(https://dnscrypt.info/protocol)
 #ifndef IPPORT_DNSCURVE
 	#define IPPORT_DNSCURVE                   443U
 #endif
